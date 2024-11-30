@@ -5,6 +5,7 @@ edition = "2021"
 authors = ["ANKDDEV"]
 description = "Lightweight cross-platform CLI tool for working with environment variables"
 readme = "README.md"
+license-file = "LICENSE"
 homepage = "https://github.com/ankddev/envfetch"
 repository = "https://github.com/ankddev/envfetch"
 
