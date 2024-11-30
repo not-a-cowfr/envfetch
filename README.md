@@ -35,6 +35,7 @@ Usage:
 - `KEY` - name of environment variable
 - `VALUE` - value of environment variable
 - `PROCESS` - name of process which you want to run
+
 Options:
 - `--help`/`-h` - show help message
 
@@ -49,6 +50,7 @@ Print all environment variables
 
 Usage:
 `envfetch print`
+
 Options:
 - `--help`/`-h` - show help message
 
@@ -68,6 +70,7 @@ Get value of environment variable
 Usage:
 `envfetch get <KEY>`, where:
 - `KEY` - name of environment variable
+
 Options:
 - `--help`/`-h` - show help message
 - `--no-similar-names`/`-s` - disable showing similar variables if variable not
@@ -85,7 +88,8 @@ Usage:
 `envfetch delete <KEY> <PROCESS>`, where:
 - `KEY` - name of environment variable
 - `PROCESS` - name of command to run
-  Options:
+
+Options:
 - `--help`/`-h` - show help message
 
 For example:
@@ -99,10 +103,11 @@ Load environment variables from dotenv-style file and run process. Note that var
 Usage:
 `envfetch load <PROCESS>`, where:
 - `PROCESS` - name of process which you want to run
-  Options:
+
+Options:
 - `--help`/`-h` - show help message
 - `--file <FILE>`/`-f <FILE>` - relative or absolute path to file to read variables from. Note that it must in .env format.
-  By default, program loads variables from `.env` file in current directory.
+By default, program loads variables from `.env` file in current directory.
 
 For example:
 ```shell
