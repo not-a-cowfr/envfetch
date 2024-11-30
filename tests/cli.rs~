@@ -31,7 +31,6 @@ fn set_command_success() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 /// Test for set command if specified process is not successful
-/// Check if envfetch exits with non-zero exit code
 fn set_command_failure() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin("envfetch")?;
     cmd.arg("set").arg("MY_VARR").arg("Hello");
@@ -156,7 +155,6 @@ fn load_custom_file_exists() -> Result<(), Box<dyn std::error::Error>> {
         .assert()
         .success()
         .stdout(predicate::str::contains("TEST"));
-    // Close file after test
     file.close().unwrap();
     Ok(())
 }
@@ -182,7 +180,6 @@ fn load_custom_file_exists_command_failed() -> Result<(), Box<dyn std::error::Er
         .assert()
         .success()
         .stdout(predicate::str::contains("$MY_ENV_VAR_TEST"));
-    // Close file after test
     file.close().unwrap();
     Ok(())
 }
