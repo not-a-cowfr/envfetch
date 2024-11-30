@@ -15,20 +15,14 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macOS-latest]
-        toolchain:
-          - stable
-          - beta
-          - nightly
 
     steps:
     - uses: actions/checkout@v4
-    - name: Update rust
-      run: rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }}
     - name: Build
       run: cargo build --verbose
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: my-artifact
+        name: envfetch-${{ matrix.os }}
         path: |
           target/debug/envfetch*
