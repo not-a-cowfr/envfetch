@@ -141,7 +141,7 @@ $ cargo run -- <COMMAND> <ARGS>
 - Format and lint code with
 ```shell
 $ cargo fmt
-$ cargo clippy
+$ cargo clippy --fix
 ```
 - Run tests with
 ```shell
