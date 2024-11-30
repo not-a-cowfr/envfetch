@@ -180,7 +180,7 @@ fn load_custom_file_exists_command_failed() -> Result<(), Box<dyn std::error::Er
     #[cfg(not(target_os = "windows"))]
     cmd.arg("(exit 1)")
         .assert()
-        .success();
+        .failure();
     // Close file after test
     file.close().unwrap();
     Ok(())
