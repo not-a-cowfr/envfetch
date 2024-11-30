@@ -178,10 +178,9 @@ fn load_custom_file_exists_command_failed() -> Result<(), Box<dyn std::error::Er
 
     // Linux and macOS
     #[cfg(not(target_os = "windows"))]
-    cmd.arg("echo $MY_ENV_VAR_TEST")
+    cmd.arg("(exit 1)")
         .assert()
-        .success()
-        .stdout(predicate::str::contains("$MY_ENV_VAR_TEST"));
+        .success();
     // Close file after test
     file.close().unwrap();
     Ok(())
