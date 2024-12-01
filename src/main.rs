@@ -169,7 +169,7 @@ fn main() {
             // Check if variable exists
             match env::var(&opt.key) {
                 Ok(_) => unsafe { env::remove_var(&opt.key) },
-                _ => warning("error doesn't exists"),
+                _ => warning("variable doesn't exists"),
             }
             run(opt.process);
         }
@@ -179,7 +179,7 @@ fn main() {
 /// Runs given command using system shell
 fn run(process: String) {
     let result = Exec::shell(process).join().unwrap_or_else(|_| {
-        error("can't' start process");
+        error("can't start process");
         // Exit with non-zero exit code if we can't start process
         process::exit(1);
     });
