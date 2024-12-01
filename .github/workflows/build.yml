@@ -1,13 +1,13 @@
 name: Build
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
     paths-ignore:
-          - '**.md'
+      - "**.md"
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
     paths-ignore:
-          - '**.md'
+      - "**.md"
 
 env:
   CARGO_TERM_COLOR: always
@@ -21,12 +21,27 @@ jobs:
         os: [ubuntu-latest, windows-latest, macOS-latest]
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Build
-      run: cargo build --verbose
-    - name: Upload artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: envfetch-${{ matrix.os }}
-        path: |
-          target/debug/envfetch*
+      - uses: actions/checkout@v4
+      - name: Build
+        run: cargo build --verbose
+      - name: Upload artifacts for Windows
+        if: ${{ matrix.os == windows-latest}}
+        uses: actions/upload-artifact@v4
+        with:
+          name: envfetch-debug-windows
+          path: |
+            target/debug/envfetch.exe
+      - name: Upload artifacts for Linux
+        if: ${{ matrix.os == ubuntu-latest}}
+        uses: actions/upload-artifact@v4
+        with:
+          name: envfetch-debug-linux
+          path: |
+            target/debug/envfetch
+      - name: Upload artifacts for macOS
+        if: ${{ matrix.os == macOS-latest}}
+        uses: actions/upload-artifact@v4
+        with:
+          name: envfetch-debug-macos
+          path: |
+            target/debug/envfetch
