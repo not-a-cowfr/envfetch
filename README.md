@@ -1,5 +1,9 @@
 <h1 align="center">envfetch</h1>
 <h5 align="center">Lightweight cross-platform CLI tool for working with environment variables</h5>
+<div align="center">
+    <a href="https://github.com/ankddev/envfetch/actions/workflows/build.yml"><img src="https://github.com/ankddev/envfetch/actions/workflows/build.yml/badge.svg" alt="Build status"/></a>
+    <a href="https://github.com/ankddev/envfetch/actions/workflows/test.yml"><img src="https://github.com/ankddev/envfetch/actions/workflows/test.yml/badge.svg" alt="Test status"/></a>
+</div>
 
 # Features
 - [x] Print all environment variables
