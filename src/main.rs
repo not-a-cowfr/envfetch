@@ -105,20 +105,19 @@ fn main() {
                     // Check if we need to search for similar environment variables
                     if !opt.no_similar_names {
                         // Check for similar variables, if user made a mistake
-                        let mut similar: bool = false;
-                        for (str, _) in env::vars() {
-                            // We print names only if it's similarity with given string is greater than 60%
-                            if similar_string::compare_similarity(
-                                opt.key.to_lowercase(),
-                                str.to_lowercase(),
-                            ) > 0.6
-                            {
-                                // Print header f it is not printed yet
-                                if !similar {
-                                    eprintln!("Did you mean:");
-                                    similar = true;
-                                }
-                                eprintln!("  {}", &str);
+                        let similar_names = env::vars()
+                            .map(|el| el.0)
+                            .filter(|el| {
+                                similar_string::compare_similarity(
+                                    opt.key.to_lowercase(),
+                                    el.to_lowercase(),
+                                ) > 0.6
+                            })
+                            .collect::<Vec<_>>();
+                        if similar_names.len() > 0 {
+                            eprintln!("Did you mean:");
+                            for name in similar_names {
+                                eprintln!("  {}", &name);
                             }
                         }
                     }
