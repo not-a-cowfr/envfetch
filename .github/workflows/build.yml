@@ -25,21 +25,21 @@ jobs:
       - name: Build
         run: cargo build --verbose
       - name: Upload artifacts for Windows
-        if: ${{ matrix.os == windows-latest}}
+        if: ${{ matrix.os == 'windows-latest'}}
         uses: actions/upload-artifact@v4
         with:
           name: envfetch-debug-windows
           path: |
             target/debug/envfetch.exe
       - name: Upload artifacts for Linux
-        if: ${{ matrix.os == ubuntu-latest}}
+        if: ${{ matrix.os == 'ubuntu-latest'}}
         uses: actions/upload-artifact@v4
         with:
           name: envfetch-debug-linux
           path: |
             target/debug/envfetch
       - name: Upload artifacts for macOS
-        if: ${{ matrix.os == macOS-latest}}
+        if: ${{ matrix.os == 'macOS-latest'}}
         uses: actions/upload-artifact@v4
         with:
           name: envfetch-debug-macos
