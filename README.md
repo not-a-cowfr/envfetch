@@ -94,7 +94,7 @@ Options:
 
 For example:
 ```shell
-envfetch delete MY_VAR "npm run"
+$ envfetch delete MY_VAR "npm run"
 ```
 It will delete variable `MY_VAR` and run `npm run` command.
 #### Load
@@ -111,8 +111,8 @@ By default, program loads variables from `.env` file in current directory.
 
 For example:
 ```shell
-envfetch load "npm run"
-envfetch load "npm run" --file ".env.debug"
+$ envfetch load "npm run"
+$ envfetch load "npm run" --file ".env.debug"
 ```
 It will load variables from `.env` or `.env.debug` and start `npm run`
 # Building from source
