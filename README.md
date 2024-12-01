@@ -16,11 +16,11 @@
 ## Installing
 At this moment you can install envfetch from Cargo:
 ```shell
-cargo install envfetch
+$ cargo install envfetch
 ```
 Also, you can install it from source
 ```shell
-cargo install --git https://github.com/ankddev/envfetch envfetch
+$ cargo install --git https://github.com/ankddev/envfetch envfetch
 ```
 Or, install from [GitHub Actions](https://github.com/ankddev/envfetch/actions/) or [releases](https://github.com/ankddev/envfetch/releases/)
 ## Using
@@ -41,7 +41,7 @@ Options:
 
 For example:
 ```shell
-envfetch set MY_VAR "Hello" "npm run"
+$ envfetch set MY_VAR "Hello" "npm run"
 ```
 It will set environment variable with name `MY_VAR` value "Hello" and start `npm run`
 
