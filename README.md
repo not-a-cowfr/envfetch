@@ -14,7 +14,7 @@
 - [ ] Set and delete multiple variables at once
 # Get started
 ## Installing
-At this moment you can install envfetch from Cargo:
+You can install envfetch from Cargo:
 ```shell
 $ cargo install envfetch
 ```
