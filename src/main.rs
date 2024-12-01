@@ -4,10 +4,13 @@
 //! run processes with specific variable value, or delete specific variable
 //! to run process without it
 
+mod utils;
+
 use clap::{Args, Parser, Subcommand};
 use colored::Colorize;
 use std::{env, fs, process};
-use subprocess::Exec;
+
+use utils::{error, run, warning};
 
 #[derive(Parser)]
 #[command(
@@ -114,7 +117,7 @@ fn main() {
                                 ) > 0.6
                             })
                             .collect::<Vec<_>>();
-                        if similar_names.len() > 0 {
+                        if !similar_names.is_empty() {
                             eprintln!("Did you mean:");
                             for name in similar_names {
                                 eprintln!("  {}", &name);
@@ -174,28 +177,4 @@ fn main() {
             run(opt.process);
         }
     }
-}
-
-/// Runs given command using system shell
-fn run(process: String) {
-    let result = Exec::shell(process).join().unwrap_or_else(|_| {
-        error("can't start process");
-        // Exit with non-zero exit code if we can't start process
-        process::exit(1);
-    });
-
-    // Exit with non-zero exit code if process did not successful
-    if !result.success() {
-        process::exit(1);
-    }
-}
-
-/// Print info about error
-fn error(text: &str) {
-    eprintln!("{} {}", "error:".red(), text);
-}
-
-/// Print info about warning
-fn warning(text: &str) {
-    eprintln!("{} {}", "warning:".yellow(), text);
 }
