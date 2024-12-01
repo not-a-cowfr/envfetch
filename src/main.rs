@@ -106,11 +106,11 @@ fn main() {
                     if !opt.no_similar_names {
                         // Check for similar variables, if user made a mistake
                         let mut similar: bool = false;
-                        for (str, _) in env::vars().into_iter() {
+                        for (str, _) in env::vars() {
                             // We print names only if it's similarity with given string is greater than 60%
                             if similar_string::compare_similarity(
-                                &opt.key.to_lowercase(),
-                                &str.to_lowercase(),
+                                opt.key.to_lowercase(),
+                                str.to_lowercase(),
                             ) > 0.6
                             {
                                 // Print header f it is not printed yet
@@ -129,7 +129,7 @@ fn main() {
         // Print command handler
         Commands::Print => {
             // Print all environment variables
-            for (key, value) in env::vars().into_iter() {
+            for (key, value) in env::vars() {
                 println!("{} = {:?}", &key.blue(), &value);
             }
         }
