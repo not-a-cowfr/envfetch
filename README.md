@@ -29,7 +29,7 @@ Also, you can install it from source
 ```shell
 $ cargo install --git https://github.com/ankddev/envfetch envfetch
 ```
-Or, install from [GitHub Actions](https://github.com/ankddev/envfetch/actions/) or [releases](https://github.com/ankddev/envfetch/releases/)
+Or, get binary from [GitHub Actions](https://github.com/ankddev/envfetch/actions/) or [releases](https://github.com/ankddev/envfetch/releases/)
 ## Using
 To run envfetch, run `envfetch <COMMAND> <ARGS>` in your terminal.
 You can run `envfetch help` to see help message or `envfetch --version` to see program's version.
