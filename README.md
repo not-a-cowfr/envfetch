@@ -35,7 +35,9 @@ To run envfetch, run `envfetch <COMMAND> <ARGS>` in your terminal.
 You can run `envfetch help` to see help message or `envfetch --version` to see program's version.
 ### Command list
 #### Set
-Set environment variable and run process. Note that variable sets only for one run
+Set environment variable and run process.
+> [!NOTE]
+> Now variable sets only for one run
 
 Usage:
 `envfetch set <KEY> <VALUE> <PROCESS>`, where:
@@ -89,7 +91,9 @@ $ envfetch get MY_VAR
 ```
 It will print value of specified variable.
 #### Delete
-Delete variable and start process. Note that variable deletes only for one run
+Delete variable and start process.
+> [!NOTE]
+> Now variable deletes only for one run
 
 Usage:
 `envfetch delete <KEY> <PROCESS>`, where:
@@ -105,7 +109,9 @@ $ envfetch delete MY_VAR "npm run"
 ```
 It will delete variable `MY_VAR` and run `npm run` command.
 #### Load
-Load environment variables from dotenv-style file and run process. Note that variables sets only for one run
+Load environment variables from dotenv-style file and run process.
+> [!NOTE]
+> Now variables set only for one run
 
 Usage:
 `envfetch load <PROCESS>`, where:
