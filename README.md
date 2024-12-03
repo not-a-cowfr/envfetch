@@ -21,15 +21,15 @@
 - [ ] Set and delete multiple variables at once
 # Get started
 ## Installing
-You can install envfetch from Cargo:
+You can install envfetch from Cargo (needs Rust installed):
 ```shell
 $ cargo install envfetch
 ```
-Also, you can install it from source
+Also, you can install it from source (needs Rust installed):
 ```shell
 $ cargo install --git https://github.com/ankddev/envfetch envfetch
 ```
-Or, get binary from [GitHub Actions](https://github.com/ankddev/envfetch/actions/) or [releases](https://github.com/ankddev/envfetch/releases/)
+Or, get binary from [GitHub Actions (needs GutHub account)](https://github.com/ankddev/envfetch/actions/) or [releases](https://github.com/ankddev/envfetch/releases/)
 ## Using
 To run envfetch, run `envfetch <COMMAND> <ARGS>` in your terminal.
 You can run `envfetch help` to see help message or `envfetch --version` to see program's version.
