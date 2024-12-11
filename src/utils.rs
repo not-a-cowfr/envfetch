@@ -3,9 +3,9 @@ use std::process;
 use subprocess::Exec;
 
 /// Runs given command using system shell
-pub fn run(process: String) {
+pub fn run(process: String, exit_on_error: bool) {
     let result = Exec::shell(process).join().unwrap_or_else(|_| {
-        error("can't start process");
+        error("can't start process", exit_on_error);
         // Exit with non-zero exit code if we can't start process
         process::exit(1);
     });
@@ -17,8 +17,11 @@ pub fn run(process: String) {
 }
 
 /// Print info about error
-pub fn error(text: &str) {
+pub fn error(text: &str, exit_on_error: bool) {
     eprintln!("{} {}", "error:".red(), text);
+    if exit_on_error {
+        process::exit(1);
+    }
 }
 
 /// Print info about warning

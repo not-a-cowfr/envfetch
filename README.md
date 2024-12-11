@@ -36,6 +36,9 @@ Or, get binary from [GitHub Actions (needs GutHub account)](https://github.com/a
 ## Using
 To run envfetch, run `envfetch <COMMAND> <ARGS>` in your terminal.
 You can run `envfetch help` to see help message or `envfetch --version` to see program's version.
+### Global flags
+- `--exit-on-error`/`-e` - exit on any error
+
 ### Command list
 #### Set
 Set environment variable and run process.

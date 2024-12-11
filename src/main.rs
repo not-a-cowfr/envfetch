@@ -27,6 +27,10 @@ use utils::{error, run, warning};
 struct Cli {
     #[command(subcommand)]
     command: Commands,
+
+    /// Exit on any error
+    #[arg(long, short = 'e', global = true)]
+    exit_on_error: bool,
 }
 
 /// All tool's commands
@@ -104,7 +108,10 @@ fn main() {
                 Ok(value) => println!("{:?}", &value),
                 // If variable not found
                 _ => {
-                    error(format!("can't find '{}'", &opt.key).as_str());
+                    error(
+                        format!("can't find '{}'", &opt.key).as_str(),
+                        cli.exit_on_error,
+                    );
                     // Check if we need to search for similar environment variables
                     if !opt.no_similar_names {
                         // Check for similar variables, if user made a mistake
@@ -146,18 +153,18 @@ fn main() {
                             for (key, value) in variables.into_iter() {
                                 unsafe { env::set_var(key, value) };
                             }
-                            run(opt.process);
+                            run(opt.process, cli.exit_on_error);
                         }
                         Err(err) => {
-                            error(err.to_string().as_str());
-                            run(opt.process);
+                            error(err.to_string().as_str(), cli.exit_on_error);
+                            run(opt.process, cli.exit_on_error);
                             process::exit(1);
                         }
                     }
                 }
                 Err(err) => {
-                    error(err.to_string().as_str());
-                    run(opt.process);
+                    error(err.to_string().as_str(), cli.exit_on_error);
+                    run(opt.process, cli.exit_on_error);
                     process::exit(1);
                 }
             }
@@ -165,7 +172,7 @@ fn main() {
         // Set command handler
         Commands::Set(opt) => {
             unsafe { env::set_var(opt.key, opt.value) };
-            run(opt.process);
+            run(opt.process, cli.exit_on_error);
         }
         // Delete command handler
         Commands::Delete(opt) => {
@@ -174,7 +181,7 @@ fn main() {
                 Ok(_) => unsafe { env::remove_var(&opt.key) },
                 _ => warning("variable doesn't exists"),
             }
-            run(opt.process);
+            run(opt.process, cli.exit_on_error);
         }
     }
 }
