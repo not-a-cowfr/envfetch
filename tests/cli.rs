@@ -210,17 +210,25 @@ fn set_command_global() -> Result<(), Box<dyn std::error::Error>> {
         .arg("--global");
     cmd.assert().success();
 
-    // Verify using a new shell instance
+    // Verify using shell commands
     #[cfg(target_os = "windows")]
     {
         let output = std::process::Command::new("cmd")
             .args(&["/C", "reg", "query", "HKCU\\Environment", "/v", var_name])
             .output()?;
-        let stdout = String::from_utf8_lossy(&output.stdout);
-        assert!(stdout.contains(var_value));
+        assert!(String::from_utf8_lossy(&output.stdout).contains(var_value));
     }
 
-    #[cfg(not(target_os = "windows"))]
+    #[cfg(target_os = "macos")]
+    {
+        let output = std::process::Command::new("zsh")
+            .args(&["-c", &format!("source ~/.zshrc 2>/dev/null || source ~/.bashrc 2>/dev/null; echo ${}", var_name)])
+            .output()?;
+        assert!(String::from_utf8_lossy(&output.stdout).contains(var_value),
+            "Variable not found in shell output: {}", String::from_utf8_lossy(&output.stdout));
+    }
+
+    #[cfg(all(not(target_os = "windows"), not(target_os = "macos")))]
     {
         let output = std::process::Command::new("bash")
             .args(&["-c", &format!("source ~/.bashrc && echo ${}", var_name)])
@@ -358,14 +366,25 @@ fn load_command_global() -> Result<(), Box<dyn std::error::Error>> {
         assert!(String::from_utf8_lossy(&output2.stdout).contains("Hello"));
     }
 
-    #[cfg(not(target_os = "windows"))]
+    #[cfg(target_os = "macos")]
     {
-        let output = std::process::Command::new("sh")
-            .args(&["-c", "echo $GLOBAL_TEST_VAR $GLOBAL_TEST_VAR2"])
+        // On macOS, we need to source both potential config files
+        let output = std::process::Command::new("zsh")
+            .args(&["-c", "source ~/.zshrc 2>/dev/null || source ~/.bashrc 2>/dev/null; echo $GLOBAL_TEST_VAR $GLOBAL_TEST_VAR2"])
             .output()?;
         let stdout = String::from_utf8_lossy(&output.stdout);
-        assert!(stdout.contains("GlobalTest"));
-        assert!(stdout.contains("Hello"));
+        assert!(stdout.contains("GlobalTest") && stdout.contains("Hello"),
+            "Variables not found in shell output: {}", stdout);
+    }
+
+    #[cfg(all(not(target_os = "windows"), not(target_os = "macos")))]
+    {
+        let output = std::process::Command::new("bash")
+            .args(&["-c", "source ~/.bashrc && echo $GLOBAL_TEST_VAR $GLOBAL_TEST_VAR2"])
+            .output()?;
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        assert!(stdout.contains("GlobalTest") && stdout.contains("Hello"),
+            "Variables not found in shell output: {}", stdout);
     }
 
     // Clean up
