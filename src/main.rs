@@ -63,9 +63,12 @@ pub struct GetArgs {
 
 #[derive(Args, Debug)]
 pub struct LoadArgs {
-    /// Process to start
-    #[arg(required = true)]
-    process: String,
+    /// Globally set variable
+    #[arg(required = false, long, short)]
+    global: bool,
+    /// Process to start, not required if --global flag is set
+    #[arg(required_unless_present = "global")]
+    process: Option<String>,
     /// Relative or absolute path to file to read variables from.
     /// Note that it must in .env format
     #[arg(long, short, default_value = ".env")]
@@ -81,9 +84,12 @@ pub struct SetArgs {
     /// Value for environment variable
     #[arg(required = true)]
     value: String,
-    /// Process to start
-    #[arg(required = true)]
-    process: String,
+    /// Globally set variable
+    #[arg(required = false, long, short)]
+    global: bool,
+    /// Process to start, not required if --global flag is set
+    #[arg(required_unless_present = "global")]
+    process: Option<String>,
 }
 
 /// Args for delete command
@@ -92,9 +98,19 @@ pub struct DeleteArgs {
     /// Environment variable name
     #[arg(required = true)]
     key: String,
-    /// Process to start
-    #[arg(required = true)]
-    process: String,
+    /// Globally set variable
+    #[arg(required = false, long, short)]
+    global: bool,
+    /// Process to start, not required if --global flag is set
+    #[arg(required_unless_present = "global")]
+    process: Option<String>,
+}
+
+fn validate_var_name(name: &str) -> Result<(), String> {
+    if name.contains(' ') {
+        return Err("Variable name cannot contain spaces".into());
+    }
+    Ok(())
 }
 
 fn main() {
@@ -151,37 +167,73 @@ fn main() {
                     match dotenv_parser::parse_dotenv(&content) {
                         Ok(variables) => {
                             for (key, value) in variables.into_iter() {
-                                unsafe { env::set_var(key, value) };
+                                if opt.global {
+                                    if let Err(err) = globalenv::set_var(&key, &value) {
+                                        error(&format!("can't globally set variables: {}", err), cli.exit_on_error);
+                                    }
+                                } else {
+                                    unsafe { env::set_var(key, value) };
+                                }
                             }
-                            run(opt.process, cli.exit_on_error);
+                            if let Some(process) = opt.process {
+                                run(process, cli.exit_on_error);
+                            }
                         }
                         Err(err) => {
                             error(err.to_string().as_str(), cli.exit_on_error);
-                            run(opt.process, cli.exit_on_error);
+                            if let Some(process) = opt.process {
+                                run(process, cli.exit_on_error);
+                            }
                             process::exit(1);
                         }
                     }
                 }
                 Err(err) => {
                     error(err.to_string().as_str(), cli.exit_on_error);
-                    run(opt.process, cli.exit_on_error);
+                    if let Some(process) = opt.process {
+                        run(process, cli.exit_on_error);
+                    }
                     process::exit(1);
                 }
             }
         }
         // Set command handler
         Commands::Set(opt) => {
-            unsafe { env::set_var(opt.key, opt.value) };
-            run(opt.process, cli.exit_on_error);
+            if let Err(err) = validate_var_name(&opt.key) {
+                error(&err, cli.exit_on_error);
+                process::exit(1);
+            }
+
+            if opt.global {
+                if let Err(err) = globalenv::set_var(&opt.key, &opt.value) {
+                    error(&format!("can't globally set variable: {}", err), cli.exit_on_error);
+                    process::exit(1);
+                }
+            } else {
+                unsafe { env::set_var(opt.key, opt.value) };
+            }
+            if let Some(process) = opt.process {
+                run(process, cli.exit_on_error);
+            }
         }
         // Delete command handler
         Commands::Delete(opt) => {
             // Check if variable exists
             match env::var(&opt.key) {
-                Ok(_) => unsafe { env::remove_var(&opt.key) },
+                Ok(_) => {
+                    if opt.global {
+                        if let Err(err) = globalenv::unset_var(&opt.key) {
+                            error(&format!("can't globally delete variable: {}", err), cli.exit_on_error);
+                        }
+                    } else {
+                        unsafe { env::remove_var(&opt.key) }
+                    }
+                },
                 _ => warning("variable doesn't exists"),
             }
-            run(opt.process, cli.exit_on_error);
+            if let Some(process) = opt.process {
+                run(process, cli.exit_on_error);
+            }
         }
     }
 }

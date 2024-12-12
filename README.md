@@ -15,12 +15,9 @@
 - [x] Print all environment variables
 - [x] Get value of variable by name
     - [x] Show similar variables if variable not found
-- [x] Set variable
-- [x] Delete variable
-- [x] Load variables from dotenv-style file
-- [ ] Globally set variables
-- [ ] Globally delete variables
-- [ ] Globally load variables from dotenv-style file
+- [x] Set variable (temporary and permanent)
+- [x] Delete variable (temporary and permanent)
+- [x] Load variables from dotenv-style file (temporary and permanent)
 - [ ] Set and delete multiple variables at once
 # Get started
 ## Installing
@@ -42,11 +39,9 @@ You can run `envfetch help` to see help message or `envfetch --version` to see p
 ### Command list
 #### Set
 Set environment variable and run process.
-> [!NOTE]
-> Now variable sets only for one run
 
 Usage:
-`envfetch set <KEY> <VALUE> <PROCESS>`, where:
+`envfetch set <KEY> <VALUE> [PROCESS]`, where:
 - `KEY` - name of environment variable
 - `VALUE` - value of environment variable
 - `PROCESS` - name of process which you want to run

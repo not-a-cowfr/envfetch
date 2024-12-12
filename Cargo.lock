@@ -270,6 +270,7 @@ dependencies = [
  "clap",
  "colored",
  "dotenv-parser",
+ "globalenv",
  "predicates",
  "similar-string",
  "subprocess",
@@ -308,6 +309,15 @@ checksum = "85649ca51fd72272d7821adaf274ad91c288277713d9c18820d8499a7ff69e9a"
 dependencies = [
  "typenum",
  "version_check",
+]
+
+[[package]]
+name = "globalenv"
+version = "0.4.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "abea9ab8146b9eb3156387f938968e435f38c71414d96677e59b33771cee77b9"
+dependencies = [
+ "winreg",
 ]
 
 [[package]]
@@ -887,3 +897,12 @@ name = "windows_x86_64_msvc"
 version = "0.52.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "589f6da84c646204747d1270a2a5661ea66ed1cced2631d546fdfb155959f9ec"
+
+[[package]]
+name = "winreg"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0120db82e8a1e0b9fb3345a539c478767c0048d842860994d96113d5b667bd69"
+dependencies = [
+ "winapi",
+]
