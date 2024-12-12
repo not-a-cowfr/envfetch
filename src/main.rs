@@ -169,7 +169,13 @@ fn main() {
                             for (key, value) in variables.into_iter() {
                                 if opt.global {
                                     if let Err(err) = globalenv::set_var(&key, &value) {
-                                        error(&format!("can't globally set variables: {}", err), cli.exit_on_error);
+                                        error(
+                                            &format!(
+                                                "can't globally set variables: {} (do you have the required permissions?)",
+                                                err
+                                            ),
+                                            cli.exit_on_error
+                                        );
                                     }
                                 } else {
                                     unsafe { env::set_var(key, value) };
@@ -229,7 +235,13 @@ fn main() {
                 Ok(_) => {
                     if opt.global {
                         if let Err(err) = globalenv::unset_var(&opt.key) {
-                            error(&format!("can't globally delete variable: {}", err), cli.exit_on_error);
+                            error(
+                                &format!(
+                                    "can't globally delete variable: {} (do you have the required permissions?)",
+                                    err
+                                ),
+                                cli.exit_on_error
+                            );
                         }
                     } else {
                         unsafe { env::remove_var(&opt.key) }
