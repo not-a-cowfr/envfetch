@@ -206,7 +206,13 @@ fn main() {
 
             if opt.global {
                 if let Err(err) = globalenv::set_var(&opt.key, &opt.value) {
-                    error(&format!("can't globally set variable: {}", err), cli.exit_on_error);
+                    error(
+                        &format!(
+                            "can't globally set variable: {} (do you have the required permissions?)",
+                            err
+                        ),
+                        cli.exit_on_error,
+                    );
                     process::exit(1);
                 }
             } else {
