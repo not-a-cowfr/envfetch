@@ -44,16 +44,19 @@ Usage:
 `envfetch set <KEY> <VALUE> [PROCESS]`, where:
 - `KEY` - name of environment variable
 - `VALUE` - value of environment variable
-- `PROCESS` - name of process which you want to run
+- `PROCESS` - name of process which you want to run (optional if --global is used)
 
 Options:
 - `--help`/`-h` - show help message
+- `--global`/`-g` - set variable permanently in system environment
+  - On Windows: stores in registry
+  - On Unix: stores in shell config (.bashrc, .zshrc, or config.fish)
 
 For example:
 ```shell
-$ envfetch set MY_VAR "Hello" "npm run"
+$ envfetch set MY_VAR "Hello" "npm run"  # temporary for process
+$ envfetch set MY_VAR "Hello" --global   # permanent system-wide
 ```
-It will set environment variable with name `MY_VAR` value "Hello" and start `npm run`
 
 #### Print
 Print all environment variables
@@ -93,42 +96,48 @@ $ envfetch get MY_VAR
 It will print value of specified variable.
 #### Delete
 Delete variable and start process.
-> [!NOTE]
-> Now variable deletes only for one run
 
 Usage:
-`envfetch delete <KEY> <PROCESS>`, where:
+`envfetch delete <KEY> [PROCESS]`, where:
 - `KEY` - name of environment variable
-- `PROCESS` - name of command to run
+- `PROCESS` - name of command to run (optional if --global is used)
 
 Options:
 - `--help`/`-h` - show help message
+- `--global`/`-g` - delete variable permanently from system environment
 
 For example:
 ```shell
-$ envfetch delete MY_VAR "npm run"
+$ envfetch delete MY_VAR "npm run"  # temporary for process
+$ envfetch delete MY_VAR --global   # permanent system-wide
 ```
-It will delete variable `MY_VAR` and run `npm run` command.
+
 #### Load
 Load environment variables from dotenv-style file and run process.
-> [!NOTE]
-> Now variables set only for one run
 
 Usage:
-`envfetch load <PROCESS>`, where:
-- `PROCESS` - name of process which you want to run
+`envfetch load [PROCESS]`, where:
+- `PROCESS` - name of process which you want to run (optional if --global is used)
 
 Options:
 - `--help`/`-h` - show help message
-- `--file <FILE>`/`-f <FILE>` - relative or absolute path to file to read variables from. Note that it must in .env format.
+- `--file <FILE>`/`-f <FILE>` - relative or absolute path to file to read variables from. Note that it must be in .env format.
 By default, program loads variables from `.env` file in current directory.
+- `--global`/`-g` - load variables permanently into system environment
 
 For example:
 ```shell
-$ envfetch load "npm run"
-$ envfetch load "npm run" --file ".env.debug"
+$ envfetch load "npm run"                    # temporary for process
+$ envfetch load --global                     # permanent system-wide
+$ envfetch load --global --file .env.prod    # permanent from specific file
 ```
-It will load variables from `.env` or `.env.debug` and start `npm run`
+
+> [!NOTE]
+> When using `--global` flag:
+> - On Windows, variables are stored in the registry under HKEY_CURRENT_USER\Environment
+> - On Unix-like systems, variables are stored in shell configuration files (.bashrc, .zshrc, or config.fish)
+> 
+> Without `--global` flag, variables are only set for the current process run
 # Building from source
 - Install Rust. If it already installed, update with
 ```shell
