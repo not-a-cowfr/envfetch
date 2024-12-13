@@ -156,6 +156,12 @@ $ cd envfetch
 ```shell
 $ cargo run -- <COMMAND> <ARGS>
 ```
+# See Also
+
+- [codewars-api-rs](https://github.com/ankddev/codewars-api-rs) - Rust library for Codewars API
+- [conemu-progressbar-go](https://github.com/ankddev/conemu-progressbar-go) - Progress bar for ConEmu for Go
+- [terminal-go](https://github.com/ankddev/terminal-go) - Go library for working with ANSI/VT terminal sequences
+- [zapret-discord-youtube](https://github.com/ankddev/zapret-discord-youtube) - Zapret build for Windows for fixing Discord and YouTube in Russia or othher services
 # Contributing
 - Read [section above to build envfetch from source](#building-from-source)
 - Create new branch
