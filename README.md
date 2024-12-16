@@ -21,6 +21,12 @@
 - [ ] Set and delete multiple variables at once
 # Get started
 ## Installing
+### Arch Linux
+[envfetch](https://aur.archlinux.org/packages/envfetch) is available as a package in the [AUR](https://aur.archlinux.org). You can install it with an [AUR helper](https://wiki.archlinux.org/title/AUR_helpers) (e.g. `paru`):
+```shell
+$ paru -S envfetch
+```
+### Other platforms
 You can install envfetch from Cargo (needs Rust installed):
 ```shell
 $ cargo install envfetch
