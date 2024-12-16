@@ -6,14 +6,6 @@ use predicates::prelude::*;
 use std::env;
 use std::process::Command;
 
-/// Helper function to check if we're running in a restricted environment
-fn is_restricted_env() -> bool {
-    // Check if we're running in GitHub Actions
-    env::var("GITHUB_ACTIONS").is_ok() ||
-    // Check if we're running in other CI environments
-    env::var("CI").is_ok()
-}
-
 #[test]
 /// Test for set command if specified process is successful
 /// Check if variable is set and envfetch exits with 0
@@ -207,11 +199,6 @@ fn load_custom_file_doesnt_exists() -> Result<(), Box<dyn std::error::Error>> {
 #[test]
 /// Test for set command with global flag
 fn set_command_global() -> Result<(), Box<dyn std::error::Error>> {
-    if is_restricted_env() {
-        // Skip test in restricted environments
-        return Ok(());
-    }
-
     let var_name = "GLOBAL_SET_TEST";
     let var_value = "GlobalValue";
 
@@ -260,11 +247,6 @@ fn set_command_global() -> Result<(), Box<dyn std::error::Error>> {
 #[test]
 /// Test for delete command with global flag
 fn delete_command_global() -> Result<(), Box<dyn std::error::Error>> {
-    if is_restricted_env() {
-        // Skip test in restricted environments
-        return Ok(());
-    }
-
     let var_name = "GLOBAL_DELETE_TEST";
     let var_value = "ToBeDeleted";
 
@@ -356,11 +338,6 @@ fn delete_command_global() -> Result<(), Box<dyn std::error::Error>> {
 #[test]
 /// Test for load command with global flag
 fn load_command_global() -> Result<(), Box<dyn std::error::Error>> {
-    if is_restricted_env() {
-        // Skip test in restricted environments
-        return Ok(());
-    }
-
     // Create a temporary .env file
     let file = assert_fs::NamedTempFile::new(".env.global.test")?;
     file.write_str("GLOBAL_TEST_VAR='GlobalTest'\nGLOBAL_TEST_VAR2='Hello'")?;
@@ -440,11 +417,6 @@ fn load_command_global_invalid_file() -> Result<(), Box<dyn std::error::Error>> 
 #[test]
 /// Test for set command with global flag and invalid variable name
 fn set_command_global_invalid_name() -> Result<(), Box<dyn std::error::Error>> {
-    if is_restricted_env() {
-        // Skip test in restricted environments
-        return Ok(());
-    }
-
     let mut cmd = Command::cargo_bin("envfetch")?;
     cmd.arg("set")
         .arg("INVALID NAME")
