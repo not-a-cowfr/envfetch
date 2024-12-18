@@ -195,3 +195,5 @@ fn load_custom_file_doesnt_exists() -> Result<(), Box<dyn std::error::Error>> {
     cmd.arg("echo $MY_VARIABLE").assert().failure();
     Ok(())
 }
+
+// TODO: add tests for commands with --global flag
