@@ -223,8 +223,7 @@ fn set_global() -> Result<(), Box<dyn std::error::Error>> {
     {
         let output = std::process::Command::new(format!("echo ${}", var_name))
             .output()?;
-        assert!(String::from_utf8_lossy(&output.stdout).contains(var_value),
-            "Variable not found in shell output: {}", String::from_utf8_lossy(&output.stdout));
+        assert!(String::from_utf8_lossy(&output.stdout).contains(var_value));
     }
 
     // Clean up
@@ -242,7 +241,12 @@ fn delete_global() -> Result<(), Box<dyn std::error::Error>> {
     let var_value = "ToBeDeleted";
 
     // First set the variable
-    globalenv::set_env(var_name, var_value);
+    let mut cmd = Command::cargo_bin("envfetch")?;
+    cmd.arg("set")
+        .arg(var_name)
+        .arg(var_value)
+        .arg("--global");
+    cmd.assert().success();
 
     // Verify it was set
     #[cfg(target_os = "windows")]
@@ -313,9 +317,10 @@ fn delete_global() -> Result<(), Box<dyn std::error::Error>> {
     #[cfg(not(target_os = "windows"))]
     {
         let output = std::process::Command::new("sh")
-            .args(&["-c", &format!("echo ${}", var_name)])
+            .args(&["-c", &format!("printenv {}", var_name)])
             .output()?;
-        assert!(String::from_utf8_lossy(&output.stdout).trim().is_empty());
+        assert!(!output.status.success(), 
+            "Variable should not exist after deletion");
     }
 
     Ok(())
@@ -352,13 +357,17 @@ fn load_global() -> Result<(), Box<dyn std::error::Error>> {
         assert!(String::from_utf8_lossy(&output2.stdout).contains("Hello"));
     }
 
-    #[cfg(target_os = "macos")]
+    #[cfg(not(target_os = "windows"))]
     {
-        let output = std::process::Command::new(format!("echo ${}", var_name))
+        let output1 = std::process::Command::new("sh")
+            .args(&["-c", "echo $GLOBAL_TEST_VAR"])
             .output()?;
-        let stdout = String::from_utf8_lossy(&output.stdout);
-        assert!(stdout.contains("GlobalTest") && stdout.contains("Hello"),
-            "Variables not found in shell output: {}", stdout);
+        assert!(String::from_utf8_lossy(&output1.stdout).contains("GlobalTest"));
+
+        let output2 = std::process::Command::new("sh")
+            .args(&["-c", "echo $GLOBAL_TEST_VAR2"])
+            .output()?;
+        assert!(String::from_utf8_lossy(&output2.stdout).contains("Hello"));
     }
 
     // Clean up

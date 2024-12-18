@@ -30,5 +30,3 @@ assert_cmd = "2.0.16"
 predicates = "3.1.2"
 # Asserting file system
 assert_fs = "1.1.2"
-# Globally setting variables
-globalenv = "0.4.2"
