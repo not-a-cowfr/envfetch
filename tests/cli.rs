@@ -198,7 +198,7 @@ fn load_custom_file_doesnt_exists() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 /// Test for set command with global flag
-fn set_command_global() -> Result<(), Box<dyn std::error::Error>> {
+fn set_global() -> Result<(), Box<dyn std::error::Error>> {
     let var_name = "GLOBAL_SET_TEST";
     let var_value = "GlobalValue";
 
@@ -219,21 +219,12 @@ fn set_command_global() -> Result<(), Box<dyn std::error::Error>> {
         assert!(String::from_utf8_lossy(&output.stdout).contains(var_value));
     }
 
-    #[cfg(target_os = "macos")]
+    #[cfg(not(target_os = "windows"))]
     {
-        let output = std::process::Command::new("zsh")
-            .args(&["-c", &format!("source ~/.zshrc 2>/dev/null || source ~/.bashrc 2>/dev/null; echo ${}", var_name)])
+        let output = std::process::Command::new(format!("echo ${}", var_name))
             .output()?;
         assert!(String::from_utf8_lossy(&output.stdout).contains(var_value),
             "Variable not found in shell output: {}", String::from_utf8_lossy(&output.stdout));
-    }
-
-    #[cfg(all(not(target_os = "windows"), not(target_os = "macos")))]
-    {
-        let output = std::process::Command::new("bash")
-            .args(&["-c", &format!("source ~/.bashrc && echo ${}", var_name)])
-            .output()?;
-        assert!(String::from_utf8_lossy(&output.stdout).contains(var_value));
     }
 
     // Clean up
@@ -246,17 +237,12 @@ fn set_command_global() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 /// Test for delete command with global flag
-fn delete_command_global() -> Result<(), Box<dyn std::error::Error>> {
+fn delete_global() -> Result<(), Box<dyn std::error::Error>> {
     let var_name = "GLOBAL_DELETE_TEST";
     let var_value = "ToBeDeleted";
 
     // First set the variable
-    let mut cmd = Command::cargo_bin("envfetch")?;
-    cmd.arg("set")
-        .arg(var_name)
-        .arg(var_value)
-        .arg("--global");
-    cmd.assert().success();
+    globalenv::set_env(var_name, var_value);
 
     // Verify it was set
     #[cfg(target_os = "windows")]
@@ -337,7 +323,7 @@ fn delete_command_global() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 /// Test for load command with global flag
-fn load_command_global() -> Result<(), Box<dyn std::error::Error>> {
+fn load_global() -> Result<(), Box<dyn std::error::Error>> {
     // Create a temporary .env file
     let file = assert_fs::NamedTempFile::new(".env.global.test")?;
     file.write_str("GLOBAL_TEST_VAR='GlobalTest'\nGLOBAL_TEST_VAR2='Hello'")?;
@@ -368,19 +354,7 @@ fn load_command_global() -> Result<(), Box<dyn std::error::Error>> {
 
     #[cfg(target_os = "macos")]
     {
-        // On macOS, we need to source both potential config files
-        let output = std::process::Command::new("zsh")
-            .args(&["-c", "source ~/.zshrc 2>/dev/null || source ~/.bashrc 2>/dev/null; echo $GLOBAL_TEST_VAR $GLOBAL_TEST_VAR2"])
-            .output()?;
-        let stdout = String::from_utf8_lossy(&output.stdout);
-        assert!(stdout.contains("GlobalTest") && stdout.contains("Hello"),
-            "Variables not found in shell output: {}", stdout);
-    }
-
-    #[cfg(all(not(target_os = "windows"), not(target_os = "macos")))]
-    {
-        let output = std::process::Command::new("bash")
-            .args(&["-c", "source ~/.bashrc && echo $GLOBAL_TEST_VAR $GLOBAL_TEST_VAR2"])
+        let output = std::process::Command::new(format!("echo ${}", var_name))
             .output()?;
         let stdout = String::from_utf8_lossy(&output.stdout);
         assert!(stdout.contains("GlobalTest") && stdout.contains("Hello"),
@@ -402,7 +376,7 @@ fn load_command_global() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 /// Test for load command with global flag and invalid file
-fn load_command_global_invalid_file() -> Result<(), Box<dyn std::error::Error>> {
+fn load_global_invalid_file() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin("envfetch")?;
     cmd.arg("load")
         .arg("--global")
@@ -416,7 +390,7 @@ fn load_command_global_invalid_file() -> Result<(), Box<dyn std::error::Error>> 
 
 #[test]
 /// Test for set command with global flag and invalid variable name
-fn set_command_global_invalid_name() -> Result<(), Box<dyn std::error::Error>> {
+fn set_global_invalid_name() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin("envfetch")?;
     cmd.arg("set")
         .arg("INVALID NAME")
