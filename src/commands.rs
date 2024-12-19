@@ -121,23 +121,25 @@ pub fn set(cli: &Cli, args: &SetArgs) {
 
 /// Delete environment variable
 pub fn delete(cli: &Cli, args: &DeleteArgs) {
+    if let Err(err) = validate_var_name(&args.key) {
+        error(&err, cli.exit_on_error);
+        process::exit(1);
+    }
+    
     // Check if variable exists
     match env::var(&args.key) {
-        Ok(_) => {
-            if args.global {
-                if let Err(err) = globalenv::unset_var(&args.key) {
-                    error(
-                        &format!(
-                            "can't globally delete variable: {} (do you have the required permissions?)",
-                            err
-                        ),
-                        cli.exit_on_error
-                    );
-                }
-            } else {
-                unsafe { env::remove_var(&args.key) }
+        Ok(_) if args.global => {
+            if let Err(err) = globalenv::unset_var(&args.key) {
+                error(
+                    &format!(
+                        "can't globally delete variable: {} (do you have the required permissions?)",
+                        err
+                    ),
+                    cli.exit_on_error
+                );
             }
         },
+        Ok(_) => unsafe { env::remove_var(&args.key) }
         _ => warning("variable doesn't exists"),
     }
     if let Some(process) = args.process.clone() {
