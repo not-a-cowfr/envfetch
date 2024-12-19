@@ -16,6 +16,14 @@ pub fn run(process: String, exit_on_error: bool) {
     }
 }
 
+/// Validate variable name
+pub fn validate_var_name(name: &str) -> Result<(), String> {
+    if name.contains(' ') {
+        return Err("Variable name cannot contain spaces".into());
+    }
+    Ok(())
+}
+
 /// Print info about error
 pub fn error(text: &str, exit_on_error: bool) {
     eprintln!("{} {}", "error:".red(), text);
