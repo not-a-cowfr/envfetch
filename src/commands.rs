@@ -4,6 +4,7 @@ use std::{env, fs, process};
 use crate::models::*;
 use crate::utils::*;
 
+/// Print all environment variables
 pub fn print_env() {
     // Print all environment variables
     for (key, value) in env::vars() {
@@ -11,6 +12,7 @@ pub fn print_env() {
     }
 }
 
+/// Load variables from dotenv-style file
 pub fn load(cli: &Cli, args: &LoadArgs) {
     // Try to read file
     match fs::read_to_string(&args.file) {
@@ -56,6 +58,7 @@ pub fn load(cli: &Cli, args: &LoadArgs) {
     }
 }
 
+/// Get value of variable
 pub fn get(cli: &Cli, args: &GetArgs) {
     // Check if variable with specified name exists
     match env::var(&args.key) {
@@ -90,6 +93,7 @@ pub fn get(cli: &Cli, args: &GetArgs) {
     }
 }
 
+/// Set value to environment variable
 pub fn set(cli: &Cli, args: &SetArgs) {
     if let Err(err) = validate_var_name(&args.key) {
         error(&err, cli.exit_on_error);
@@ -115,6 +119,7 @@ pub fn set(cli: &Cli, args: &SetArgs) {
     }
 }
 
+/// Delete environment variable
 pub fn delete(cli: &Cli, args: &DeleteArgs) {
     // Check if variable exists
     match env::var(&args.key) {

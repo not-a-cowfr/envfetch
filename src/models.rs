@@ -49,6 +49,7 @@ pub struct GetArgs {
     pub no_similar_names: bool,
 }
 
+/// Args for load command
 #[derive(Args, Debug)]
 pub struct LoadArgs {
     /// Globally set variable
