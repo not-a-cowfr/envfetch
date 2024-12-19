@@ -6,160 +6,36 @@
 
 mod utils;
 mod models;
+mod commands;
 
 use clap::Parser;
-use colored::Colorize;
-use std::{env, fs, process};
 
-use utils::{error, run, warning};
 use models::{Cli, Commands};
-
-fn validate_var_name(name: &str) -> Result<(), String> {
-    if name.contains(' ') {
-        return Err("Variable name cannot contain spaces".into());
-    }
-    Ok(())
-}
+use commands::*;
 
 fn main() {
     let cli = Cli::parse();
 
     match cli.command {
         // Get command handler
-        Commands::Get(opt) => {
-            // Check if variable with specified name exists
-            match env::var(&opt.key) {
-                Ok(value) => println!("{:?}", &value),
-                // If variable not found
-                _ => {
-                    error(
-                        format!("can't find '{}'", &opt.key).as_str(),
-                        cli.exit_on_error,
-                    );
-                    // Check if we need to search for similar environment variables
-                    if !opt.no_similar_names {
-                        // Check for similar variables, if user made a mistake
-                        let similar_names = env::vars()
-                            .map(|el| el.0)
-                            .filter(|el| {
-                                similar_string::compare_similarity(
-                                    opt.key.to_lowercase(),
-                                    el.to_lowercase(),
-                                ) > 0.6
-                            })
-                            .collect::<Vec<_>>();
-                        if !similar_names.is_empty() {
-                            eprintln!("Did you mean:");
-                            for name in similar_names {
-                                eprintln!("  {}", &name);
-                            }
-                        }
-                    }
-                    process::exit(1)
-                }
-            }
+        Commands::Get(ref opt) => {
+            get(&cli, opt);
         }
         // Print command handler
         Commands::Print => {
-            // Print all environment variables
-            for (key, value) in env::vars() {
-                println!("{} = {:?}", &key.blue(), &value);
-            }
+            print_env();
         }
         // Load command handler
-        Commands::Load(opt) => {
-            // Try to read file
-            match fs::read_to_string(&opt.file) {
-                Ok(content) => {
-                    // Try to parse file
-                    match dotenv_parser::parse_dotenv(&content) {
-                        Ok(variables) => {
-                            for (key, value) in variables.into_iter() {
-                                if opt.global {
-                                    if let Err(err) = globalenv::set_var(&key, &value) {
-                                        error(
-                                            &format!(
-                                                "can't globally set variables: {} (do you have the required permissions?)",
-                                                err
-                                            ),
-                                            cli.exit_on_error
-                                        );
-                                    }
-                                } else {
-                                    unsafe { env::set_var(key, value) };
-                                }
-                            }
-                            if let Some(process) = opt.process {
-                                run(process, cli.exit_on_error);
-                            }
-                        }
-                        Err(err) => {
-                            error(err.to_string().as_str(), cli.exit_on_error);
-                            if let Some(process) = opt.process {
-                                run(process, cli.exit_on_error);
-                            }
-                            process::exit(1);
-                        }
-                    }
-                }
-                Err(err) => {
-                    error(err.to_string().as_str(), cli.exit_on_error);
-                    if let Some(process) = opt.process {
-                        run(process, cli.exit_on_error);
-                    }
-                    process::exit(1);
-                }
-            }
+        Commands::Load(ref opt) => {
+            load(&cli, opt);
         }
         // Set command handler
-        Commands::Set(opt) => {
-            if let Err(err) = validate_var_name(&opt.key) {
-                error(&err, cli.exit_on_error);
-                process::exit(1);
-            }
-
-            if opt.global {
-                if let Err(err) = globalenv::set_var(&opt.key, &opt.value) {
-                    error(
-                        &format!(
-                            "can't globally set variable: {} (do you have the required permissions?)",
-                            err
-                        ),
-                        cli.exit_on_error,
-                    );
-                    process::exit(1);
-                }
-            } else {
-                unsafe { env::set_var(opt.key, opt.value) };
-            }
-            if let Some(process) = opt.process {
-                run(process, cli.exit_on_error);
-            }
+        Commands::Set(ref opt) => {
+            set(&cli, opt);
         }
         // Delete command handler
-        Commands::Delete(opt) => {
-            // Check if variable exists
-            match env::var(&opt.key) {
-                Ok(_) => {
-                    if opt.global {
-                        if let Err(err) = globalenv::unset_var(&opt.key) {
-                            error(
-                                &format!(
-                                    "can't globally delete variable: {} (do you have the required permissions?)",
-                                    err
-                                ),
-                                cli.exit_on_error
-                            );
-                        }
-                    } else {
-                        unsafe { env::remove_var(&opt.key) }
-                    }
-                },
-                _ => warning("variable doesn't exists"),
-            }
-            if let Some(process) = opt.process {
-                run(process, cli.exit_on_error);
-            }
+        Commands::Delete(ref opt) => {
+            delete(&cli, opt)
         }
     }
 }
