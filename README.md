@@ -14,7 +14,7 @@
 # Features
 - [x] Print all environment variables
 - [x] Get value of variable by name
-    - [x] Show similar variables if variable not found
+    - [x] Show similar variables if given variable not found
 - [x] Set variable (temporary and permanent)
 - [x] Delete variable (temporary and permanent)
 - [x] Load variables from dotenv-style file (temporary and permanent)
