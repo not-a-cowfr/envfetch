@@ -10,6 +10,7 @@
 <div align="center">
     <img src="https://github.com/user-attachments/assets/261ea1fd-438a-40b0-847d-6a460b7a30a9" />
 </div>
+Latest version: 1.2.0
 
 # Features
 - [x] Print all environment variables
