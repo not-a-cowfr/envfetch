@@ -6,6 +6,7 @@
     <img alt="GitHub commit activity" src="https://img.shields.io/github/commit-activity/w/ankddev/envfetch">
     <a href="https://crates.io/crates/envfetch"><img src="https://img.shields.io/crates/d/envfetch" alt="crates.io downloads"/></a>
     <a href="https://crates.io/crates/envfetch"><img src="https://img.shields.io/crates/v/envfetch" alt="crates.io version"/></a>
+    <a href="https://aur.archlinux.org/packages/envfetch"><img src="https://img.shields.io/aur/version/envfetch" alt="AUR version"/></a>
 </div>
 <div align="center">
     <img src="https://github.com/user-attachments/assets/261ea1fd-438a-40b0-847d-6a460b7a30a9" />
