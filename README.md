@@ -21,20 +21,28 @@
 - [ ] Set and delete multiple variables at once
 # Get started
 ## Installing
-### Arch Linux
+### AUR (Arch Linux)
 [envfetch](https://aur.archlinux.org/packages/envfetch) is available as a package in the [AUR](https://aur.archlinux.org). You can install it with an [AUR helper](https://wiki.archlinux.org/title/AUR_helpers) (e.g. `paru`):
 ```shell
 $ paru -S envfetch
 ```
-### Other platforms
+### Scoop (Windows)
+You can install envfetch from Scoop using this command:
+```shell
+scoop install https://gist.githubusercontent.com/ankddev/f6314b552aa021f676fc999ec697f833/raw/68dc60e31763ad62e02955469ea5a65482caccbe/envfetch.json
+```
+Note, that it uses [manifest, published only as GitHub Gist.](https://gist.github.com/ankddev/f6314b552aa021f676fc999ec697f833)
+### Cargo (from crates.io)
 You can install envfetch from Cargo (needs Rust installed):
 ```shell
 $ cargo install envfetch
 ```
+### Cargo (from source)
 Also, you can install it from source (needs Rust installed):
 ```shell
 $ cargo install --git https://github.com/ankddev/envfetch envfetch
 ```
+### Download binary
 Or, get binary from [GitHub Actions (needs GutHub account)](https://github.com/ankddev/envfetch/actions/) or [releases](https://github.com/ankddev/envfetch/releases/)
 ## Using
 To run envfetch, run `envfetch <COMMAND> <ARGS>` in your terminal.
