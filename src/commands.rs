@@ -1,5 +1,6 @@
 use colored::Colorize;
 use std::{env, fs, process};
+use rayon::prelude::*;
 
 use crate::models::*;
 use crate::utils::*;
@@ -20,12 +21,13 @@ pub fn load(cli: &Cli, args: &LoadArgs) {
             // Try to parse file
             match dotenv_parser::parse_dotenv(&content) {
                 Ok(variables) => {
-                    for (key, value) in variables.into_iter() {
+                    let vars_vec: Vec<_> = variables.into_iter().collect();
+                    vars_vec.par_iter().for_each(|(key, value)| {
                         if args.global {
-                            if let Err(err) = globalenv::set_var(&key, &value) {
+                            if let Err(err) = globalenv::set_var(key, value) {
                                 error(
                                     &format!(
-                                        "can't globally set variables: {} (do you have the required permissions?)",
+                                        "can't globally set variable: {} (do you have the required permissions?)",
                                         err
                                     ),
                                     cli.exit_on_error
@@ -34,7 +36,8 @@ pub fn load(cli: &Cli, args: &LoadArgs) {
                         } else {
                             unsafe { env::set_var(key, value) };
                         }
-                    }
+                    });
+
                     if let Some(process) = args.process.clone() {
                         run(process, cli.exit_on_error);
                     }
@@ -73,11 +76,13 @@ pub fn get(cli: &Cli, args: &GetArgs) {
             if !args.no_similar_names {
                 // Check for similar variables, if user made a mistake
                 let similar_names = env::vars()
-                    .map(|el| el.0)
-                    .filter(|el| {
+                    .collect::<Vec<_>>()
+                    .into_par_iter()
+                    .map(|(name, _)| name)
+                    .filter(|name| {
                         similar_string::compare_similarity(
                             args.key.to_lowercase(),
-                            el.to_lowercase(),
+                            name.to_lowercase(),
                         ) > 0.6
                     })
                     .collect::<Vec<_>>();
