@@ -54,6 +54,12 @@ jobs:
       - name: Rename binary (windows)
         run: mv target/${{ matrix.platform.target }}/release/envfetch.exe target/${{ matrix.platform.target }}/release/${{ matrix.platform.bin }}
         if: matrix.platform.os_name == 'Windows-x86_64'
+      - name: Generate Debian package
+        run: cargo install cargo-deb && cargo deb --output target/debian/envfetch-debian.deb
+        if: matrix.platform.os_name == 'Linux-x86_64'
+      - name: Generate SHA-256 for Debian package
+        run: shasum -a 256 target/debian/envfetch-debian.deb | cut -d ' ' -f 1 > target/debian/envfetch-debian.deb.sha256
+        if: matrix.platform.os_name == 'Linux-x86_64'
       - name: Generate SHA-256
         run: shasum -a 256 target/${{ matrix.platform.target }}/release/${{ matrix.platform.bin }} | cut -d ' ' -f 1 > target/${{ matrix.platform.target }}/release/${{ matrix.platform.bin }}.sha256
       - name: Release binary and SHA-256 checksum to GitHub
@@ -62,3 +68,10 @@ jobs:
           files: |
             target/${{ matrix.platform.target }}/release/${{ matrix.platform.bin }}
             target/${{ matrix.platform.target }}/release/${{ matrix.platform.bin }}.sha256
+      - name: Release Debian package and SHA-256 checksum to GitHub
+        uses: softprops/action-gh-release@v1
+        if: matrix.platform.os_name == 'Linux-x86_64'
+        with:
+          files: |
+            target/debian/envfetch-debian.deb
+            target/debian/envfetch-debian.deb.sha256
