@@ -22,6 +22,11 @@
 - [ ] Set and delete multiple variables at once
 # Get started
 ## Installing
+
+<a href="https://repology.org/project/envfetch/versions">
+    <img src="https://repology.org/badge/vertical-allrepos/envfetch.svg" alt="Packaging status">
+</a>
+
 ### AUR (Arch Linux)
 [envfetch](https://aur.archlinux.org/packages/envfetch) is available as a package in the [AUR](https://aur.archlinux.org). You can install it with an [AUR helper](https://wiki.archlinux.org/title/AUR_helpers) (e.g. `paru`):
 ```shell
