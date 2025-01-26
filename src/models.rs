@@ -6,7 +6,8 @@ use clap::{Args, Parser, Subcommand};
     version,
     after_help = "Get more info at project's repo: https://github.com/ankddev/envfetch",
     after_long_help = "Get more info at project's GitHub repo available at https://github.com/ankddev/envfetch",
-    arg_required_else_help = true
+    arg_required_else_help = true,
+    name = "envfetch"
 )]
 #[command(
     about = "envfetch - lightweight tool for working with environment variables",
