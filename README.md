@@ -38,6 +38,11 @@ You can install envfetch from Scoop using this command:
 scoop install https://gist.githubusercontent.com/ankddev/f6314b552aa021f676fc999ec697f833/raw/68dc60e31763ad62e02955469ea5a65482caccbe/envfetch.json
 ```
 Note, that it uses [manifest, published only as GitHub Gist.](https://gist.github.com/ankddev/f6314b552aa021f676fc999ec697f833)
+### From DEB package (Linux, Debian-based)
+You can download .deb package from [releases](https://github.com/ankddev/envfetch/releases) and thhen execute:
+```sh
+sudo dpkg -i <deb-package>
+```
 ### Cargo (from crates.io)
 You can install envfetch from Cargo (needs Rust installed):
 ```shell
