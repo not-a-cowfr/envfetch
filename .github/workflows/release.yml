@@ -9,8 +9,18 @@ permissions:
   contents: write
 
 jobs:
-  build:
-    name: ${{ matrix.platform.os_name }} with rust ${{ matrix.toolchain }}
+  publish_crates_io:
+    name: Publish to crates.io
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - name: Login with cargo
+        run: cargo login ${{ secrets.CRATES_IO_TOKEN }}
+      - name: Publish package
+        run: cargo publish
+  publish:
+    name: ${{ matrix.platform.os_name }} with Rust ${{ matrix.toolchain }}
     runs-on: ${{ matrix.platform.os }}
     strategy:
       fail-fast: false
