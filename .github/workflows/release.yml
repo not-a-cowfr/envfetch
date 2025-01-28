@@ -61,10 +61,11 @@ jobs:
       - name: Rename binary (linux and macos)
         run: mv target/${{ matrix.platform.target }}/release/envfetch target/${{ matrix.platform.target }}/release/${{ matrix.platform.bin }}
         if: matrix.platform.os_name != 'Windows-x86_64'
-      - name: Generate ZIP (Windows)
+      - name: Generate ZIP and checksum for it (Windows)
         run: |
           cd target/${{ matrix.platform.target }}/release
           tar.exe -a -c -f envfetch-windows-amd64.zip envfetch.exe
+          shasum -a 256 envfetch-windows-amd64.zip | cut -d ' ' -f 1 > envfetch-windows-amd64.zip.sha256
         if: matrix.platform.os_name == 'Windows-x86_64'
       - name: Rename binary (windows)
         run: mv target/${{ matrix.platform.target }}/release/envfetch.exe target/${{ matrix.platform.target }}/release/${{ matrix.platform.bin }}
@@ -90,8 +91,10 @@ jobs:
           files: |
             target/debian/envfetch-debian.deb
             target/debian/envfetch-debian.deb.sha256
-      - name: Release Windows archive to GitHub
+      - name: Release Windows archive and checksum of it to GitHub
         uses: softprops/action-gh-release@v1
         if: matrix.platform.os_name == 'Windows-x86_64'
         with:
-          files: target/${{ matrix.platform.target }}/release/envfetch-windows-amd64.zip
+          files: |
+            target/${{ matrix.platform.target }}/release/envfetch-windows-amd64.zip
+            target/${{ matrix.platform.target }}/release/envfetch-windows-amd64.zip.sha256
