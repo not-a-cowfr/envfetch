@@ -61,13 +61,13 @@ jobs:
       - name: Rename binary (linux and macos)
         run: mv target/${{ matrix.platform.target }}/release/envfetch target/${{ matrix.platform.target }}/release/${{ matrix.platform.bin }}
         if: matrix.platform.os_name != 'Windows-x86_64'
-      - name: Rename binary (windows)
-        run: mv target/${{ matrix.platform.target }}/release/envfetch.exe target/${{ matrix.platform.target }}/release/${{ matrix.platform.bin }}
-        if: matrix.platform.os_name == 'Windows-x86_64'
-      - name: Generate (Windows)
+      - name: Generate ZIP (Windows)
         run: |
           cd target/${{ matrix.platform.target }}/release
-          tar.exe -a -c -f envfetch-windows-amd64.zip ${{ matrix.platform.bin }}
+          tar.exe -a -c -f envfetch-windows-amd64.zip envfetch.exe
+        if: matrix.platform.os_name == 'Windows-x86_64'
+      - name: Rename binary (windows)
+        run: mv target/${{ matrix.platform.target }}/release/envfetch.exe target/${{ matrix.platform.target }}/release/${{ matrix.platform.bin }}
         if: matrix.platform.os_name == 'Windows-x86_64'
       - name: Generate Debian package
         run: cargo install cargo-deb && cargo deb --output target/debian/envfetch-debian.deb
