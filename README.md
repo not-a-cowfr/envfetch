@@ -35,7 +35,7 @@ $ paru -S envfetch
 ### Scoop (Windows)
 You can install envfetch from Scoop using this command:
 ```shell
-scoop install https://gist.githubusercontent.com/ankddev/f6314b552aa021f676fc999ec697f833/raw/68dc60e31763ad62e02955469ea5a65482caccbe/envfetch.json
+scoop install https://gist.githubusercontent.com/ankddev/f6314b552aa021f676fc999ec697f833/raw/envfetch.json
 ```
 Note, that it uses [manifest, published only as GitHub Gist.](https://gist.github.com/ankddev/f6314b552aa021f676fc999ec697f833)
 ### From DEB package (Linux, Debian-based)
