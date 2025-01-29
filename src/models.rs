@@ -28,10 +28,8 @@ pub enum Commands {
     /// Prints value of environment variable
     Get(GetArgs),
     /// Set environment variable and run given process.
-    /// Note that the variable sets only for one run
     Set(SetArgs),
     /// Delete environment variable and run given process.
-    /// Note that the variable deletes only for one run
     Delete(DeleteArgs),
     /// Load environment variables from dotenv file
     Load(LoadArgs),
@@ -60,7 +58,7 @@ pub struct LoadArgs {
     #[arg(required_unless_present = "global")]
     pub process: Option<String>,
     /// Relative or absolute path to file to read variables from.
-    /// Note that it must in .env format
+    /// Note that it must be in .env format
     #[arg(long, short, default_value = ".env")]
     pub file: String,
 }
