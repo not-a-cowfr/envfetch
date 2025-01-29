@@ -14,6 +14,7 @@ use clap::{Args, Parser, Subcommand};
     long_about = "envfetch is a lightweight cross-platform CLI tool for working with environment variables"
 )]
 pub struct Cli {
+    /// Tool commands
     #[command(subcommand)]
     pub command: Commands,
 
