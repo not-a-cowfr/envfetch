@@ -3,9 +3,9 @@ use std::process;
 use subprocess::Exec;
 
 /// Runs given command using system shell
-pub fn run(process: String, exit_on_error: bool) {
+pub fn run(process: String) {
     let result = Exec::shell(process).join().unwrap_or_else(|_| {
-        error("can't start process", exit_on_error);
+        error("can't start process");
         // Exit with non-zero exit code if we can't start process
         process::exit(1);
     });
@@ -25,14 +25,15 @@ pub fn validate_var_name(name: &str) -> Result<(), String> {
 }
 
 /// Print info about error
-pub fn error(text: &str, exit_on_error: bool) {
+pub fn error(text: &str) {
     eprintln!("{} {}", "error:".red(), text);
-    if exit_on_error {
-        process::exit(1);
-    }
+    process::exit(1);
 }
 
 /// Print info about warning
-pub fn warning(text: &str) {
+pub fn warning(text: &str, exit_on_warning: bool) {
     eprintln!("{} {}", "warning:".yellow(), text);
+    if exit_on_warning {
+        process::exit(1);
+    }
 }

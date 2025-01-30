@@ -1,6 +1,7 @@
 use colored::Colorize;
-use std::{env, fs, process};
 use rayon::prelude::*;
+use similar_string;
+use std::{env, fs, process};
 
 use crate::models::*;
 use crate::utils::*;
@@ -14,7 +15,7 @@ pub fn print_env() {
 }
 
 /// Load variables from dotenv-style file
-pub fn load(cli: &Cli, args: &LoadArgs) {
+pub fn load(args: &LoadArgs) {
     // Try to read file
     match fs::read_to_string(&args.file) {
         Ok(content) => {
@@ -29,9 +30,7 @@ pub fn load(cli: &Cli, args: &LoadArgs) {
                                     &format!(
                                         "can't globally set variable: {} (do you have the required permissions?)",
                                         err
-                                    ),
-                                    cli.exit_on_error
-                                );
+                                    ));
                             }
                         } else {
                             unsafe { env::set_var(key, value) };
@@ -39,22 +38,22 @@ pub fn load(cli: &Cli, args: &LoadArgs) {
                     });
 
                     if let Some(process) = args.process.clone() {
-                        run(process, cli.exit_on_error);
+                        run(process);
                     }
                 }
                 Err(err) => {
-                    error(err.to_string().as_str(), cli.exit_on_error);
+                    error(err.to_string().as_str());
                     if let Some(process) = args.process.clone() {
-                        run(process, cli.exit_on_error);
+                        run(process);
                     }
                     process::exit(1);
                 }
             }
         }
         Err(err) => {
-            error(err.to_string().as_str(), cli.exit_on_error);
+            error(err.to_string().as_str());
             if let Some(process) = args.process.clone() {
-                run(process, cli.exit_on_error);
+                run(process);
             }
             process::exit(1);
         }
@@ -62,15 +61,16 @@ pub fn load(cli: &Cli, args: &LoadArgs) {
 }
 
 /// Get value of variable
-pub fn get(cli: &Cli, args: &GetArgs) {
+pub fn get(args: &GetArgs, exit_on_warning: bool) {
     // Check if variable with specified name exists
     match env::var(&args.key) {
         Ok(value) => println!("{:?}", &value),
         // If variable not found
         _ => {
-            error(
+            // FIXME: use error here and print before exitting
+            warning(
                 format!("can't find '{}'", &args.key).as_str(),
-                cli.exit_on_error,
+                exit_on_warning,
             );
             // Check if we need to search for similar environment variables
             if !args.no_similar_names {
@@ -99,55 +99,49 @@ pub fn get(cli: &Cli, args: &GetArgs) {
 }
 
 /// Set value to environment variable
-pub fn set(cli: &Cli, args: &SetArgs) {
+pub fn set(args: &SetArgs) {
     if let Err(err) = validate_var_name(&args.key) {
-        error(&err, cli.exit_on_error);
+        error(&err);
         process::exit(1);
     }
 
     if args.global {
         if let Err(err) = globalenv::set_var(&args.key, &args.value) {
-            error(
-                &format!(
-                    "can't globally set variable: {} (do you have the required permissions?)",
-                    err
-                ),
-                cli.exit_on_error,
-            );
+            error(&format!(
+                "can't globally set variable: {} (do you have the required permissions?)",
+                err
+            ));
             process::exit(1);
         }
     } else {
         unsafe { env::set_var(&args.key, &args.value) };
     }
     if let Some(process) = args.process.clone() {
-        run(process, cli.exit_on_error);
+        run(process);
     }
 }
 
 /// Delete environment variable
-pub fn delete(cli: &Cli, args: &DeleteArgs) {
+pub fn delete(args: &DeleteArgs, exit_on_warning: bool) {
     if let Err(err) = validate_var_name(&args.key) {
-        error(&err, cli.exit_on_error);
+        error(&err);
         process::exit(1);
     }
-    
+
     // Check if variable exists
     match env::var(&args.key) {
         Ok(_) if args.global => {
             if let Err(err) = globalenv::unset_var(&args.key) {
-                error(
-                    &format!(
-                        "can't globally delete variable: {} (do you have the required permissions?)",
-                        err
-                    ),
-                    cli.exit_on_error
-                );
+                error(&format!(
+                    "can't globally delete variable: {} (do you have the required permissions?)",
+                    err
+                ));
             }
-        },
-        Ok(_) => unsafe { env::remove_var(&args.key) }
-        _ => warning("variable doesn't exists"),
+        }
+        Ok(_) => unsafe { env::remove_var(&args.key) },
+        _ => warning("variable doesn't exists", exit_on_warning),
     }
     if let Some(process) = args.process.clone() {
-        run(process, cli.exit_on_error);
+        run(process);
     }
 }

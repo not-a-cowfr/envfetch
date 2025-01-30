@@ -59,19 +59,19 @@ fn get_variable_doesnt_exists() -> Result<(), Box<dyn std::error::Error>> {
     cmd.arg("get").arg("MY_VARIABLE");
     cmd.assert()
         .failure()
-        .stderr(predicate::str::contains("error: can't find 'MY_VARIABLE'"));
+        .stderr(predicate::str::contains("warning: can't find 'MY_VARIABLE'"));
     Ok(())
 }
 
 #[test]
 /// Test for get command if specified variable doesn't exist and showing similar variables is enabled
 fn get_variable_doesnt_exists_similar_enabled() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("envfetch")?;
     env::set_var("MY_VARIABLEE", "Hello");
+    let mut cmd = Command::cargo_bin("envfetch")?;
     cmd.arg("get").arg("MY_VARIABLE");
     cmd.assert()
         .failure()
-        .stderr(predicate::str::contains("error: can't find 'MY_VARIABLE'"))
+        .stderr(predicate::str::contains("warning: can't find 'MY_VARIABLE'"))
         .stderr(predicate::str::contains("Did you mean:"))
         .stderr(predicate::str::contains("MY_VARIABLEE"));
     Ok(())
@@ -125,13 +125,11 @@ fn delete_command_success() -> Result<(), Box<dyn std::error::Error>> {
 /// Test for load command if file doesn't exist and exit on error flag is enabled
 fn load_file_dont_found_with_exit_on_error() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin("envfetch")?;
-    cmd.arg("load");
-    cmd.arg("--exit-on-error");
-    cmd.arg("echo %MY_ENV_VAR%").assert().failure();
+    cmd.arg("delete").arg("MY_ENV_VAR_FOR_EXIT_WARNING_TEST");
+    cmd.arg("--exit-on-warning");
+    cmd.arg("echo hello").assert().failure();
     Ok(())
 }
-
-
 
 #[test]
 /// Test for load command if custom file exist

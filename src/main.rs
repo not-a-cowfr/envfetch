@@ -4,14 +4,14 @@
 //! run processes with specific variable value, or delete specific variable
 //! to run process without it
 
-mod utils;
-mod models;
 mod commands;
+mod models;
+mod utils;
 
 use clap::Parser;
 
-use models::{Cli, Commands};
 use commands::*;
+use models::{Cli, Commands};
 
 fn main() {
     let cli = Cli::parse();
@@ -19,7 +19,7 @@ fn main() {
     match cli.command {
         // Get command handler
         Commands::Get(ref opt) => {
-            get(&cli, opt);
+            get(opt, cli.exit_on_warning);
         }
         // Print command handler
         Commands::Print => {
@@ -27,15 +27,15 @@ fn main() {
         }
         // Load command handler
         Commands::Load(ref opt) => {
-            load(&cli, opt);
+            load(opt);
         }
         // Set command handler
         Commands::Set(ref opt) => {
-            set(&cli, opt);
+            set(opt);
         }
         // Delete command handler
         Commands::Delete(ref opt) => {
-            delete(&cli, opt)
+            delete(opt, cli.exit_on_warning);
         }
     }
 }

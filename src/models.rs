@@ -18,9 +18,9 @@ pub struct Cli {
     #[command(subcommand)]
     pub command: Commands,
 
-    /// Exit on any error
+    /// Exit on any warning
     #[arg(long, short = 'e', global = true)]
-    pub exit_on_error: bool,
+    pub exit_on_warning: bool,
 }
 
 /// All tool's commands
