@@ -20,9 +20,8 @@ pub fn load(args: &LoadArgs) {
             // Try to parse file
             match dotenv_parser::parse_dotenv(&content) {
                 Ok(variables) => {
-                    let vars_vec: Vec<_> = variables.into_iter().collect();
-                    vars_vec.par_iter().for_each(|(key, value)| {
-                        if let Err(err) = variables::set_variable(key, value, args.global, args.process.clone()) {
+                    variables.into_par_iter().for_each(|(key, value)| {
+                        if let Err(err) = variables::set_variable(&key, &value, args.global, args.process.clone()) {
                             error(&err);
                             process::exit(1);
                         }
