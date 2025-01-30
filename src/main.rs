@@ -20,7 +20,7 @@ fn main() {
     match cli.command {
         // Get command handler
         Commands::Get(ref opt) => {
-            get(opt, cli.exit_on_warning);
+            get(opt);
         }
         // Print command handler
         Commands::Print => {

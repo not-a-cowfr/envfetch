@@ -59,7 +59,7 @@ fn get_variable_doesnt_exists() -> Result<(), Box<dyn std::error::Error>> {
     cmd.arg("get").arg("MY_VARIABLE");
     cmd.assert()
         .failure()
-        .stderr(predicate::str::contains("warning: can't find 'MY_VARIABLE'"));
+        .stderr(predicate::str::contains("error: can't find 'MY_VARIABLE'"));
     Ok(())
 }
 
@@ -71,7 +71,7 @@ fn get_variable_doesnt_exists_similar_enabled() -> Result<(), Box<dyn std::error
     cmd.arg("get").arg("MY_VARIABLE");
     cmd.assert()
         .failure()
-        .stderr(predicate::str::contains("warning: can't find 'MY_VARIABLE'"))
+        .stderr(predicate::str::contains("error: can't find 'MY_VARIABLE'"))
         .stderr(predicate::str::contains("Did you mean:"))
         .stderr(predicate::str::contains("MY_VARIABLEE"));
     Ok(())

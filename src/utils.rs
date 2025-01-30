@@ -27,7 +27,6 @@ pub fn validate_var_name(name: &str) -> Result<(), String> {
 /// Print info about error
 pub fn error(text: &str) {
     eprintln!("{} {}", "error:".red(), text);
-    process::exit(1);
 }
 
 /// Print info about warning

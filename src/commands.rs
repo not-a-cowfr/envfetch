@@ -24,6 +24,7 @@ pub fn load(args: &LoadArgs) {
                     vars_vec.par_iter().for_each(|(key, value)| {
                         if let Err(err) = variables::set_variable(key, value, args.global, args.process.clone()) {
                             error(err.as_str());
+                            process::exit(1);
                         }
                     });
                 }
@@ -32,7 +33,7 @@ pub fn load(args: &LoadArgs) {
                     if let Some(process) = args.process.clone() {
                         run(process);
                     }
-                    process::exit(1);
+                    process::exit(1)
                 }
             }
         }
@@ -41,23 +42,20 @@ pub fn load(args: &LoadArgs) {
             if let Some(process) = args.process.clone() {
                 run(process);
             }
-            process::exit(1);
+            process::exit(1)
         }
     }
 }
 
 /// Get value of variable
-pub fn get(args: &GetArgs, exit_on_warning: bool) {
+pub fn get(args: &GetArgs) {
     // Check if variable with specified name exists
     match env::var(&args.key) {
         Ok(value) => println!("{:?}", &value),
         // If variable not found
         _ => {
-            // FIXME: use error here and print before exitting
-            warning(
-                format!("can't find '{}'", &args.key).as_str(),
-                exit_on_warning,
-            );
+            error(
+                format!("can't find '{}'", &args.key).as_str());
             // Check if we need to search for similar environment variables
             if !args.no_similar_names {
                 // Check for similar variables, if user made a mistake
