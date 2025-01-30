@@ -1,6 +1,5 @@
-use std::{env, fs, io::stdout, process};
+use std::{env, io::stdout};
 
-use crate::models::*;
 use crate::utils::*;
 
 pub fn print_env() {

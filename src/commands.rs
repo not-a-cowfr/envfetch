@@ -1,4 +1,3 @@
-use colored::Colorize;
 use rayon::prelude::*;
 use similar_string;
 use std::{env, fs, process};
