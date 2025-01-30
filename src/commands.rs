@@ -23,7 +23,7 @@ pub fn load(args: &LoadArgs) {
                     let vars_vec: Vec<_> = variables.into_iter().collect();
                     vars_vec.par_iter().for_each(|(key, value)| {
                         if let Err(err) = variables::set_variable(key, value, args.global, args.process.clone()) {
-                            error(err.as_str());
+                            error(&err);
                             process::exit(1);
                         }
                     });
@@ -89,19 +89,9 @@ pub fn set(args: &SetArgs) {
         process::exit(1);
     }
 
-    if args.global {
-        if let Err(err) = globalenv::set_var(&args.key, &args.value) {
-            error(&format!(
-                "can't globally set variable: {} (do you have the required permissions?)",
-                err
-            ));
-            process::exit(1);
-        }
-    } else {
-        unsafe { env::set_var(&args.key, &args.value) };
-    }
-    if let Some(process) = args.process.clone() {
-        run(process);
+    if let Err(err) = variables::set_variable(&args.key, &args.value, args.global, args.process.clone()) {
+        error(&err);
+        process::exit(1);
     }
 }
 
@@ -116,7 +106,7 @@ pub fn delete(args: &DeleteArgs, exit_on_warning: bool) {
     match env::var(&args.key) {
         Ok(_) => {
             if let Err(err) = variables::delete_variable(args.key.clone(), args.global) {
-                error(err.as_str());
+                error(&err);
                 process::exit(1);
             }
         }
