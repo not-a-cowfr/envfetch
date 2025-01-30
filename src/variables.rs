@@ -2,16 +2,19 @@ use std::{env, io::stdout};
 
 use crate::utils::*;
 
+/// Print all environment variables
 pub fn print_env() {
     print_list_as_variables(&mut stdout(), env::vars().collect());
 }
 
+/// Print list of variables as key-value pairs
 fn print_list_as_variables(writer: &mut dyn std::io::Write, variables: Vec<(String, String)>) {
     for (key, value) in variables {
         writeln!(writer, "{} = \"{}\"", key, value).expect("can't write to buffer");
     }
 }
 
+/// Set variable with given key and value
 pub fn set_variable(key: &str, value: &str, global: bool, process: Option<String>) -> Result<(), String> {
     if global {
         if let Err(err) = globalenv::set_var(key, value) {
@@ -32,6 +35,7 @@ pub fn set_variable(key: &str, value: &str, global: bool, process: Option<String
     Ok(())
 }
 
+/// Delete variable with given name
 pub fn delete_variable(name: String, global: bool) -> Result<(), String> {
     if global {
         if let Err(err) = globalenv::unset_var(&name) {
