@@ -32,6 +32,22 @@ pub fn set_variable(key: &str, value: &str, global: bool, process: Option<String
     Ok(())
 }
 
+pub fn delete_variable(name: String, global: bool) -> Result<(), String> {
+    if global {
+        if let Err(err) = globalenv::unset_var(&name) {
+            return Err(
+                format!(
+                    "can't globally delete variable: {} (do you have the required permissions?)",
+                    err
+                )
+            );
+        }
+    } else {
+        unsafe { env::remove_var(&name) };
+    }
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -117,5 +133,32 @@ mod tests {
         // Using echo as a test process - it should not fail
         let _ = set_variable(key, value, false, Some("echo test".to_string()));
         assert_eq!(env::var(key).unwrap(), value);
+    }
+
+    #[test]
+    fn test_delete_variable_local() {
+        let key = "TEST_DELETE_LOCAL_VAR";
+        env::set_var(key, "test_value");
+        assert!(env::var(key).is_ok());
+        
+        let result = delete_variable(key.to_string(), false);
+        assert!(result.is_ok());
+        assert!(env::var(key).is_err());
+    }
+
+    #[test]
+    fn test_delete_variable_nonexistent() {
+        let key = "NONEXISTENT_VAR";
+        let result = delete_variable(key.to_string(), false);
+        assert!(result.is_ok()); // Should succeed even if variable doesn't exist
+    }
+
+    #[test]
+    fn test_delete_variable_global_error() {
+        let key = "TEST_DELETE_GLOBAL_VAR";
+        // This should fail without admin privileges
+        let result = delete_variable(key.to_string(), true);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("can't globally delete variable"));
     }
 }

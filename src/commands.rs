@@ -114,15 +114,12 @@ pub fn delete(args: &DeleteArgs, exit_on_warning: bool) {
 
     // Check if variable exists
     match env::var(&args.key) {
-        Ok(_) if args.global => {
-            if let Err(err) = globalenv::unset_var(&args.key) {
-                error(&format!(
-                    "can't globally delete variable: {} (do you have the required permissions?)",
-                    err
-                ));
+        Ok(_) => {
+            if let Err(err) = variables::delete_variable(args.key.clone(), args.global) {
+                error(err.as_str());
+                process::exit(1);
             }
         }
-        Ok(_) => unsafe { env::remove_var(&args.key) },
         _ => warning("variable doesn't exists", exit_on_warning),
     }
     if let Some(process) = args.process.clone() {
