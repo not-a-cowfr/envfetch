@@ -1,5 +1,4 @@
 use rayon::prelude::*;
-use similar_string;
 use std::{env, fs, process};
 
 use crate::models::*;
@@ -58,17 +57,7 @@ pub fn get(args: &GetArgs) {
             // Check if we need to search for similar environment variables
             if !args.no_similar_names {
                 // Check for similar variables, if user made a mistake
-                let similar_names = env::vars()
-                    .collect::<Vec<_>>()
-                    .into_par_iter()
-                    .map(|(name, _)| name)
-                    .filter(|name| {
-                        similar_string::compare_similarity(
-                            args.key.to_lowercase(),
-                            name.to_lowercase(),
-                        ) > 0.6
-                    })
-                    .collect::<Vec<_>>();
+                let similar_names = find_similar_string(args.key.clone(), env::vars().map(|(key, _)| key).collect(), 0.6);
                 if !similar_names.is_empty() {
                     eprintln!("Did you mean:");
                     for name in similar_names {
