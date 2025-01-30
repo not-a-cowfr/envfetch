@@ -19,6 +19,7 @@
 - [x] Set variable (temporary and permanent)
 - [x] Delete variable (temporary and permanent)
 - [x] Load variables from dotenv-style file (temporary and permanent)
+- [ ] Add string to the end of variable
 - [ ] Set and delete multiple variables at once
 # Get started
 ## Installing
