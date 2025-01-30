@@ -1,6 +1,6 @@
 use colored::Colorize;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
-use std::process;
+use std::{io::stderr, process};
 use subprocess::Exec;
 
 /// Runs given command using system shell
@@ -27,15 +27,25 @@ pub fn validate_var_name(name: &str) -> Result<(), String> {
 
 /// Print info about error
 pub fn error(text: &str) {
-    eprintln!("{} {}", "error:".red(), text);
+    print_error(text, &mut stderr());
 }
 
 /// Print info about warning
 pub fn warning(text: &str, exit_on_warning: bool) {
-    eprintln!("{} {}", "warning:".yellow(), text);
+    print_warning(text, &mut stderr());
     if exit_on_warning {
         process::exit(1);
     }
+}
+
+/// Print warning to buffer
+fn print_warning(text: &str, writer: &mut dyn std::io::Write) {
+    write!(writer, "{} {}", "warning:".yellow(), text).expect("can't write to buffer");
+}
+
+/// Print error to buffer 
+fn print_error(text: &str, writer: &mut dyn std::io::Write) {
+    write!(writer, "{} {}", "error:".red(), text).expect("can't write to buffer");
 }
 
 /// Returns vector of string that are similar by threshold to given string in given vector
@@ -114,5 +124,59 @@ mod tests {
         assert!(result.contains(&"TEXT".to_string()));
         assert!(result.contains(&"TSET".to_string()));
         assert!(!result.contains(&"NONE".to_string()));
+    }
+
+    #[test]
+    fn test_print_warning() {
+        let mut buffer = Vec::new();
+        print_warning("test warning message", &mut buffer);
+        let result = String::from_utf8(buffer).unwrap();
+        // Note: we can't test the exact color codes as they may vary by environment,
+        // but we can test the basic message structure
+        assert!(result.contains("warning:"));
+        assert!(result.contains("test warning message"));
+    }
+
+    #[test]
+    fn test_print_error() {
+        let mut buffer = Vec::new();
+        print_error("test error message", &mut buffer);
+        let result = String::from_utf8(buffer).unwrap();
+        assert!(result.contains("error:"));
+        assert!(result.contains("test error message"));
+    }
+
+    #[test]
+    fn test_print_warning_empty_message() {
+        let mut buffer = Vec::new();
+        print_warning("", &mut buffer);
+        let result = String::from_utf8(buffer).unwrap();
+        assert!(result.contains("warning:"));
+    }
+
+    #[test]
+    fn test_print_error_empty_message() {
+        let mut buffer = Vec::new();
+        print_error("", &mut buffer);
+        let result = String::from_utf8(buffer).unwrap();
+        assert!(result.contains("error:"));
+    }
+
+    #[test]
+    fn test_print_warning_special_characters() {
+        let mut buffer = Vec::new();
+        print_warning("test @#$%^&* message", &mut buffer);
+        let result = String::from_utf8(buffer).unwrap();
+        assert!(result.contains("warning:"));
+        assert!(result.contains("test @#$%^&* message"));
+    }
+
+    #[test]
+    fn test_print_error_special_characters() {
+        let mut buffer = Vec::new();
+        print_error("test @#$%^&* message", &mut buffer);
+        let result = String::from_utf8(buffer).unwrap();
+        assert!(result.contains("error:"));
+        assert!(result.contains("test @#$%^&* message"));
     }
 }
