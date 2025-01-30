@@ -7,6 +7,7 @@
 mod commands;
 mod models;
 mod utils;
+mod variables;
 
 use clap::Parser;
 

@@ -5,13 +5,12 @@ use std::{env, fs, process};
 
 use crate::models::*;
 use crate::utils::*;
+use crate::variables;
 
 /// Print all environment variables
 pub fn print_env() {
     // Print all environment variables
-    for (key, value) in env::vars() {
-        println!("{} = \"{}\"", key.blue(), value);
-    }
+    variables::print_env();
 }
 
 /// Load variables from dotenv-style file
