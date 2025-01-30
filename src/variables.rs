@@ -1,6 +1,7 @@
 use std::{env, fs, io::stdout, process};
 
 use crate::models::*;
+use crate::utils::*;
 
 pub fn print_env() {
     print_list_as_variables(&mut stdout(), env::vars().collect());
@@ -10,6 +11,26 @@ fn print_list_as_variables(writer: &mut dyn std::io::Write, variables: Vec<(Stri
     for (key, value) in variables {
         writeln!(writer, "{} = \"{}\"", key, value).expect("can't write to buffer");
     }
+}
+
+pub fn set_variable(key: &str, value: &str, global: bool, process: Option<String>) -> Result<(), String> {
+    if global {
+        if let Err(err) = globalenv::set_var(key, value) {
+            return Err(
+                format!(
+                    "can't globally set variable: {} (do you have the required permissions?)",
+                    err
+                )
+            );
+        }
+    } else {
+        unsafe { env::set_var(key, value) };
+    }
+
+    if let Some(process) = process {
+        run(process);
+    }
+    Ok(())
 }
 
 #[cfg(test)]
@@ -71,5 +92,31 @@ mod tests {
         print_list_as_variables(&mut writer, variables);
         let result = String::from_utf8(writer).unwrap();
         assert_eq!(result, format!("LONG_KEY = \"{}\"\nANOTHER_LONG_KEY = \"{}\"\n", "a".repeat(1000), "b".repeat(2000)));
+    }
+
+    #[test]
+    fn test_set_variable_local() {
+        let key = "TEST_LOCAL_VAR";
+        let value = "test_value";
+        let _ = set_variable(key, value, false, None);
+        assert_eq!(env::var(key).unwrap(), value);
+    }
+
+    #[test]
+    fn test_set_variable_global_error() {
+        let key = "TEST_GLOBAL_VAR";
+        let value = "test_value";
+        // This should fail without admin privileges and trigger the error path
+        let _ = set_variable(key, value, true, None);
+        // We can't assert the global state as it depends on permissions
+    }
+
+    #[test]
+    fn test_set_variable_with_process() {
+        let key = "TEST_PROCESS_VAR";
+        let value = "test_value";
+        // Using echo as a test process - it should not fail
+        let _ = set_variable(key, value, false, Some("echo test".to_string()));
+        assert_eq!(env::var(key).unwrap(), value);
     }
 }

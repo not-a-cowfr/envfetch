@@ -23,22 +23,10 @@ pub fn load(args: &LoadArgs) {
                 Ok(variables) => {
                     let vars_vec: Vec<_> = variables.into_iter().collect();
                     vars_vec.par_iter().for_each(|(key, value)| {
-                        if args.global {
-                            if let Err(err) = globalenv::set_var(key, value) {
-                                error(
-                                    &format!(
-                                        "can't globally set variable: {} (do you have the required permissions?)",
-                                        err
-                                    ));
-                            }
-                        } else {
-                            unsafe { env::set_var(key, value) };
+                        if let Err(err) = variables::set_variable(key, value, args.global, args.process.clone()) {
+                            error(err.as_str());
                         }
                     });
-
-                    if let Some(process) = args.process.clone() {
-                        run(process);
-                    }
                 }
                 Err(err) => {
                     error(err.to_string().as_str());
