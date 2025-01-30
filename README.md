@@ -19,7 +19,7 @@
 - [x] Set variable (temporary and permanent)
 - [x] Delete variable (temporary and permanent)
 - [x] Load variables from dotenv-style file (temporary and permanent)
-- [ ] Add string to the end of variable
+- [x] Add string to the end of variable
 - [ ] Set and delete multiple variables at once
 # Get started
 ## Installing
@@ -64,7 +64,7 @@ You can run `envfetch help` to see help message or `envfetch --version` to see p
 
 ### Command list
 #### Set
-Set environment variable and run process.
+Set environment variable and optionally run process.
 
 Usage:
 `envfetch set <KEY> <VALUE> [PROCESS]`, where:
@@ -83,7 +83,26 @@ For example:
 $ envfetch set MY_VAR "Hello" "npm run"  # temporary for process
 $ envfetch set MY_VAR "Hello" --global   # permanent system-wide
 ```
+#### Add
+Add value to the end of environment variable and optionally run the process
 
+Usage:
+`envfetch add <KEY> <VALUE> [PROCESS]`, where:
+- `KEY` - name of environment variable
+- `VALUE` - value of environment variable to add
+- `PROCESS` - name of process which you want to run (optional if --global is used)
+
+Options:
+- `--help`/`-h` - show help message
+- `--global`/`-g` - update variable permanently in system environment
+  - On Windows: stores in registry
+  - On Unix: stores in shell config (.bashrc, .zshrc, or config.fish)
+
+For example:
+```shell
+$ envfetch add PATH "../hello.exe" "crago run"  # temporary for process
+$ envfetch add MY_VAR "Hello" --global   # permanent system-wide
+```
 #### Print
 Print all environment variables
 
@@ -121,7 +140,7 @@ $ envfetch get MY_VAR
 ```
 It will print value of specified variable.
 #### Delete
-Delete variable and start process.
+Delete variable and optionally start process.
 
 Usage:
 `envfetch delete <KEY> [PROCESS]`, where:
@@ -139,7 +158,7 @@ $ envfetch delete MY_VAR --global   # permanent system-wide
 ```
 
 #### Load
-Load environment variables from dotenv-style file and run process.
+Load environment variables from dotenv-style file and optionally run process.
 
 Usage:
 `envfetch load [PROCESS]`, where:

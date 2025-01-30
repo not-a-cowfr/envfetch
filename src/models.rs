@@ -26,15 +26,17 @@ pub struct Cli {
 /// All tool's commands
 #[derive(Subcommand)]
 pub enum Commands {
-    /// Prints value of environment variable
+    /// Print value of environment variable.
     Get(GetArgs),
-    /// Set environment variable and run given process.
+    /// Set environment variable and optionally run given process.
     Set(SetArgs),
-    /// Delete environment variable and run given process.
+    /// Add value to the end of environment variable and optionally run given process.
+    Add(AddArgs),
+    /// Delete environment variable and optionally run given process.
     Delete(DeleteArgs),
-    /// Load environment variables from dotenv file
+    /// Load environment variables from dotenv file and optionally run given process.
     Load(LoadArgs),
-    /// Prints all environment variables
+    /// Print all environment variables.
     Print,
 }
 
@@ -71,6 +73,23 @@ pub struct SetArgs {
     #[arg(required = true)]
     pub key: String,
     /// Value for environment variable
+    #[arg(required = true)]
+    pub value: String,
+    /// Globally set variable
+    #[arg(required = false, long, short)]
+    pub global: bool,
+    /// Process to start, not required if --global flag is set
+    #[arg(required_unless_present = "global")]
+    pub process: Option<String>,
+}
+
+/// Args for add command
+#[derive(Args, Debug)]
+pub struct AddArgs {
+    /// Environment variable name
+    #[arg(required = true)]
+    pub key: String,
+    /// Value for add to the end of environment variable
     #[arg(required = true)]
     pub value: String,
     /// Globally set variable

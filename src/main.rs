@@ -34,6 +34,10 @@ fn main() {
         Commands::Set(ref opt) => {
             set(opt);
         }
+        // Add command handler
+        Commands::Add(ref opt) => {
+            add(opt);
+        }
         // Delete command handler
         Commands::Delete(ref opt) => {
             delete(opt, cli.exit_on_warning);

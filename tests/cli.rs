@@ -194,4 +194,95 @@ fn load_custom_file_doesnt_exists() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+#[test]
+fn test_add_local_variable() -> Result<(), Box<dyn std::error::Error>> {
+    let envfetch = Command::cargo_bin("envfetch")?.get_program().to_string_lossy().to_string();
+    let mut cmd = Command::cargo_bin("envfetch")?;
+    
+    cmd.args([
+        "add", 
+        "TEST_VAR", 
+        "test_value", 
+        &format!("{} get TEST_VAR", envfetch)
+    ])
+    .assert()
+    .success()
+    .stdout(predicate::str::contains("test_value"));
+    
+    Ok(())
+}
+
+#[test]
+fn test_add_variable_with_special_characters() -> Result<(), Box<dyn std::error::Error>> {
+    let envfetch = Command::cargo_bin("envfetch")?.get_program().to_string_lossy().to_string();
+    let mut cmd = Command::cargo_bin("envfetch")?;
+    
+    cmd.args([
+        "add", 
+        "SPECIAL_VAR", 
+        "test@#$%^&*", 
+        &format!("{} get SPECIAL_VAR", envfetch)
+    ])
+    .assert()
+    .success()
+    .stdout(predicate::str::contains("test@#$%^&*"));
+    
+    Ok(())
+}
+
+#[test]
+fn test_add_empty_value() -> Result<(), Box<dyn std::error::Error>> {
+    let envfetch = Command::cargo_bin("envfetch")?.get_program().to_string_lossy().to_string();
+    let mut cmd = Command::cargo_bin("envfetch")?;
+    
+    cmd.args([
+        "add", 
+        "EMPTY_VAR", 
+        "", 
+        &format!("{} get EMPTY_VAR", envfetch)
+    ])
+    .assert()
+    .success()
+    .stdout(predicate::str::contains("\"\"\n")); // Expect empty string in quotes with newline
+    
+    Ok(())
+}
+
+#[test]
+fn test_add_invalid_variable_name() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = Command::cargo_bin("envfetch")?;
+    cmd.args(["add", "INVALID NAME", "test_value", "echo test"])
+        .assert()
+        .failure()
+        .stderr(predicates::str::contains("Variable name cannot contain spaces"));
+    Ok(())
+}
+
+#[test]
+fn test_add_missing_value() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = Command::cargo_bin("envfetch")?;
+    cmd.args(["add", "TEST_VAR"])
+        .assert()
+        .failure();
+    Ok(())
+}
+
+#[test]
+fn test_add_with_process() -> Result<(), Box<dyn std::error::Error>> {
+    let envfetch = Command::cargo_bin("envfetch")?.get_program().to_string_lossy().to_string();
+    let mut cmd = Command::cargo_bin("envfetch")?;
+    
+    cmd.args([
+        "add", 
+        "PROCESS_VAR", 
+        "test_value", 
+        &format!("{} get PROCESS_VAR", envfetch)
+    ])
+    .assert()
+    .success()
+    .stdout(predicate::str::contains("test_value"));
+    
+    Ok(())
+}
+
 // TODO: add tests for commands with --global flag

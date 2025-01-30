@@ -83,6 +83,25 @@ pub fn set(args: &SetArgs) {
     }
 }
 
+/// Add value to environment variable
+pub fn add(args: &AddArgs) {
+    if let Err(err) = validate_var_name(&args.key) {
+        error(&err);
+        process::exit(1);
+    }
+
+    let current_value = if let Ok(value) = env::var(&args.key) {
+        value
+    } else {
+        "".to_string()
+    };
+
+    if let Err(err) = variables::set_variable(&args.key, &format!("{}{}", current_value, args.value), args.global, args.process.clone()) {
+        error(&err);
+        process::exit(1);
+    }
+}
+
 /// Delete environment variable
 pub fn delete(args: &DeleteArgs, exit_on_warning: bool) {
     if let Err(err) = validate_var_name(&args.key) {
