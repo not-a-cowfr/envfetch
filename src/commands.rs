@@ -12,7 +12,7 @@ pub fn parse() -> Cli {
     parse_from(env::args_os())
 }
 
-fn parse_from(iter: impl IntoIterator<Item: Into<OsString>>) -> Cli {
+fn parse_from(iter: impl IntoIterator<Item: Into<OsString> + Clone>) -> Cli {
     Cli::parse_from(iter)
 }
 
