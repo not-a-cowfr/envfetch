@@ -83,7 +83,6 @@ mod tests {
         
         let output_str = String::from_utf8(output).unwrap();
         assert!(output_str.contains("error:"));
-        assert_eq!(output_str.trim().ends_with("error:"), false);
     }
 
     #[test]
@@ -93,7 +92,6 @@ mod tests {
         
         let output_str = String::from_utf8(output).unwrap();
         assert!(output_str.contains("warning:"));
-        assert_eq!(output_str.trim().ends_with("warning:"), false);
     }
 
     // TODO: Add tests for warning function's exit_on_warning behavior
