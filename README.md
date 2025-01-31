@@ -7,6 +7,9 @@
     <a href="https://crates.io/crates/envfetch"><img src="https://img.shields.io/crates/d/envfetch" alt="crates.io downloads"/></a>
     <a href="https://crates.io/crates/envfetch"><img src="https://img.shields.io/crates/v/envfetch" alt="crates.io version"/></a>
     <a href="https://aur.archlinux.org/packages/envfetch"><img src="https://img.shields.io/aur/version/envfetch" alt="AUR version"/></a>
+    <a href="https://codecov.io/gh/ankddev/envfetch" >
+<img src="https://codecov.io/gh/ankddev/envfetch/graph/badge.svg?token=72Q8F8XWKQ"/>
+</a>
 </div>
 <div align="center">
     <img src="https://github.com/user-attachments/assets/261ea1fd-438a-40b0-847d-6a460b7a30a9" />
