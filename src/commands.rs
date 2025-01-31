@@ -158,7 +158,7 @@ mod tests {
 
     #[test]
     fn test_get_command_without_no_similar_names_flag() {
-        let args = Cli::parse_from(&["envfetch", "get", "PATH"]);
+        let args = parse_from(&["envfetch", "get", "PATH"]);
         assert_eq!(
             args.command,
             Commands::Get(GetArgs {
@@ -170,7 +170,7 @@ mod tests {
 
     #[test]
     fn test_get_command_with_no_similar_names_flag() {
-        let args = Cli::parse_from(&["envfetch", "get", "PATH", "--no-similar-names"]);
+        let args = parse_from(&["envfetch", "get", "PATH", "--no-similar-names"]);
         assert_eq!(
             args.command,
             Commands::Get(GetArgs {
@@ -182,13 +182,13 @@ mod tests {
 
     #[test]
     fn test_print_command() {
-        let args = Cli::parse_from(&["envfetch", "print"]);
+        let args = parse_from(&["envfetch", "print"]);
         assert_eq!(args.command, Commands::Print);
     }
 
     #[test]
     fn test_set_command_simple() {
-        let args = Cli::parse_from(&["envfetch", "set", "VAR", "VALUE", "npm run"]);
+        let args = parse_from(&["envfetch", "set", "VAR", "VALUE", "npm run"]);
         assert_eq!(
             args.command,
             Commands::Set(SetArgs {
@@ -202,7 +202,7 @@ mod tests {
 
     #[test]
     fn test_set_command_with_global_flag() {
-        let args = Cli::parse_from(&["envfetch", "set", "VAR", "VALUE", "--global"]);
+        let args = parse_from(&["envfetch", "set", "VAR", "VALUE", "--global"]);
         assert_eq!(
             args.command,
             Commands::Set(SetArgs {
@@ -216,7 +216,7 @@ mod tests {
 
     #[test]
     fn test_set_command_with_global_flag_and_process() {
-        let args = Cli::parse_from(&["envfetch", "set", "VAR", "VALUE", "npm run", "--global"]);
+        let args = parse_from(&["envfetch", "set", "VAR", "VALUE", "npm run", "--global"]);
         assert_eq!(
             args.command,
             Commands::Set(SetArgs {
@@ -230,7 +230,7 @@ mod tests {
 
     #[test]
     fn test_add_command_simple() {
-        let args = Cli::parse_from(&["envfetch", "add", "PATH", "./executable", "npm run"]);
+        let args = parse_from(&["envfetch", "add", "PATH", "./executable", "npm run"]);
         assert_eq!(
             args.command,
             Commands::Add(AddArgs {
@@ -244,7 +244,7 @@ mod tests {
 
     #[test]
     fn test_add_command_with_global_flag() {
-        let args = Cli::parse_from(&["envfetch", "add", "PATH", "./executable", "--global"]);
+        let args = parse_from(&["envfetch", "add", "PATH", "./executable", "--global"]);
         assert_eq!(
             args.command,
             Commands::Add(AddArgs {
@@ -258,7 +258,7 @@ mod tests {
 
     #[test]
     fn test_add_command_with_global_flag_and_process() {
-        let args = Cli::parse_from(&[
+        let args = parse_from(&[
             "envfetch",
             "add",
             "PATH",
@@ -279,7 +279,7 @@ mod tests {
 
     #[test]
     fn test_delete_command_simple() {
-        let args = Cli::parse_from(&["envfetch", "delete", "VAR", "npm run"]);
+        let args = parse_from(&["envfetch", "delete", "VAR", "npm run"]);
         assert_eq!(
             args.command,
             Commands::Delete(DeleteArgs {
@@ -292,7 +292,7 @@ mod tests {
 
     #[test]
     fn test_delete_command_with_global_flag() {
-        let args = Cli::parse_from(&["envfetch", "delete", "VAR", "--global"]);
+        let args = parse_from(&["envfetch", "delete", "VAR", "--global"]);
         assert_eq!(
             args.command,
             Commands::Delete(DeleteArgs {
@@ -305,7 +305,7 @@ mod tests {
 
     #[test]
     fn test_delete_command_with_global_flag_and_process() {
-        let args = Cli::parse_from(&["envfetch", "delete", "VAR", "npm run", "--global"]);
+        let args = parse_from(&["envfetch", "delete", "VAR", "npm run", "--global"]);
         assert_eq!(
             args.command,
             Commands::Delete(DeleteArgs {
