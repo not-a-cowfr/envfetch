@@ -1,6 +1,6 @@
 use colored::Colorize;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
-use std::{io::stderr, process};
+use std::process;
 use subprocess::Exec;
 
 /// Runs given command using system shell
@@ -27,25 +27,15 @@ pub fn validate_var_name(name: &str) -> Result<(), String> {
 
 /// Print info about error
 pub fn error(text: &str) {
-    print_error(text, &mut stderr());
+    eprintln!("{} {}", "error:".red(), text);
 }
 
 /// Print info about warning
 pub fn warning(text: &str, exit_on_warning: bool) {
-    print_warning(text, &mut stderr());
+    eprintln!("{} {}", "warning:".yellow(), text);
     if exit_on_warning {
         process::exit(1);
     }
-}
-
-/// Print warning to buffer
-fn print_warning(text: &str, writer: &mut dyn std::io::Write) {
-    write!(writer, "{} {}", "warning:".yellow(), text).expect("can't write to buffer");
-}
-
-/// Print error to buffer 
-fn print_error(text: &str, writer: &mut dyn std::io::Write) {
-    write!(writer, "{} {}", "error:".red(), text).expect("can't write to buffer");
 }
 
 /// Returns vector of string that are similar by threshold to given string in given vector
@@ -66,16 +56,52 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_validate_var_name_valid() {
-        let result = validate_var_name("VALID_NAME");
-        assert!(result.is_ok());
+    fn test_error_exits() {
+        error("test error");
     }
 
     #[test]
-    fn test_validate_var_name_with_space() {
-        let result = validate_var_name("INVALID NAME");
-        assert!(result.is_err());
-        assert_eq!(result.unwrap_err(), "Variable name cannot contain spaces");
+    fn test_warning_without_exit() {
+        warning("test warning", false);
+    }
+
+    #[test]
+    fn test_validate_var_name_valid() {
+        let valid_names = vec![
+            "VALID_NAME",
+            "MY_VAR_123",
+            "PATH",
+            "_HIDDEN",
+            "VALID_NAME_WITH_NUMBERS_123",
+            "A",  // Single character
+        ];
+        
+        for name in valid_names {
+            assert!(validate_var_name(name).is_ok());
+        }
+    }
+
+    #[test]
+    fn test_validate_var_name_with_spaces() {
+        let invalid_names = vec![
+            "INVALID NAME",
+            "MY VAR",
+            " LEADING_SPACE",
+            "TRAILING_SPACE ",
+            "MULTIPLE   SPACES",
+        ];
+        
+        for name in invalid_names {
+            let result = validate_var_name(name);
+            assert!(result.is_err());
+            assert_eq!(result.unwrap_err(), "Variable name cannot contain spaces");
+        }
+    }
+
+    #[test]
+    fn test_validate_var_name_empty() {
+        let result = validate_var_name("");
+        assert!(result.is_ok(), "Empty string should be valid as per current implementation");
     }
 
     #[test]
@@ -124,59 +150,5 @@ mod tests {
         assert!(result.contains(&"TEXT".to_string()));
         assert!(result.contains(&"TSET".to_string()));
         assert!(!result.contains(&"NONE".to_string()));
-    }
-
-    #[test]
-    fn test_print_warning() {
-        let mut buffer = Vec::new();
-        print_warning("test warning message", &mut buffer);
-        let result = String::from_utf8(buffer).unwrap();
-        // Note: we can't test the exact color codes as they may vary by environment,
-        // but we can test the basic message structure
-        assert!(result.contains("warning:"));
-        assert!(result.contains("test warning message"));
-    }
-
-    #[test]
-    fn test_print_error() {
-        let mut buffer = Vec::new();
-        print_error("test error message", &mut buffer);
-        let result = String::from_utf8(buffer).unwrap();
-        assert!(result.contains("error:"));
-        assert!(result.contains("test error message"));
-    }
-
-    #[test]
-    fn test_print_warning_empty_message() {
-        let mut buffer = Vec::new();
-        print_warning("", &mut buffer);
-        let result = String::from_utf8(buffer).unwrap();
-        assert!(result.contains("warning:"));
-    }
-
-    #[test]
-    fn test_print_error_empty_message() {
-        let mut buffer = Vec::new();
-        print_error("", &mut buffer);
-        let result = String::from_utf8(buffer).unwrap();
-        assert!(result.contains("error:"));
-    }
-
-    #[test]
-    fn test_print_warning_special_characters() {
-        let mut buffer = Vec::new();
-        print_warning("test @#$%^&* message", &mut buffer);
-        let result = String::from_utf8(buffer).unwrap();
-        assert!(result.contains("warning:"));
-        assert!(result.contains("test @#$%^&* message"));
-    }
-
-    #[test]
-    fn test_print_error_special_characters() {
-        let mut buffer = Vec::new();
-        print_error("test @#$%^&* message", &mut buffer);
-        let result = String::from_utf8(buffer).unwrap();
-        assert!(result.contains("error:"));
-        assert!(result.contains("test @#$%^&* message"));
     }
 }

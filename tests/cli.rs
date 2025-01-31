@@ -1,4 +1,4 @@
-//! Integration tests for app's CLI
+//! Integration tests for CLI
 
 use assert_cmd::prelude::*;
 use assert_fs::prelude::*;
