@@ -24,7 +24,7 @@ pub struct Cli {
 }
 
 /// All tool's commands
-#[derive(Subcommand)]
+#[derive(Subcommand, Debug, PartialEq, Eq)]
 pub enum Commands {
     /// Print value of environment variable.
     Get(GetArgs),
@@ -41,7 +41,7 @@ pub enum Commands {
 }
 
 /// Args for get command
-#[derive(Args, Debug)]
+#[derive(Args, Debug, PartialEq, Eq)]
 pub struct GetArgs {
     /// Environment variable name
     #[arg(required = true)]
@@ -52,7 +52,7 @@ pub struct GetArgs {
 }
 
 /// Args for load command
-#[derive(Args, Debug)]
+#[derive(Args, Debug, PartialEq, Eq)]
 pub struct LoadArgs {
     /// Globally set variable
     #[arg(required = false, long, short)]
@@ -67,7 +67,7 @@ pub struct LoadArgs {
 }
 
 /// Args for set command
-#[derive(Args, Debug)]
+#[derive(Args, Debug, PartialEq, Eq)]
 pub struct SetArgs {
     /// Environment variable name
     #[arg(required = true)]
@@ -84,7 +84,7 @@ pub struct SetArgs {
 }
 
 /// Args for add command
-#[derive(Args, Debug)]
+#[derive(Args, Debug, PartialEq, Eq)]
 pub struct AddArgs {
     /// Environment variable name
     #[arg(required = true)]
@@ -101,7 +101,7 @@ pub struct AddArgs {
 }
 
 /// Args for delete command
-#[derive(Args, Debug)]
+#[derive(Args, Debug, PartialEq, Eq)]
 pub struct DeleteArgs {
     /// Environment variable name
     #[arg(required = true)]
