@@ -1,8 +1,8 @@
 use colored::Colorize;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
+use std::io::stderr;
 use std::process;
 use subprocess::Exec;
-use std::io::stderr;
 
 /// Runs given command using system shell
 pub fn run(process: String) {
@@ -40,13 +40,12 @@ pub fn warning(text: &str, exit_on_warning: bool, writer: &mut dyn std::io::Writ
 }
 
 /// Returns vector of string that are similar by threshold to given string in given vector
-pub fn find_similar_string(string: String, strings: Vec<String>, threshold:f64) -> Vec<String> {
-    strings.par_iter()
+pub fn find_similar_string(string: String, strings: Vec<String>, threshold: f64) -> Vec<String> {
+    strings
+        .par_iter()
         .filter(|name| {
-            similar_string::compare_similarity(
-                string.to_lowercase(),
-                name.to_lowercase(),
-            ) > threshold
+            similar_string::compare_similarity(string.to_lowercase(), name.to_lowercase())
+                > threshold
         })
         .map(|name| name.to_string())
         .collect::<Vec<_>>()
@@ -60,7 +59,7 @@ mod tests {
     fn test_error_output() {
         let mut output = Vec::new();
         error("test error message", &mut output);
-        
+
         let output_str = String::from_utf8(output).unwrap();
         assert!(output_str.contains("error:"));
         assert!(output_str.contains("test error message"));
@@ -70,7 +69,7 @@ mod tests {
     fn test_warning_output() {
         let mut output = Vec::new();
         warning("test warning message", false, &mut output);
-        
+
         let output_str = String::from_utf8(output).unwrap();
         assert!(output_str.contains("warning:"));
         assert!(output_str.contains("test warning message"));
@@ -80,7 +79,7 @@ mod tests {
     fn test_error_empty_message() {
         let mut output = Vec::new();
         error("", &mut output);
-        
+
         let output_str = String::from_utf8(output).unwrap();
         assert!(output_str.contains("error:"));
     }
@@ -89,7 +88,7 @@ mod tests {
     fn test_warning_empty_message() {
         let mut output = Vec::new();
         warning("", false, &mut output);
-        
+
         let output_str = String::from_utf8(output).unwrap();
         assert!(output_str.contains("warning:"));
     }
@@ -104,9 +103,9 @@ mod tests {
             "PATH",
             "_HIDDEN",
             "VALID_NAME_WITH_NUMBERS_123",
-            "A",  // Single character
+            "A", // Single character
         ];
-        
+
         for name in valid_names {
             assert!(validate_var_name(name).is_ok());
         }
@@ -121,7 +120,7 @@ mod tests {
             "TRAILING_SPACE ",
             "MULTIPLE   SPACES",
         ];
-        
+
         for name in invalid_names {
             let result = validate_var_name(name);
             assert!(result.is_err());
@@ -132,38 +131,29 @@ mod tests {
     #[test]
     fn test_validate_var_name_empty() {
         let result = validate_var_name("");
-        assert!(result.is_ok(), "Empty string should be valid as per current implementation");
+        assert!(
+            result.is_ok(),
+            "Empty string should be valid as per current implementation"
+        );
     }
 
     #[test]
     fn test_find_similar_string_exact_match() {
-        let strings = vec![
-            "PATH".to_string(),
-            "HOME".to_string(),
-            "USER".to_string()
-        ];
+        let strings = vec!["PATH".to_string(), "HOME".to_string(), "USER".to_string()];
         let result = find_similar_string("PATH".to_string(), strings, 0.8);
         assert_eq!(result, vec!["PATH"]);
     }
 
     #[test]
     fn test_find_similar_string_case_insensitive() {
-        let strings = vec![
-            "PATH".to_string(),
-            "HOME".to_string(),
-            "USER".to_string()
-        ];
+        let strings = vec!["PATH".to_string(), "HOME".to_string(), "USER".to_string()];
         let result = find_similar_string("path".to_string(), strings, 0.8);
         assert_eq!(result, vec!["PATH"]);
     }
 
     #[test]
     fn test_find_similar_string_no_match() {
-        let strings = vec![
-            "PATH".to_string(),
-            "HOME".to_string(),
-            "USER".to_string()
-        ];
+        let strings = vec!["PATH".to_string(), "HOME".to_string(), "USER".to_string()];
         let result = find_similar_string("XXXXXX".to_string(), strings, 0.8);
         assert!(result.is_empty());
     }
@@ -174,7 +164,7 @@ mod tests {
             "TEST".to_string(),
             "TSET".to_string(),
             "TEXT".to_string(),
-            "NONE".to_string()
+            "NONE".to_string(),
         ];
         let result = find_similar_string("TEST".to_string(), strings, 0.5);
         assert!(result.contains(&"TEST".to_string()));

@@ -1,5 +1,5 @@
-use std::env;
 use colored::Colorize;
+use std::env;
 
 use crate::utils::*;
 
@@ -11,15 +11,18 @@ pub fn print_env(writer: &mut dyn std::io::Write) {
 }
 
 /// Set variable with given key and value
-pub fn set_variable(key: &str, value: &str, global: bool, process: Option<String>) -> Result<(), String> {
+pub fn set_variable(
+    key: &str,
+    value: &str,
+    global: bool,
+    process: Option<String>,
+) -> Result<(), String> {
     if global {
         if let Err(err) = globalenv::set_var(key, value) {
-            return Err(
-                format!(
-                    "can't globally set variable: {} (do you have the required permissions?)",
-                    err
-                )
-            );
+            return Err(format!(
+                "can't globally set variable: {} (do you have the required permissions?)",
+                err
+            ));
         }
     } else {
         unsafe { env::set_var(key, value) };
@@ -35,12 +38,10 @@ pub fn set_variable(key: &str, value: &str, global: bool, process: Option<String
 pub fn delete_variable(name: String, global: bool) -> Result<(), String> {
     if global {
         if let Err(err) = globalenv::unset_var(&name) {
-            return Err(
-                format!(
-                    "can't globally delete variable: {} (do you have the required permissions?)",
-                    err
-                )
-            );
+            return Err(format!(
+                "can't globally delete variable: {} (do you have the required permissions?)",
+                err
+            ));
         }
     } else {
         unsafe { env::remove_var(&name) };
@@ -83,7 +84,7 @@ mod tests {
         let key = "TEST_DELETE_LOCAL_VAR";
         env::set_var(key, "test_value");
         assert!(env::var(key).is_ok());
-        
+
         let result = delete_variable(key.to_string(), false);
         assert!(result.is_ok());
         assert!(env::var(key).is_err());
@@ -108,9 +109,9 @@ mod tests {
     fn test_print_env() {
         let mut output = Vec::new();
         env::set_var("TEST_PRINT_VAR", "test_value");
-        
+
         print_env(&mut output);
-        
+
         let output_str = String::from_utf8(output).unwrap();
         assert!(output_str.contains("TEST_PRINT_VAR"));
         assert!(output_str.contains("test_value"));
@@ -121,9 +122,9 @@ mod tests {
         let mut output = Vec::new();
         let key = "TEST_PRINT_EMPTY";
         env::remove_var(key); // Ensure the variable doesn't exist
-        
+
         print_env(&mut output);
-        
+
         let output_str = String::from_utf8(output).unwrap();
         assert!(!output_str.contains(key));
     }
@@ -133,15 +134,15 @@ mod tests {
         let mut output = Vec::new();
         env::set_var("TEST_VAR_1", "value1");
         env::set_var("TEST_VAR_2", "value2");
-        
+
         print_env(&mut output);
-        
+
         let output_str = String::from_utf8(output).unwrap();
         assert!(output_str.contains("TEST_VAR_1"));
         assert!(output_str.contains("value1"));
         assert!(output_str.contains("TEST_VAR_2"));
         assert!(output_str.contains("value2"));
-        
+
         // Cleanup
         env::remove_var("TEST_VAR_1");
         env::remove_var("TEST_VAR_2");
