@@ -38,7 +38,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install Tarpaulin
-        run: cargo install tarpaulin
+        run: cargo install cargo-tarpaulin
       - name: Generate code coverage
         run: cargo tarpaulin
       - name: Upload coverage reports to Codecov
