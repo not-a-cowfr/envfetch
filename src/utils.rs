@@ -2,11 +2,12 @@ use colored::Colorize;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use std::process;
 use subprocess::Exec;
+use std::io::stderr;
 
 /// Runs given command using system shell
 pub fn run(process: String) {
     let result = Exec::shell(process).join().unwrap_or_else(|_| {
-        error("can't start process");
+        error("can't start process", &mut stderr());
         // Exit with non-zero exit code if we can't start process
         process::exit(1);
     });
@@ -26,13 +27,13 @@ pub fn validate_var_name(name: &str) -> Result<(), String> {
 }
 
 /// Print info about error
-pub fn error(text: &str) {
-    eprintln!("{} {}", "error:".red(), text);
+pub fn error(text: &str, writer: &mut dyn std::io::Write) {
+    writeln!(writer, "{} {}", "error:".red(), text).expect("can't write to buffer");
 }
 
 /// Print info about warning
-pub fn warning(text: &str, exit_on_warning: bool) {
-    eprintln!("{} {}", "warning:".yellow(), text);
+pub fn warning(text: &str, exit_on_warning: bool, writer: &mut dyn std::io::Write) {
+    writeln!(writer, "{} {}", "warning:".yellow(), text).expect("can't write to buffer");
     if exit_on_warning {
         process::exit(1);
     }
@@ -56,14 +57,46 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_error_exits() {
-        error("test error");
+    fn test_error_output() {
+        let mut output = Vec::new();
+        error("test error message", &mut output);
+        
+        let output_str = String::from_utf8(output).unwrap();
+        assert!(output_str.contains("error:"));
+        assert!(output_str.contains("test error message"));
     }
 
     #[test]
-    fn test_warning_without_exit() {
-        warning("test warning", false);
+    fn test_warning_output() {
+        let mut output = Vec::new();
+        warning("test warning message", false, &mut output);
+        
+        let output_str = String::from_utf8(output).unwrap();
+        assert!(output_str.contains("warning:"));
+        assert!(output_str.contains("test warning message"));
     }
+
+    #[test]
+    fn test_error_empty_message() {
+        let mut output = Vec::new();
+        error("", &mut output);
+        
+        let output_str = String::from_utf8(output).unwrap();
+        assert!(output_str.contains("error:"));
+        assert_eq!(output_str.trim().ends_with("error:"), false);
+    }
+
+    #[test]
+    fn test_warning_empty_message() {
+        let mut output = Vec::new();
+        warning("", false, &mut output);
+        
+        let output_str = String::from_utf8(output).unwrap();
+        assert!(output_str.contains("warning:"));
+        assert_eq!(output_str.trim().ends_with("warning:"), false);
+    }
+
+    // TODO: Add tests for warning function's exit_on_warning behavior
 
     #[test]
     fn test_validate_var_name_valid() {
