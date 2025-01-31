@@ -1,16 +1,12 @@
-use std::{env, io::stdout};
+use std::env;
+use colored::Colorize;
 
 use crate::utils::*;
 
 /// Print all environment variables
-pub fn print_env() {
-    print_list_as_variables(&mut stdout(), env::vars().collect());
-}
-
-/// Print list of variables as key-value pairs
-fn print_list_as_variables(writer: &mut dyn std::io::Write, variables: Vec<(String, String)>) {
-    for (key, value) in variables {
-        writeln!(writer, "{} = \"{}\"", key, value).expect("can't write to buffer");
+pub fn print_env(writer: &mut dyn std::io::Write) {
+    for (key, value) in env::vars() {
+        writeln!(writer, "{} = \"{}\"", key.blue(), value).expect("can't write to buffer");
     }
 }
 
@@ -55,63 +51,6 @@ pub fn delete_variable(name: String, global: bool) -> Result<(), String> {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_print_list_as_variables() {
-        let mut writer = Vec::new();
-        let variables = vec![
-            ("MY_ENV_VAR".to_string(), "TEST".to_string()),
-            ("TEST".to_string(), "hello".to_string()),
-        ];
-        print_list_as_variables(&mut writer, variables);
-        let result = String::from_utf8(writer).unwrap();
-        assert_eq!(result, "MY_ENV_VAR = \"TEST\"\nTEST = \"hello\"\n");
-    }
-
-    #[test]
-    fn test_print_list_as_variables_with_empty_vector() {
-        let mut writer = Vec::new();
-        let variables = Vec::new();
-        print_list_as_variables(&mut writer, variables);
-        let result = String::from_utf8(writer).unwrap();
-        assert_eq!(result, "");
-    }
-
-    #[test]
-    fn test_print_list_as_variables_with_special_characters() {
-        let mut writer = Vec::new();
-        let variables = vec![
-            ("SPECIAL_CHAR".to_string(), "value_with_@_#_$".to_string()),
-            ("ANOTHER_SPECIAL".to_string(), "value_with_!_&_*".to_string()),
-        ];
-        print_list_as_variables(&mut writer, variables);
-        let result = String::from_utf8(writer).unwrap();
-        assert_eq!(result, "SPECIAL_CHAR = \"value_with_@_#_$\"\nANOTHER_SPECIAL = \"value_with_!_&_*\"\n");
-    }
-
-    #[test]
-    fn test_print_list_as_variables_with_numeric_values() {
-        let mut writer = Vec::new();
-        let variables = vec![
-            ("NUMERIC".to_string(), "12345".to_string()),
-            ("FLOAT".to_string(), "67.89".to_string()),
-        ];
-        print_list_as_variables(&mut writer, variables);
-        let result = String::from_utf8(writer).unwrap();
-        assert_eq!(result, "NUMERIC = \"12345\"\nFLOAT = \"67.89\"\n");
-    }
-
-    #[test]
-    fn test_print_list_as_variables_with_long_values() {
-        let mut writer = Vec::new();
-        let variables = vec![
-            ("LONG_KEY".to_string(), "a".repeat(1000)),
-            ("ANOTHER_LONG_KEY".to_string(), "b".repeat(2000)),
-        ];
-        print_list_as_variables(&mut writer, variables);
-        let result = String::from_utf8(writer).unwrap();
-        assert_eq!(result, format!("LONG_KEY = \"{}\"\nANOTHER_LONG_KEY = \"{}\"\n", "a".repeat(1000), "b".repeat(2000)));
-    }
 
     #[test]
     fn test_set_variable_local() {
@@ -163,5 +102,48 @@ mod tests {
         // This should fail without admin privileges
         let _ = delete_variable(key.to_string(), true);
         // We can't assert the global state as it depends on permissions
+    }
+
+    #[test]
+    fn test_print_env() {
+        let mut output = Vec::new();
+        env::set_var("TEST_PRINT_VAR", "test_value");
+        
+        print_env(&mut output);
+        
+        let output_str = String::from_utf8(output).unwrap();
+        assert!(output_str.contains("TEST_PRINT_VAR"));
+        assert!(output_str.contains("test_value"));
+    }
+
+    #[test]
+    fn test_print_env_empty() {
+        let mut output = Vec::new();
+        let key = "TEST_PRINT_EMPTY";
+        env::remove_var(key); // Ensure the variable doesn't exist
+        
+        print_env(&mut output);
+        
+        let output_str = String::from_utf8(output).unwrap();
+        assert!(!output_str.contains(key));
+    }
+
+    #[test]
+    fn test_print_env_multiple() {
+        let mut output = Vec::new();
+        env::set_var("TEST_VAR_1", "value1");
+        env::set_var("TEST_VAR_2", "value2");
+        
+        print_env(&mut output);
+        
+        let output_str = String::from_utf8(output).unwrap();
+        assert!(output_str.contains("TEST_VAR_1"));
+        assert!(output_str.contains("value1"));
+        assert!(output_str.contains("TEST_VAR_2"));
+        assert!(output_str.contains("value2"));
+        
+        // Cleanup
+        env::remove_var("TEST_VAR_1");
+        env::remove_var("TEST_VAR_2");
     }
 }

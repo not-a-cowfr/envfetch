@@ -1,5 +1,6 @@
 use rayon::prelude::*;
 use std::{env, fs, process};
+use std::io::{stdout, stderr};
 
 use crate::models::*;
 use crate::utils::*;
@@ -8,7 +9,7 @@ use crate::variables;
 /// Print all environment variables
 pub fn print_env() {
     // Print all environment variables
-    variables::print_env();
+    variables::print_env(&mut stdout());
 }
 
 /// Load variables from dotenv-style file
