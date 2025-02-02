@@ -102,22 +102,6 @@ pub fn delete(args: &DeleteArgs) -> Result<(), ErrorKind> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::io::{self, Read};
-
-    // Helper function to capture stdout
-    fn capture_stdout<F>(f: F) -> io::Result<String>
-    where
-        F: FnOnce() -> Result<(), ErrorKind>
-    {
-        use std::io::Write;
-        let mut stdout = Vec::new();
-        {
-            let mut handle = io::Cursor::new(&mut stdout);
-            let _ = std::io::stdout().flush();
-            let _ = f();
-        }
-        String::from_utf8(stdout).map_err(|e| io::Error::new(io::ErrorKind::Other, e))
-    }
 
     #[test]
     fn test_get_existing_variable() {
