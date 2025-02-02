@@ -22,7 +22,7 @@ pub fn load(args: &LoadArgs) -> Result<(), ErrorKind> {
             match dotenv_parser::parse_dotenv(&content) {
                 Ok(variables) => {
                     variables.into_par_iter().try_for_each(|(key, value)| -> Result<(), ErrorKind> {
-                        return variables::set_variable(key.as_str(), value.as_str(), args.global, args.process.clone())
+                        return variables::set_variable(&key, &value, args.global, args.process.clone())
                     })?;
                     if let Some(process) = args.process.clone() {
                         return run(process);
@@ -97,4 +97,95 @@ pub fn delete(args: &DeleteArgs) -> Result<(), ErrorKind> {
         return run(process);
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::io::{self, Read};
+
+    // Helper function to capture stdout
+    fn capture_stdout<F>(f: F) -> io::Result<String>
+    where
+        F: FnOnce() -> Result<(), ErrorKind>
+    {
+        use std::io::Write;
+        let mut stdout = Vec::new();
+        {
+            let mut handle = io::Cursor::new(&mut stdout);
+            let _ = std::io::stdout().flush();
+            let _ = f();
+        }
+        String::from_utf8(stdout).map_err(|e| io::Error::new(io::ErrorKind::Other, e))
+    }
+
+    #[test]
+    fn test_get_existing_variable() {
+        env::set_var("TEST_GET_VAR", "test_value");
+        
+        let args = GetArgs {
+            key: "TEST_GET_VAR".to_string(),
+            no_similar_names: false,
+        };
+        
+        let result = get(&args);
+        assert!(result.is_ok());
+        
+        env::remove_var("TEST_GET_VAR");
+    }
+
+    #[test]
+    fn test_get_nonexistent_variable_with_similar_names() {
+        env::set_var("TEST_SIMILAR", "value");
+        
+        let args = GetArgs {
+            key: "TEST_SMILAR".to_string(), // Intentional typo
+            no_similar_names: false,
+        };
+        
+        let result = get(&args);
+        assert!(result.is_err());
+        match result.unwrap_err() {
+            ErrorKind::CannotFindVariable(var, no_similar) => {
+                assert_eq!(var, "TEST_SMILAR");
+                assert!(!no_similar);
+            },
+            _ => panic!("Unexpected error type"),
+        }
+        
+        env::remove_var("TEST_SIMILAR");
+    }
+
+    #[test]
+    fn test_get_nonexistent_variable_no_similar_names() {
+        let args = GetArgs {
+            key: "NONEXISTENT_VAR".to_string(),
+            no_similar_names: true,
+        };
+        
+        let result = get(&args);
+        assert!(result.is_err());
+        match result.unwrap_err() {
+            ErrorKind::CannotFindVariable(var, no_similar) => {
+                assert_eq!(var, "NONEXISTENT_VAR");
+                assert!(no_similar);
+            },
+            _ => panic!("Unexpected error type"),
+        }
+    }
+
+    #[test]
+    fn test_get_special_characters() {
+        env::set_var("TEST_SPECIAL_$#@", "special_value");
+        
+        let args = GetArgs {
+            key: "TEST_SPECIAL_$#@".to_string(),
+            no_similar_names: false,
+        };
+        
+        let result = get(&args);
+        assert!(result.is_ok());
+        
+        env::remove_var("TEST_SPECIAL_$#@");
+    }
 }
