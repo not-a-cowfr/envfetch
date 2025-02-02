@@ -19,10 +19,6 @@ pub struct Cli {
     /// Tool commands
     #[command(subcommand)]
     pub command: Commands,
-
-    /// Exit on any warning
-    #[arg(long, short = 'e', global = true)]
-    pub exit_on_warning: bool,
 }
 
 /// All tool's commands
@@ -125,7 +121,6 @@ pub enum ErrorKind {
     FileError(String),
     CannotFindVariable(String, bool),
     NameValidationError(String),
-    WarningOccured(String),
 }
 
 impl Display for ErrorKind {
@@ -143,7 +138,6 @@ impl Display for ErrorKind {
             ErrorKind::FileError(err) => write!(f, "File error: {}", err),
             ErrorKind::CannotFindVariable(name, _) => write!(f, "Can't find variable: {}", name),
             ErrorKind::NameValidationError(err) => write!(f, "Name validation error: {}", err),
-            ErrorKind::WarningOccured(warn) => write!(f, "Warning: {}", warn),
         }
     }
 }

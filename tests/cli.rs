@@ -122,16 +122,6 @@ fn delete_command_success() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-/// Test for load command if file doesn't exist and exit on error flag is enabled
-fn load_file_dont_found_with_exit_on_error() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("envfetch")?;
-    cmd.arg("delete").arg("MY_ENV_VAR_FOR_EXIT_WARNING_TEST");
-    cmd.arg("--exit-on-warning");
-    cmd.arg("echo hello").assert().failure();
-    Ok(())
-}
-
-#[test]
 /// Test for load command if custom file exist
 fn load_custom_file_exists() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin("envfetch")?;

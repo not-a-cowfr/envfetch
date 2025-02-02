@@ -59,8 +59,6 @@ Or, get binary from [GitHub Actions (needs GutHub account)](https://github.com/a
 ## Using
 To run envfetch, run `envfetch <COMMAND> <ARGS>` in your terminal.
 You can run `envfetch help` to see help message or `envfetch --version` to see program's version.
-### Global flags
-- `--exit-on-warning`/`-e` - exit on any warning
 
 ### Command list
 #### Set
@@ -206,7 +204,7 @@ $ cargo run -- <COMMAND> <ARGS>
 - [codewars-api-rs](https://github.com/ankddev/codewars-api-rs) - Rust library for Codewars API
 - [conemu-progressbar-go](https://github.com/ankddev/conemu-progressbar-go) - Progress bar for ConEmu for Go
 - [terminal-go](https://github.com/ankddev/terminal-go) - Go library for working with ANSI/VT terminal sequences
-- [zapret-discord-youtube](https://github.com/ankddev/zapret-discord-youtube) - Zapret build for Windows for fixing Discord and YouTube in Russia or othher services
+- [zapret-discord-youtube](https://github.com/ankddev/zapret-discord-youtube) - Zapret build for Windows for fixing Discord and YouTube in Russia or other services
 # Contributing
 - Read [section above to build envfetch from source](#building-from-source)
 - Create new branch

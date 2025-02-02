@@ -73,7 +73,7 @@ fn main() {
         }
         // Delete command handler
         Commands::Delete(ref opt) => {
-            if let Err(error) = delete(opt, cli.exit_on_warning) {
+            if let Err(error) = delete(opt) {
                 error!("{}", error);
                 process::exit(1);
             }

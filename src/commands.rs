@@ -96,7 +96,7 @@ pub fn add(args: &AddArgs) -> Result<(), ErrorKind> {
 }
 
 /// Delete environment variable
-pub fn delete(args: &DeleteArgs, _exit_on_warning: bool) -> Result<(), ErrorKind> {
+pub fn delete(args: &DeleteArgs) -> Result<(), ErrorKind> {
     validate_var_name(&args.key).map_err(|err| ErrorKind::NameValidationError(err))?;
 
     // Check if variable exists
@@ -106,7 +106,6 @@ pub fn delete(args: &DeleteArgs, _exit_on_warning: bool) -> Result<(), ErrorKind
         }
         _ => {
             warn!("{}", "variable doesn't exists");
-            return Err(ErrorKind::WarningOccured("Variable doesn't exists".to_string()));
         },
     }
     if let Some(process) = args.process.clone() {
