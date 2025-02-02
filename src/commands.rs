@@ -47,21 +47,6 @@ pub fn get(args: &GetArgs) -> Result<(), ErrorKind> {
         Ok(value) => println!("{:?}", &value),
         // If variable not found
         _ => {
-            // Check if we need to search for similar environment variables
-            // if !args.no_similar_names {
-            //     // Check for similar variables, if user made a mistake
-            //     let similar_names = find_similar_string(
-            //         args.key.clone(),
-            //         env::vars().map(|(key, _)| key).collect(),
-            //         0.6,
-            //     );
-            //     if !similar_names.is_empty() {
-            //         eprintln!("Did you mean:");
-            //         for name in similar_names {
-            //             eprintln!("  {}", &name);
-            //         }
-            //     }
-            // }
             return Err(ErrorKind::CannotFindVariable(args.key.clone(), args.no_similar_names));
         }
     }
