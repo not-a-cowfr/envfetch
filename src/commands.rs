@@ -172,4 +172,95 @@ mod tests {
         
         env::remove_var("TEST_SPECIAL_$#@");
     }
+
+    #[test]
+    fn test_set_valid_variable() {
+        let args = SetArgs {
+            key: "TEST_SET_VAR".to_string(),
+            value: "test_value".to_string(),
+            global: false,
+            process: None,
+        };
+        
+        let result = set(&args);
+        assert!(result.is_ok());
+        
+        assert_eq!(env::var("TEST_SET_VAR").unwrap(), "test_value");
+        env::remove_var("TEST_SET_VAR");
+    }
+
+    #[test]
+    fn test_set_invalid_variable_name() {
+        let args = SetArgs {
+            key: "INVALID NAME".to_string(), // Space in name
+            value: "test_value".to_string(),
+            global: false,
+            process: None,
+        };
+        
+        let result = set(&args);
+        assert!(result.is_err());
+        match result.unwrap_err() {
+            ErrorKind::NameValidationError(err) => {
+                assert!(err.contains("cannot contain spaces"));
+            },
+            _ => panic!("Unexpected error type"),
+        }
+    }
+
+    #[test]
+    fn test_set_empty_variable_name() {
+        let args = SetArgs {
+            key: "".to_string(),
+            value: "test_value".to_string(),
+            global: false,
+            process: None,
+        };
+        
+        let result = set(&args);
+        assert!(result.is_err());
+        match result.unwrap_err() {
+            ErrorKind::NameValidationError(err) => {
+                assert!(err.contains("cannot be empty"));
+            },
+            _ => panic!("Expected NameValidationError"),
+        }
+        
+        // Verify variable was not set
+        assert!(env::var("").is_err());
+    }
+
+    #[test]
+    fn test_set_with_process() {
+        let args = SetArgs {
+            key: "TEST_PROCESS_VAR".to_string(),
+            value: "test_value".to_string(),
+            global: false,
+            process: Some("echo test".to_string()),
+        };
+        
+        let result = set(&args);
+        assert!(result.is_ok());
+        
+        assert_eq!(env::var("TEST_PROCESS_VAR").unwrap(), "test_value");
+        env::remove_var("TEST_PROCESS_VAR");
+    }
+
+    #[test]
+    fn test_set_overwrite_existing() {
+        env::set_var("TEST_OVERWRITE", "old_value");
+        
+        let args = SetArgs {
+            key: "TEST_OVERWRITE".to_string(),
+            value: "new_value".to_string(),
+            global: false,
+            process: None,
+        };
+        
+        let result = set(&args);
+        assert!(result.is_ok());
+        
+        assert_eq!(env::var("TEST_OVERWRITE").unwrap(), "new_value");
+        env::remove_var("TEST_OVERWRITE");
+    }
 }

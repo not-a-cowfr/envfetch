@@ -26,8 +26,11 @@ pub fn run(process: String) -> Result<(), ErrorKind> {
 
 /// Validate variable name
 pub fn validate_var_name(name: &str) -> Result<(), String> {
+    if name.is_empty() {
+        return Err("Variable name cannot be empty".to_string());
+    }
     if name.contains(' ') {
-        return Err("Variable name cannot contain spaces".into());
+        return Err("Variable name cannot contain spaces".to_string());
     }
     Ok(())
 }
@@ -85,9 +88,10 @@ mod tests {
     fn test_validate_var_name_empty() {
         let result = validate_var_name("");
         assert!(
-            result.is_ok(),
-            "Empty string should be valid as per current implementation"
+            result.is_err(),
+            "Empty string should be invalid as per current implementation"
         );
+        assert_eq!(result.unwrap_err(), "Variable name cannot be empty");
     }
 
     #[test]
