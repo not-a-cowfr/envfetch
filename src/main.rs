@@ -10,12 +10,16 @@ mod utils;
 mod variables;
 
 use clap::Parser;
+use std::io::Write;
 
 use commands::{add, get, delete, load, print_env, set};
 use models::{Cli, Commands};
 
 fn main() {
     let cli = Cli::parse();
+    env_logger::builder().format(|buf, record| {
+        writeln!(buf, "{}: {}", record.level().to_string().to_lowercase(), record.args())
+    }).init();
 
     match cli.command {
         // Get command handler

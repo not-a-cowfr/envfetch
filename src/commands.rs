@@ -1,7 +1,8 @@
 
 use rayon::prelude::*;
-use std::io::{stderr, stdout};
+use std::io::stdout;
 use std::{env, fs, process};
+use log::{error, warn};
 
 use crate::models::*;
 use crate::utils::*;
@@ -25,13 +26,13 @@ pub fn load(args: &LoadArgs) {
                         if let Err(err) =
                             variables::set_variable(&key, &value, args.global, args.process.clone())
                         {
-                            error(&err, &mut stderr());
+                            error!("{}", &err);
                             process::exit(1);
                         }
                     });
                 }
                 Err(err) => {
-                    error(err.to_string().as_str(), &mut stderr());
+                    error!("{}", err.to_string().as_str());
                     if let Some(process) = args.process.clone() {
                         run(process);
                     }
@@ -40,7 +41,7 @@ pub fn load(args: &LoadArgs) {
             }
         }
         Err(err) => {
-            error(err.to_string().as_str(), &mut stderr());
+            error!("{}", err.to_string().as_str());
             if let Some(process) = args.process.clone() {
                 run(process);
             }
@@ -56,10 +57,7 @@ pub fn get(args: &GetArgs) {
         Ok(value) => println!("{:?}", &value),
         // If variable not found
         _ => {
-            error(
-                format!("can't find '{}'", &args.key).as_str(),
-                &mut stderr(),
-            );
+            error!("can't find '{}'", &args.key);
             // Check if we need to search for similar environment variables
             if !args.no_similar_names {
                 // Check for similar variables, if user made a mistake
@@ -83,14 +81,14 @@ pub fn get(args: &GetArgs) {
 /// Set value to environment variable
 pub fn set(args: &SetArgs) {
     if let Err(err) = validate_var_name(&args.key) {
-        error(&err, &mut stderr());
+        error!("{}", &err);
         process::exit(1);
     }
 
     if let Err(err) =
         variables::set_variable(&args.key, &args.value, args.global, args.process.clone())
     {
-        error(&err, &mut stderr());
+        error!("{}", &err);
         process::exit(1);
     }
 }
@@ -98,7 +96,7 @@ pub fn set(args: &SetArgs) {
 /// Add value to environment variable
 pub fn add(args: &AddArgs) {
     if let Err(err) = validate_var_name(&args.key) {
-        error(&err, &mut stderr());
+        error!("{}", &err);
         process::exit(1);
     }
 
@@ -114,7 +112,7 @@ pub fn add(args: &AddArgs) {
         args.global,
         args.process.clone(),
     ) {
-        error(&err, &mut stderr());
+        error!("{}", &err);
         process::exit(1);
     }
 }
@@ -122,7 +120,7 @@ pub fn add(args: &AddArgs) {
 /// Delete environment variable
 pub fn delete(args: &DeleteArgs, exit_on_warning: bool) {
     if let Err(err) = validate_var_name(&args.key) {
-        error(&err, &mut stderr());
+        error!("{}", &err);
         process::exit(1);
     }
 
@@ -130,11 +128,16 @@ pub fn delete(args: &DeleteArgs, exit_on_warning: bool) {
     match env::var(&args.key) {
         Ok(_) => {
             if let Err(err) = variables::delete_variable(args.key.clone(), args.global) {
-                error(&err, &mut stderr());
+                error!("{}", &err);
                 process::exit(1);
             }
         }
-        _ => warning("variable doesn't exists", exit_on_warning, &mut stderr()),
+        _ => {
+            warn!("{}", "variable doesn't exists");
+            if exit_on_warning {
+                process::exit(1);
+            }
+        },
     }
     if let Some(process) = args.process.clone() {
         run(process);
