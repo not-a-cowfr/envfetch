@@ -1,7 +1,7 @@
 use colored::Colorize;
 use std::env;
 
-use crate::utils::*;
+use crate::{models::ErrorKind, utils::*};
 
 /// Print all environment variables
 pub fn print_env(writer: &mut dyn std::io::Write) {
@@ -16,32 +16,26 @@ pub fn set_variable(
     value: &str,
     global: bool,
     process: Option<String>,
-) -> Result<(), String> {
+) -> Result<(), ErrorKind> {
     if global {
         if let Err(err) = globalenv::set_var(key, value) {
-            return Err(format!(
-                "can't globally set variable: {} (do you have the required permissions?)",
-                err
-            ));
+            return Err(ErrorKind::CannotSetVariableGlobally(err.to_string()));
         }
     } else {
         unsafe { env::set_var(key, value) };
     }
 
     if let Some(process) = process {
-        run(process);
+        return run(process);
     }
     Ok(())
 }
 
 /// Delete variable with given name
-pub fn delete_variable(name: String, global: bool) -> Result<(), String> {
+pub fn delete_variable(name: String, global: bool) -> Result<(), ErrorKind> {
     if global {
         if let Err(err) = globalenv::unset_var(&name) {
-            return Err(format!(
-                "can't globally delete variable: {} (do you have the required permissions?)",
-                err
-            ));
+            return Err(ErrorKind::CannotDeleteVariableGlobally(err.to_string()));
         }
     } else {
         unsafe { env::remove_var(&name) };

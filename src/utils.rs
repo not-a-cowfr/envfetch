@@ -1,20 +1,27 @@
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
-use std::process;
+use crate::models::ErrorKind;
 use subprocess::Exec;
 use log::error;
 
 /// Runs given command using system shell
-pub fn run(process: String) {
+pub fn run(process: String) -> Result<(), ErrorKind> {
+    let mut error = None;
     let result = Exec::shell(process).join().unwrap_or_else(|_| {
         error!("can't start process");
-        // Exit with non-zero exit code if we can't start process
-        process::exit(1);
+        error = Some(ErrorKind::ProcessFailed);
+        subprocess::ExitStatus::Exited(1)
     });
+
+    // Workaround
+    if let Some(ErrorKind::StartingProcessError) = error {
+        return Err(ErrorKind::StartingProcessError);
+    }
 
     // Exit with non-zero exit code if process did not successful
     if !result.success() {
-        process::exit(1);
+        return Err(ErrorKind::ProcessFailed);
     }
+    Ok(())
 }
 
 /// Validate variable name

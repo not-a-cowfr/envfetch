@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use clap::{Args, Parser, Subcommand};
 
 #[derive(Parser)]
@@ -112,4 +114,36 @@ pub struct DeleteArgs {
     /// Process to start, not required if --global flag is set
     #[arg(required_unless_present = "global")]
     pub process: Option<String>,
+}
+
+pub enum ErrorKind {
+    StartingProcessError,
+    ProcessFailed,
+    CannotSetVariableGlobally(String),
+    CannotDeleteVariableGlobally(String),
+    ParsingError(String),
+    FileError(String),
+    CannotFindVariable(String, bool),
+    NameValidationError(String),
+    WarningOccured(String),
+}
+
+impl Display for ErrorKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ErrorKind::StartingProcessError => write!(f, "Can't start process"),
+            ErrorKind::ProcessFailed => write!(f, "Process failed"),
+            ErrorKind::CannotSetVariableGlobally(err) => {
+                write!(f, "Can't set variable globally (try running with sudo or administrative privileges): {}", err)
+            }
+            ErrorKind::CannotDeleteVariableGlobally(err) => {
+                write!(f, "Can't delete variable globally (try running with sudo or administrative privileges): {}", err)
+            }
+            ErrorKind::ParsingError(err) => write!(f, "Parsing error: {}", err),
+            ErrorKind::FileError(err) => write!(f, "File error: {}", err),
+            ErrorKind::CannotFindVariable(name, _) => write!(f, "Can't find variable: {}", name),
+            ErrorKind::NameValidationError(err) => write!(f, "Name validation error: {}", err),
+            ErrorKind::WarningOccured(warn) => write!(f, "Warning: {}", warn),
+        }
+    }
 }

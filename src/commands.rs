@@ -1,8 +1,7 @@
-
 use rayon::prelude::*;
 use std::io::stdout;
-use std::{env, fs, process};
-use log::{error, warn};
+use std::{env, fs};
+use log::warn;
 
 use crate::models::*;
 use crate::utils::*;
@@ -15,90 +14,71 @@ pub fn print_env() {
 }
 
 /// Load variables from dotenv-style file
-pub fn load(args: &LoadArgs) {
+pub fn load(args: &LoadArgs) -> Result<(), ErrorKind> {
     // Try to read file
     match fs::read_to_string(&args.file) {
         Ok(content) => {
             // Try to parse file
             match dotenv_parser::parse_dotenv(&content) {
                 Ok(variables) => {
-                    variables.into_par_iter().for_each(|(key, value)| {
-                        if let Err(err) =
-                            variables::set_variable(&key, &value, args.global, args.process.clone())
-                        {
-                            error!("{}", &err);
-                            process::exit(1);
-                        }
-                    });
+                    variables.into_par_iter().try_for_each(|(key, value)| -> Result<(), ErrorKind> {
+                        return variables::set_variable(key.as_str(), value.as_str(), args.global, args.process.clone())
+                    })?;
+                    if let Some(process) = args.process.clone() {
+                        return run(process);
+                    }
                 }
                 Err(err) => {
-                    error!("{}", err.to_string().as_str());
-                    if let Some(process) = args.process.clone() {
-                        run(process);
-                    }
-                    process::exit(1)
+                    return Err(ErrorKind::ParsingError(err.to_string()));
                 }
             }
         }
         Err(err) => {
-            error!("{}", err.to_string().as_str());
-            if let Some(process) = args.process.clone() {
-                run(process);
-            }
-            process::exit(1)
+            return Err(ErrorKind::FileError(err.to_string()));
         }
     }
+    Ok(())
 }
 
 /// Get value of variable
-pub fn get(args: &GetArgs) {
+pub fn get(args: &GetArgs) -> Result<(), ErrorKind> {
     // Check if variable with specified name exists
     match env::var(&args.key) {
         Ok(value) => println!("{:?}", &value),
         // If variable not found
         _ => {
-            error!("can't find '{}'", &args.key);
             // Check if we need to search for similar environment variables
-            if !args.no_similar_names {
-                // Check for similar variables, if user made a mistake
-                let similar_names = find_similar_string(
-                    args.key.clone(),
-                    env::vars().map(|(key, _)| key).collect(),
-                    0.6,
-                );
-                if !similar_names.is_empty() {
-                    eprintln!("Did you mean:");
-                    for name in similar_names {
-                        eprintln!("  {}", &name);
-                    }
-                }
-            }
-            process::exit(1)
+            // if !args.no_similar_names {
+            //     // Check for similar variables, if user made a mistake
+            //     let similar_names = find_similar_string(
+            //         args.key.clone(),
+            //         env::vars().map(|(key, _)| key).collect(),
+            //         0.6,
+            //     );
+            //     if !similar_names.is_empty() {
+            //         eprintln!("Did you mean:");
+            //         for name in similar_names {
+            //             eprintln!("  {}", &name);
+            //         }
+            //     }
+            // }
+            return Err(ErrorKind::CannotFindVariable(args.key.clone(), args.no_similar_names));
         }
     }
+    Ok(())
 }
 
 /// Set value to environment variable
-pub fn set(args: &SetArgs) {
-    if let Err(err) = validate_var_name(&args.key) {
-        error!("{}", &err);
-        process::exit(1);
-    }
+pub fn set(args: &SetArgs) -> Result<(), ErrorKind> {
+    validate_var_name(&args.key).map_err(|err| ErrorKind::NameValidationError(err))?;
 
-    if let Err(err) =
-        variables::set_variable(&args.key, &args.value, args.global, args.process.clone())
-    {
-        error!("{}", &err);
-        process::exit(1);
-    }
+    variables::set_variable(&args.key, &args.value, args.global, args.process.clone())?;
+    Ok(())
 }
 
 /// Add value to environment variable
-pub fn add(args: &AddArgs) {
-    if let Err(err) = validate_var_name(&args.key) {
-        error!("{}", &err);
-        process::exit(1);
-    }
+pub fn add(args: &AddArgs) -> Result<(), ErrorKind> {
+    validate_var_name(&args.key).map_err(|err| ErrorKind::NameValidationError(err))?;
 
     let current_value = if let Ok(value) = env::var(&args.key) {
         value
@@ -106,40 +86,31 @@ pub fn add(args: &AddArgs) {
         "".to_string()
     };
 
-    if let Err(err) = variables::set_variable(
+    variables::set_variable(
         &args.key,
         &format!("{}{}", current_value, args.value),
         args.global,
         args.process.clone(),
-    ) {
-        error!("{}", &err);
-        process::exit(1);
-    }
+    )?;
+    Ok(())
 }
 
 /// Delete environment variable
-pub fn delete(args: &DeleteArgs, exit_on_warning: bool) {
-    if let Err(err) = validate_var_name(&args.key) {
-        error!("{}", &err);
-        process::exit(1);
-    }
+pub fn delete(args: &DeleteArgs, _exit_on_warning: bool) -> Result<(), ErrorKind> {
+    validate_var_name(&args.key).map_err(|err| ErrorKind::NameValidationError(err))?;
 
     // Check if variable exists
     match env::var(&args.key) {
         Ok(_) => {
-            if let Err(err) = variables::delete_variable(args.key.clone(), args.global) {
-                error!("{}", &err);
-                process::exit(1);
-            }
+            variables::delete_variable(args.key.clone(), args.global)?;
         }
         _ => {
             warn!("{}", "variable doesn't exists");
-            if exit_on_warning {
-                process::exit(1);
-            }
+            return Err(ErrorKind::WarningOccured("Variable doesn't exists".to_string()));
         },
     }
     if let Some(process) = args.process.clone() {
-        run(process);
+        return run(process);
     }
+    Ok(())
 }

@@ -10,10 +10,12 @@ mod utils;
 mod variables;
 
 use clap::Parser;
-use std::io::Write;
+use utils::find_similar_string;
+use std::{env, io::Write, process};
+use log::error;
 
 use commands::{add, get, delete, load, print_env, set};
-use models::{Cli, Commands};
+use models::{Cli, Commands, ErrorKind};
 
 fn main() {
     let cli = Cli::parse();
@@ -24,7 +26,25 @@ fn main() {
     match cli.command {
         // Get command handler
         Commands::Get(ref opt) => {
-            get(opt);
+            if let Err(error) = get(opt) {
+                error!("{}", error);
+                if let ErrorKind::CannotFindVariable(key, no_similar_names) = error {
+                    if !no_similar_names {
+                        let similar_names = find_similar_string(
+                            key.clone(),
+                            env::vars().map(|(key, _)| key).collect(),
+                            0.6,
+                        );
+                        if !similar_names.is_empty() {
+                            eprintln!("Did you mean:");
+                            for name in similar_names {
+                                eprintln!("  {}", &name);
+                            }
+                        }
+                    }
+                }
+                process::exit(1);
+            }
         }
         // Print command handler
         Commands::Print => {
@@ -32,19 +52,31 @@ fn main() {
         }
         // Load command handler
         Commands::Load(ref opt) => {
-            load(opt);
+            if let Err(error) = load(opt) {
+                error!("{}", error);
+                process::exit(1);
+            }
         }
         // Set command handler
         Commands::Set(ref opt) => {
-            set(opt);
+            if let Err(error) = set(opt) {
+                error!("{}", error);
+                process::exit(1);
+            }
         }
         // Add command handler
         Commands::Add(ref opt) => {
-            add(opt);
+            if let Err(error) = add(opt) {
+                error!("{}", error);
+                process::exit(1);
+            }
         }
         // Delete command handler
         Commands::Delete(ref opt) => {
-            delete(opt, cli.exit_on_warning);
+            if let Err(error) = delete(opt, cli.exit_on_warning) {
+                error!("{}", error);
+                process::exit(1);
+            }
         }
     }
 }
