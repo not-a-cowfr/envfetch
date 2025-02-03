@@ -319,4 +319,167 @@ mod tests {
         assert_eq!(env::var("TEST_OVERWRITE").unwrap(), "new_value");
         env::remove_var("TEST_OVERWRITE");
     }
+
+    #[test]
+    fn test_add_to_nonexistent_variable() {
+        let args = AddArgs {
+            key: "TEST_ADD_NEW".to_string(),
+            value: "new_value".to_string(),
+            global: false,
+            process: None,
+        };
+        
+        let result = add(&args);
+        assert!(result.is_ok());
+        assert_eq!(env::var("TEST_ADD_NEW").unwrap(), "new_value");
+        env::remove_var("TEST_ADD_NEW");
+    }
+
+    #[test]
+    fn test_add_to_existing_variable() {
+        env::set_var("TEST_ADD_EXISTING", "existing_");
+        
+        let args = AddArgs {
+            key: "TEST_ADD_EXISTING".to_string(),
+            value: "appended".to_string(),
+            global: false,
+            process: None,
+        };
+        
+        let result = add(&args);
+        assert!(result.is_ok());
+        assert_eq!(env::var("TEST_ADD_EXISTING").unwrap(), "existing_appended");
+        env::remove_var("TEST_ADD_EXISTING");
+    }
+
+    #[test]
+    fn test_add_with_invalid_name() {
+        let args = AddArgs {
+            key: "INVALID NAME".to_string(),
+            value: "test_value".to_string(),
+            global: false,
+            process: None,
+        };
+        
+        let result = add(&args);
+        assert!(result.is_err());
+        match result.unwrap_err() {
+            ErrorKind::NameValidationError(err) => {
+                assert!(err.contains("cannot contain spaces"));
+            },
+            _ => panic!("Unexpected error type"),
+        }
+    }
+
+    #[test]
+    fn test_add_empty_value() {
+        env::set_var("TEST_ADD_EMPTY", "existing");
+        
+        let args = AddArgs {
+            key: "TEST_ADD_EMPTY".to_string(),
+            value: "".to_string(),
+            global: false,
+            process: None,
+        };
+        
+        let result = add(&args);
+        assert!(result.is_ok());
+        assert_eq!(env::var("TEST_ADD_EMPTY").unwrap(), "existing");
+        env::remove_var("TEST_ADD_EMPTY");
+    }
+
+    #[test]
+    fn test_add_with_process() {
+        let args = AddArgs {
+            key: "TEST_ADD_PROCESS".to_string(),
+            value: "_value".to_string(),
+            global: false,
+            process: Some("echo test".to_string()),
+        };
+        
+        env::set_var("TEST_ADD_PROCESS", "initial");
+        let result = add(&args);
+        assert!(result.is_ok());
+        assert_eq!(env::var("TEST_ADD_PROCESS").unwrap(), "initial_value");
+        env::remove_var("TEST_ADD_PROCESS");
+    }
+
+    #[test]
+    fn test_delete_existing_variable() {
+        env::set_var("TEST_DELETE_VAR", "test_value");
+        
+        let args = DeleteArgs {
+            key: "TEST_DELETE_VAR".to_string(),
+            global: false,
+            process: None,
+        };
+        
+        let result = delete(&args);
+        assert!(result.is_ok());
+        assert!(env::var("TEST_DELETE_VAR").is_err());
+    }
+
+    #[test]
+    fn test_delete_nonexistent_variable() {
+        let args = DeleteArgs {
+            key: "NONEXISTENT_VAR".to_string(),
+            global: false,
+            process: None,
+        };
+        
+        let result = delete(&args);
+        // Should succeed even if variable doesn't exist
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_delete_with_invalid_name() {
+        let args = DeleteArgs {
+            key: "INVALID NAME".to_string(),
+            global: false,
+            process: None,
+        };
+        
+        let result = delete(&args);
+        assert!(result.is_err());
+        match result.unwrap_err() {
+            ErrorKind::NameValidationError(err) => {
+                assert!(err.contains("cannot contain spaces"));
+            },
+            _ => panic!("Unexpected error type"),
+        }
+    }
+
+    #[test]
+    fn test_delete_with_process() {
+        env::set_var("TEST_DELETE_PROCESS", "test_value");
+        
+        let args = DeleteArgs {
+            key: "TEST_DELETE_PROCESS".to_string(),
+            global: false,
+            process: Some("echo test".to_string()),
+        };
+        
+        let result = delete(&args);
+        assert!(result.is_ok());
+        assert!(env::var("TEST_DELETE_PROCESS").is_err());
+    }
+
+    #[test]
+    fn test_delete_with_empty_name() {
+        let args = DeleteArgs {
+            key: "".to_string(),
+            global: false,
+            process: None,
+        };
+        
+        let result = delete(&args);
+        assert!(result.is_err());
+        match result.unwrap_err() {
+            ErrorKind::NameValidationError(err) => {
+                assert!(err.contains("empty"));
+            },
+            _ => panic!("Unexpected error type"),
+        }
+    }
 }
