@@ -103,6 +103,8 @@ pub fn delete(args: &DeleteArgs) -> Result<(), ErrorKind> {
 mod tests {
     use super::*;
     use std::io::Cursor;
+    use std::io::Write;
+    use tempfile::NamedTempFile;
 
     // Helper function to capture stdout
     // TODO: use more efficient method
@@ -481,5 +483,106 @@ mod tests {
             },
             _ => panic!("Unexpected error type"),
         }
+    }
+
+    #[test]
+    fn test_load_valid_env_file() {
+        let mut temp_file = NamedTempFile::new().unwrap();
+        writeln!(temp_file, "TEST_VAR=test_value\nOTHER_VAR=other_value").unwrap();
+        
+        let args = LoadArgs {
+            file: temp_file.path().to_string_lossy().to_string(),
+            global: false,
+            process: None,
+        };
+        
+        let result = load(&args);
+        assert!(result.is_ok());
+        assert_eq!(env::var("TEST_VAR").unwrap(), "test_value");
+        assert_eq!(env::var("OTHER_VAR").unwrap(), "other_value");
+        
+        env::remove_var("TEST_VAR");
+        env::remove_var("OTHER_VAR");
+    }
+
+    #[test]
+    fn test_load_nonexistent_file() {
+        let args = LoadArgs {
+            file: "nonexistent.env".to_string(),
+            global: false,
+            process: None,
+        };
+        
+        let result = load(&args);
+        assert!(result.is_err());
+        assert!(matches!(result.unwrap_err(), ErrorKind::FileError(_)));
+    }
+
+    #[test]
+    fn test_load_invalid_env_file() {
+        let mut temp_file = NamedTempFile::new().unwrap();
+        // Using invalid .env format that dotenv_parser will reject
+        writeln!(temp_file, "TEST_VAR test_value").unwrap();
+        
+        let args = LoadArgs {
+            file: temp_file.path().to_string_lossy().to_string(),
+            global: false,
+            process: None,
+        };
+        
+        let result = load(&args);
+        assert!(result.is_err());
+        assert!(matches!(result.unwrap_err(), ErrorKind::ParsingError(_)));
+    }
+
+    #[test]
+    fn test_load_with_process() {
+        let mut temp_file = NamedTempFile::new().unwrap();
+        writeln!(temp_file, "TEST_PROCESS_VAR=process_value").unwrap();
+        
+        #[cfg(windows)]
+        let cmd = "cmd /C echo test";  // Simple echo command for Windows
+        #[cfg(not(windows))]
+        let cmd = "echo test";         // Simple echo command for Unix
+        
+        let args = LoadArgs {
+            file: temp_file.path().to_string_lossy().to_string(),
+            global: false,
+            process: Some(cmd.to_string()),
+        };
+        
+        // First verify the variable is set correctly
+        let result = load(&args);
+        assert!(result.is_ok(), "Load operation failed: {:?}", result);
+    }
+
+    #[test]
+    fn test_load_empty_file() {
+        let temp_file = NamedTempFile::new().unwrap();
+        
+        let args = LoadArgs {
+            file: temp_file.path().to_string_lossy().to_string(),
+            global: false,
+            process: None,
+        };
+        
+        let result = load(&args);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_load_with_invalid_variable_name() {
+        let mut temp_file = NamedTempFile::new().unwrap();
+        writeln!(temp_file, "TEST_VAR=test_value\nINVALID NAME=value").unwrap();
+        
+        let args = LoadArgs {
+            file: temp_file.path().to_string_lossy().to_string(),
+            global: false,
+            process: None,
+        };
+        
+        let result = load(&args);
+        assert!(result.is_err());
+        assert!(matches!(result.unwrap_err(), ErrorKind::ParsingError(_)));
     }
 }

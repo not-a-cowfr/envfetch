@@ -112,6 +112,7 @@ pub struct DeleteArgs {
     pub process: Option<String>,
 }
 
+#[derive(Debug)]
 pub enum ErrorKind {
     StartingProcessError,
     ProcessFailed,

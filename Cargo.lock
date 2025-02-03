@@ -305,6 +305,7 @@ dependencies = [
  "rayon",
  "similar-string",
  "subprocess",
+ "tempfile",
 ]
 
 [[package]]
