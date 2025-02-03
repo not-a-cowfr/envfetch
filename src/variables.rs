@@ -48,6 +48,7 @@ mod tests {
     use super::*;
     use std::io::Cursor;
     use std::env;
+    use std::str;
 
     #[test]
     fn test_set_variable_simple() {
@@ -112,5 +113,56 @@ mod tests {
         assert!(result.is_ok());
         assert_eq!(env::var("TEST_EMPTY_VAR").unwrap(), "");
         env::remove_var("TEST_EMPTY_VAR");
+    }
+
+    #[test]
+    fn test_print_env_format() {
+        // Set up test environment variables
+        env::set_var("TEST_VAR_1", "value1");
+        env::set_var("TEST_VAR_2", "value2");
+        
+        // Capture output
+        let mut output = Cursor::new(Vec::new());
+        print_env(&mut output);
+        
+        // Get output as string
+        let output_str = str::from_utf8(output.get_ref()).unwrap();
+        
+        // Verify test variables are in output with correct format
+        assert!(output_str.contains(&format!("{} = \"{}\"", "TEST_VAR_1".blue(), "value1")));
+        assert!(output_str.contains(&format!("{} = \"{}\"", "TEST_VAR_2".blue(), "value2")));
+        
+        // Clean up
+        env::remove_var("TEST_VAR_1");
+        env::remove_var("TEST_VAR_2");
+    }
+
+    #[test]
+    fn test_print_env_empty_value() {
+        env::set_var("TEST_EMPTY", "");
+        
+        let mut output = Cursor::new(Vec::new());
+        print_env(&mut output);
+        
+        let output_str = str::from_utf8(output.get_ref()).unwrap();
+        assert!(output_str.contains(&format!("{} = \"\"", "TEST_EMPTY".blue())));
+        
+        env::remove_var("TEST_EMPTY");
+    }
+
+    #[test]
+    fn test_print_env_special_characters() {
+        env::set_var("TEST_SPECIAL", "value with spaces and $#@!");
+        
+        let mut output = Cursor::new(Vec::new());
+        print_env(&mut output);
+        
+        let output_str = str::from_utf8(output.get_ref()).unwrap();
+        assert!(output_str.contains(&format!("{} = \"{}\"", 
+            "TEST_SPECIAL".blue(), 
+            "value with spaces and $#@!"
+        )));
+        
+        env::remove_var("TEST_SPECIAL");
     }
 }

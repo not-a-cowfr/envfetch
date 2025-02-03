@@ -102,6 +102,62 @@ pub fn delete(args: &DeleteArgs) -> Result<(), ErrorKind> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::io::Cursor;
+
+    // Helper function to capture stdout
+    // TODO: use more efficient method
+    fn capture_stdout<F>(_f: F) -> String 
+    where
+        F: FnOnce(),
+    {
+        let mut stdout = Vec::new();
+        {
+            let mut cursor = Cursor::new(&mut stdout);
+            let _old_stdout = std::io::stdout();
+            // Temporarily redirect stdout to our buffer
+            variables::print_env(&mut cursor);
+        }
+        String::from_utf8(stdout).unwrap()
+    }
+
+    #[test]
+    fn test_print_env_command() {
+        // Set up test environment
+        env::set_var("TEST_PRINT_CMD", "test_value");
+        
+        // Capture and verify output
+        let output = capture_stdout(|| {
+            print_env();
+        });
+        
+        // Verify output contains our test variable
+        assert!(output.contains("TEST_PRINT_CMD"));
+        assert!(output.contains("test_value"));
+        
+        // Clean up
+        env::remove_var("TEST_PRINT_CMD");
+    }
+
+    #[test]
+    fn test_print_env_multiple_variables() {
+        // Set up test environment
+        env::set_var("TEST_VAR_1", "value1");
+        env::set_var("TEST_VAR_2", "value2");
+        
+        let output = capture_stdout(|| {
+            print_env();
+        });
+        
+        // Verify both variables are present
+        assert!(output.contains("TEST_VAR_1"));
+        assert!(output.contains("value1"));
+        assert!(output.contains("TEST_VAR_2"));
+        assert!(output.contains("value2"));
+        
+        // Clean up
+        env::remove_var("TEST_VAR_1");
+        env::remove_var("TEST_VAR_2");
+    }
 
     #[test]
     fn test_get_existing_variable() {
