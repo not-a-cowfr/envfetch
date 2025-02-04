@@ -79,19 +79,19 @@ mod tests {
     #[test]
     fn test_set_variable_invalid_process() {
         let result = set_variable(
-            "TEST_INVALID_PROC", 
-            "test_value", 
-            false, 
-            Some("nonexistent_command".to_string())
+            "TEST_INVALID_PROC",
+            "test_value",
+            false,
+            Some("nonexistent_command".to_string()),
         );
-        
+
         // Check that the operation failed
         assert!(result.is_err());
         assert!(matches!(result.unwrap_err(), ErrorKind::ProcessFailed));
-        
+
         // Check that the variable is still set despite process failure
         assert_eq!(env::var("TEST_INVALID_PROC").unwrap(), "test_value");
-        
+
         // Cleanup
         env::remove_var("TEST_INVALID_PROC");
     }
@@ -119,7 +119,7 @@ mod tests {
         env::set_var("TEST_VAR_2", "value2");
 
         print_env();
-        
+
         // Clean up
         env::remove_var("TEST_VAR_1");
         env::remove_var("TEST_VAR_2");
@@ -150,10 +150,10 @@ mod tests {
             Ok(_) => {
                 assert_eq!(env::var("TEST_GLOBAL_VAR").unwrap(), "test_value");
                 delete_variable("TEST_GLOBAL_VAR".to_string(), true).unwrap();
-            },
+            }
             Err(ErrorKind::CannotSetVariableGlobally(_)) => {
                 // Test passes if we get permission error on non-admin run
-            },
+            }
             Err(e) => panic!("Unexpected error: {:?}", e),
         }
     }
@@ -165,15 +165,20 @@ mod tests {
         #[cfg(not(windows))]
         let cmd = "echo test";
 
-        let result = set_variable("TEST_GLOBAL_PROC", "test_value", true, Some(cmd.to_string()));
+        let result = set_variable(
+            "TEST_GLOBAL_PROC",
+            "test_value",
+            true,
+            Some(cmd.to_string()),
+        );
         match result {
             Ok(_) => {
                 assert_eq!(env::var("TEST_GLOBAL_PROC").unwrap(), "test_value");
                 delete_variable("TEST_GLOBAL_PROC".to_string(), true).unwrap();
-            },
+            }
             Err(ErrorKind::CannotSetVariableGlobally(_)) => {
                 // Test passes if we get permission error on non-admin run
-            },
+            }
             Err(e) => panic!("Unexpected error: {:?}", e),
         }
     }
@@ -182,7 +187,7 @@ mod tests {
     fn test_delete_variable_global() {
         // First try to set a global variable
         let set_result = set_variable("TEST_GLOBAL_DELETE", "test_value", true, None);
-        
+
         // Only test deletion if we could set the variable (i.e., we have admin rights)
         if set_result.is_ok() {
             let result = delete_variable("TEST_GLOBAL_DELETE".to_string(), true);
@@ -195,10 +200,10 @@ mod tests {
     fn test_delete_nonexistent_variable_global() {
         let result = delete_variable("NONEXISTENT_GLOBAL_VAR".to_string(), true);
         match result {
-            Ok(_) => {},
+            Ok(_) => {}
             Err(ErrorKind::CannotDeleteVariableGlobally(_)) => {
                 // Test passes if we get permission error on non-admin run
-            },
+            }
             Err(e) => panic!("Unexpected error: {:?}", e),
         }
     }

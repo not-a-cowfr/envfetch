@@ -1,7 +1,7 @@
-use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use crate::models::ErrorKind;
-use subprocess::Exec;
 use log::error;
+use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
+use subprocess::Exec;
 
 /// Runs given command using system shell
 pub fn run(process: String, capture: bool) -> Result<(), ErrorKind> {
@@ -14,7 +14,8 @@ pub fn run(process: String, capture: bool) -> Result<(), ErrorKind> {
             stderr: Vec::new(),
             exit_status: status,
         })
-    }.map_err(|_| {
+    }
+    .map_err(|_| {
         error!("can't start process");
         ErrorKind::StartingProcessError
     })?;
@@ -172,7 +173,10 @@ mod tests {
         // Test with a command that should fail to execute
         let result = run("\0invalid".to_string(), true);
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), ErrorKind::StartingProcessError));
+        assert!(matches!(
+            result.unwrap_err(),
+            ErrorKind::StartingProcessError
+        ));
     }
 
     #[test]
@@ -180,7 +184,10 @@ mod tests {
         // Test with a null character in command which should fail to start
         let result = run("echo \0test".to_string(), true);
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), ErrorKind::StartingProcessError));
+        assert!(matches!(
+            result.unwrap_err(),
+            ErrorKind::StartingProcessError
+        ));
     }
 
     #[test]
@@ -189,11 +196,11 @@ mod tests {
         let very_long_command = "x".repeat(65536);
         let result = run(very_long_command, true);
         assert!(result.is_err());
-        
+
         // Different OS's may return different error types for too-long commands
         let err = result.unwrap_err();
         match err {
-            ErrorKind::StartingProcessError | ErrorKind::ProcessFailed => {},
+            ErrorKind::StartingProcessError | ErrorKind::ProcessFailed => {}
             _ => panic!("Unexpected error type: {:?}", err),
         }
     }
