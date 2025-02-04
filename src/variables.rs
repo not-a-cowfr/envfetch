@@ -142,4 +142,64 @@ mod tests {
 
         env::remove_var("TEST_SPECIAL");
     }
+
+    #[test]
+    fn test_set_variable_global() {
+        let result = set_variable("TEST_GLOBAL_VAR", "test_value", true, None);
+        match result {
+            Ok(_) => {
+                assert_eq!(env::var("TEST_GLOBAL_VAR").unwrap(), "test_value");
+                delete_variable("TEST_GLOBAL_VAR".to_string(), true).unwrap();
+            },
+            Err(ErrorKind::CannotSetVariableGlobally(_)) => {
+                // Test passes if we get permission error on non-admin run
+            },
+            Err(e) => panic!("Unexpected error: {:?}", e),
+        }
+    }
+
+    #[test]
+    fn test_set_variable_global_with_process() {
+        #[cfg(windows)]
+        let cmd = "cmd /C echo test";
+        #[cfg(not(windows))]
+        let cmd = "echo test";
+
+        let result = set_variable("TEST_GLOBAL_PROC", "test_value", true, Some(cmd.to_string()));
+        match result {
+            Ok(_) => {
+                assert_eq!(env::var("TEST_GLOBAL_PROC").unwrap(), "test_value");
+                delete_variable("TEST_GLOBAL_PROC".to_string(), true).unwrap();
+            },
+            Err(ErrorKind::CannotSetVariableGlobally(_)) => {
+                // Test passes if we get permission error on non-admin run
+            },
+            Err(e) => panic!("Unexpected error: {:?}", e),
+        }
+    }
+
+    #[test]
+    fn test_delete_variable_global() {
+        // First try to set a global variable
+        let set_result = set_variable("TEST_GLOBAL_DELETE", "test_value", true, None);
+        
+        // Only test deletion if we could set the variable (i.e., we have admin rights)
+        if set_result.is_ok() {
+            let result = delete_variable("TEST_GLOBAL_DELETE".to_string(), true);
+            assert!(result.is_ok());
+            assert!(env::var("TEST_GLOBAL_DELETE").is_err());
+        }
+    }
+
+    #[test]
+    fn test_delete_nonexistent_variable_global() {
+        let result = delete_variable("NONEXISTENT_GLOBAL_VAR".to_string(), true);
+        match result {
+            Ok(_) => {},
+            Err(ErrorKind::CannotDeleteVariableGlobally(_)) => {
+                // Test passes if we get permission error on non-admin run
+            },
+            Err(e) => panic!("Unexpected error: {:?}", e),
+        }
+    }
 }
