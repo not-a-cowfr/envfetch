@@ -4,21 +4,22 @@ use subprocess::Exec;
 use log::error;
 
 /// Runs given command using system shell
-pub fn run(process: String) -> Result<(), ErrorKind> {
-    let mut error = None;
-    let result = Exec::shell(process).join().unwrap_or_else(|_| {
+pub fn run(process: String, capture: bool) -> Result<(), ErrorKind> {
+    let cmd = Exec::shell(process);
+    let result = if capture {
+        cmd.capture()
+    } else {
+        cmd.join().map(|status| subprocess::CaptureData {
+            stdout: Vec::new(),
+            stderr: Vec::new(),
+            exit_status: status,
+        })
+    }.map_err(|_| {
         error!("can't start process");
-        error = Some(ErrorKind::ProcessFailed);
-        subprocess::ExitStatus::Exited(1)
-    });
+        ErrorKind::StartingProcessError
+    })?;
 
-    // Workaround
-    if let Some(ErrorKind::StartingProcessError) = error {
-        return Err(ErrorKind::StartingProcessError);
-    }
-
-    // Exit with non-zero exit code if process did not successful
-    if !result.success() {
+    if !result.exit_status.success() {
         return Err(ErrorKind::ProcessFailed);
     }
     Ok(())
@@ -128,5 +129,41 @@ mod tests {
         assert!(result.contains(&"TEXT".to_string()));
         assert!(result.contains(&"TSET".to_string()));
         assert!(!result.contains(&"NONE".to_string()));
+    }
+
+    #[test]
+    fn test_run_successful_command() {
+        #[cfg(windows)]
+        let cmd = "cmd /C echo test";
+        #[cfg(not(windows))]
+        let cmd = "echo test";
+
+        let result = run(cmd.to_string(), true);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_run_nonexistent_command() {
+        let result = run("nonexistent_command_123".to_string(), true);
+        assert!(result.is_err());
+        assert!(matches!(result.unwrap_err(), ErrorKind::ProcessFailed));
+    }
+
+    #[test]
+    fn test_run_failing_command() {
+        #[cfg(windows)]
+        let cmd = "cmd /C exit 1";
+        #[cfg(not(windows))]
+        let cmd = "false";
+
+        let result = run(cmd.to_string(), true);
+        assert!(result.is_err());
+        assert!(matches!(result.unwrap_err(), ErrorKind::ProcessFailed));
+    }
+
+    #[test]
+    fn test_run_empty_command() {
+        let result = run("".to_string(), true);
+        assert!(result.is_ok());
     }
 }

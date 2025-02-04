@@ -24,7 +24,7 @@ pub fn load(args: &LoadArgs) -> Result<(), ErrorKind> {
                         return variables::set_variable(&key, &value, args.global, args.process.clone())
                     })?;
                     if let Some(process) = args.process.clone() {
-                        return run(process);
+                        return run(process, false);
                     }
                 }
                 Err(err) => {
@@ -93,7 +93,7 @@ pub fn delete(args: &DeleteArgs) -> Result<(), ErrorKind> {
         },
     }
     if let Some(process) = args.process.clone() {
-        return run(process);
+        return run(process, false);
     }
     Ok(())
 }

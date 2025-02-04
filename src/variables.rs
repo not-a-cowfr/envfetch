@@ -26,7 +26,7 @@ pub fn set_variable(
     }
 
     if let Some(process) = process {
-        return run(process);
+        return run(process, false);
     }
     Ok(())
 }
