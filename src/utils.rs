@@ -166,4 +166,29 @@ mod tests {
         let result = run("".to_string(), true);
         assert!(result.is_ok());
     }
+
+    #[test]
+    fn test_run_invalid_executable() {
+        // Test with a command that should fail to execute
+        let result = run("\0invalid".to_string(), true);
+        assert!(result.is_err());
+        assert!(matches!(result.unwrap_err(), ErrorKind::StartingProcessError));
+    }
+
+    #[test]
+    fn test_run_null_command() {
+        // Test with a null character in command which should fail to start
+        let result = run("echo \0test".to_string(), true);
+        assert!(result.is_err());
+        assert!(matches!(result.unwrap_err(), ErrorKind::StartingProcessError));
+    }
+
+    #[test]
+    fn test_run_with_very_long_command() {
+        // Create a command that's too long to execute
+        let very_long_command = "x".repeat(65536);
+        let result = run(very_long_command, true);
+        assert!(result.is_err());
+        assert!(matches!(result.unwrap_err(), ErrorKind::StartingProcessError));
+    }
 }
