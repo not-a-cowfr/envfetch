@@ -11,13 +11,13 @@ mod variables;
 
 use clap::Parser;
 use log::error;
-use std::{env, io::Write, process};
+use std::{env, io::Write, process::ExitCode};
 use utils::find_similar_string;
 
 use commands::{add, delete, get, load, print_env, set};
 use models::{Cli, Commands, ErrorKind};
 
-fn main() {
+fn main() -> ExitCode {
     let cli = Cli::parse();
     env_logger::builder()
         .format(|buf, record| {
@@ -29,10 +29,10 @@ fn main() {
             )
         })
         .init();
-    run_command(&cli.command);
+    run_command(&cli.command)
 }
 
-fn run_command(command: &Commands) {
+fn run_command(command: &Commands) -> ExitCode {
     match command {
         Commands::Get(ref opt) => {
             if let Err(error) = get(opt) {
@@ -52,35 +52,36 @@ fn run_command(command: &Commands) {
                         }
                     }
                 }
-                process::exit(1);
+                return ExitCode::FAILURE;
             }
         }
         Commands::Print => print_env(),
         Commands::Load(ref opt) => {
             if let Err(error) = load(opt) {
                 error!("{}", error);
-                process::exit(1);
+                return ExitCode::FAILURE;
             }
         }
         Commands::Set(ref opt) => {
             if let Err(error) = set(opt) {
                 error!("{}", error);
-                process::exit(1);
+                return ExitCode::FAILURE;
             }
         }
         Commands::Add(ref opt) => {
             if let Err(error) = add(opt) {
                 error!("{}", error);
-                process::exit(1);
+                return ExitCode::FAILURE;
             }
         }
         Commands::Delete(ref opt) => {
             if let Err(error) = delete(opt) {
                 error!("{}", error);
-                process::exit(1);
+                return ExitCode::FAILURE;
             }
         }
     }
+    ExitCode::SUCCESS
 }
 
 #[cfg(test)]
@@ -108,6 +109,16 @@ mod tests {
             }));
         });
         env::remove_var("TEST_RUN_VAR");
+    }
+
+    #[test]
+    fn test_run_command_get_fail() {
+        with_captured_output(|| {
+            assert_eq!(run_command(&Commands::Get(GetArgs {
+                key: "TEST_RUN_VAR_awzsenfkaqyG".to_string(),
+                no_similar_names: false,
+            })), ExitCode::FAILURE);
+        });
     }
 
     #[test]

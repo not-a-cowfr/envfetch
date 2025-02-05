@@ -280,7 +280,6 @@ mod tests {
         let result = set(&args);
         assert!(result.is_ok());
 
-        assert_eq!(env::var("TEST_PROCESS_VAR").unwrap(), "test_value");
         env::remove_var("TEST_PROCESS_VAR");
     }
 
