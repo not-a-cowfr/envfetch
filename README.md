@@ -34,6 +34,7 @@
 ```shell
 $ paru -S envfetch
 ```
+Thanks to [@adamperkowski](https://github.com/adamperkowski) for maintaining this package!
 ### Scoop (Windows)
 You can install envfetch from Scoop using this command:
 ```shell
