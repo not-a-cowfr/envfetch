@@ -223,4 +223,27 @@ mod tests {
             _ => panic!("Unexpected error type: {:?}", err),
         }
     }
+
+    #[test]
+    fn test_run_without_capture() {
+        #[cfg(windows)]
+        let cmd = "cmd /C echo test";
+        #[cfg(not(windows))]
+        let cmd = "echo test";
+
+        let result = run(cmd.to_string(), false);  // Set capture to false
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_run_without_capture_failing_command() {
+        #[cfg(windows)]
+        let cmd = "cmd /C exit 1";
+        #[cfg(not(windows))]
+        let cmd = "false";
+
+        let result = run(cmd.to_string(), false);  // Set capture to false
+        assert!(result.is_err());
+        assert!(matches!(result.unwrap_err(), ErrorKind::ProcessFailed));
+    }
 }
