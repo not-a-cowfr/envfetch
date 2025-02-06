@@ -879,4 +879,49 @@ mod tests {
             }
         });
     }
+
+    #[test]
+    fn test_run_command_delete_with_process_fail() {
+        env::set_var("TEST_DELETE_PROC_FAIL", "test_value");
+        with_captured_output(|| {
+            assert_eq!(
+                run_command(&Commands::Delete(DeleteArgs {
+                    key: "TEST_DELETE_PROC_FAIL".to_string(),
+                    global: false,
+                    process: Some("nonexistent_command_123".to_string()),
+                })),
+                ExitCode::FAILURE
+            );
+        });
+        // Variable should still be deleted even if process fails
+        assert!(env::var("TEST_DELETE_PROC_FAIL").is_err());
+    }
+
+    #[test]
+    fn test_run_command_delete_invalid_name() {
+        with_captured_output(|| {
+            assert_eq!(
+                run_command(&Commands::Delete(DeleteArgs {
+                    key: "INVALID NAME".to_string(),
+                    global: false,
+                    process: None,
+                })),
+                ExitCode::FAILURE
+            );
+        });
+    }
+
+    #[test]
+    fn test_run_command_delete_empty_name() {
+        with_captured_output(|| {
+            assert_eq!(
+                run_command(&Commands::Delete(DeleteArgs {
+                    key: "".to_string(), 
+                    global: false,
+                    process: None,
+                })),
+                ExitCode::FAILURE
+            );
+        });
+    }
 }
