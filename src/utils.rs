@@ -2,6 +2,17 @@ use crate::models::ErrorKind;
 use log::error;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use subprocess::Exec;
+use std::io;
+
+// Override stdout/stderr during tests
+#[allow(unused)]
+pub fn with_captured_output<F: FnOnce()>(test: F) {
+    let stdout = io::stdout();
+    let stderr = io::stderr();
+    let _lock_out = stdout.lock();
+    let _lock_err = stderr.lock();
+    test();
+}
 
 /// Runs given command using system shell
 pub fn run(process: String, capture: bool) -> Result<(), ErrorKind> {
@@ -52,6 +63,14 @@ pub fn find_similar_string(string: String, strings: Vec<String>, threshold: f64)
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_with_captured_output() {
+        with_captured_output(|| {
+            println!("test");
+            eprintln!("test");
+        });
+    }
 
     #[test]
     fn test_validate_var_name_valid() {

@@ -1,10 +1,65 @@
 use log::warn;
 use rayon::prelude::*;
 use std::{env, fs};
+use std::process::ExitCode;
+use log::error;
 
 use crate::models::*;
 use crate::utils::*;
 use crate::variables;
+
+/// Run tool's command
+pub fn run_command(command: &Commands) -> ExitCode {
+    match command {
+        Commands::Get(ref opt) => {
+            if let Err(error) = get(opt) {
+                error!("{}", error);
+                if let ErrorKind::CannotFindVariable(key, no_similar_names) = error {
+                    if !no_similar_names {
+                        let similar_names = find_similar_string(
+                            key.clone(),
+                            env::vars().map(|(key, _)| key).collect(),
+                            0.6,
+                        );
+                        if !similar_names.is_empty() {
+                            eprintln!("Did you mean:");
+                            for name in similar_names {
+                                eprintln!("  {}", &name);
+                            }
+                        }
+                    }
+                }
+                return ExitCode::FAILURE;
+            }
+        }
+        Commands::Print => print_env(),
+        Commands::Load(ref opt) => {
+            if let Err(error) = load(opt) {
+                error!("{}", error);
+                return ExitCode::FAILURE;
+            }
+        }
+        Commands::Set(ref opt) => {
+            if let Err(error) = set(opt) {
+                error!("{}", error);
+                return ExitCode::FAILURE;
+            }
+        }
+        Commands::Add(ref opt) => {
+            if let Err(error) = add(opt) {
+                error!("{}", error);
+                return ExitCode::FAILURE;
+            }
+        }
+        Commands::Delete(ref opt) => {
+            if let Err(error) = delete(opt) {
+                error!("{}", error);
+                return ExitCode::FAILURE;
+            }
+        }
+    }
+    ExitCode::SUCCESS
+}
 
 /// Print all environment variables
 pub fn print_env() {
@@ -113,7 +168,103 @@ mod tests {
     use tempfile::NamedTempFile;
 
     use super::*;
+    use crate::utils::with_captured_output;
     use std::io::Write;
+
+    #[test]
+    fn test_run_command_get_success() {
+        env::set_var("TEST_RUN_VAR", "test_value");
+        with_captured_output(|| {
+            run_command(&Commands::Get(GetArgs {
+                key: "TEST_RUN_VAR".to_string(),
+                no_similar_names: false,
+            }));
+        });
+        env::remove_var("TEST_RUN_VAR");
+    }
+
+    #[test]
+    fn test_run_command_get_fail() {
+        with_captured_output(|| {
+            assert_eq!(run_command(&Commands::Get(GetArgs {
+                key: "TEST_RUN_VAR_awzsenfkaqyG".to_string(),
+                no_similar_names: false,
+            })), ExitCode::FAILURE);
+        });
+    }
+
+    #[test]
+    fn test_run_command_set() {
+        with_captured_output(|| {
+            run_command(&Commands::Set(SetArgs {
+                key: "TEST_SET_RUN".to_string(),
+                value: "test_value".to_string(),
+                global: false,
+                process: None,
+            }));
+        });
+
+        assert_eq!(env::var("TEST_SET_RUN").unwrap(), "test_value");
+        env::remove_var("TEST_SET_RUN");
+    }
+
+    #[test]
+    fn test_run_command_add() {
+        env::set_var("TEST_ADD_RUN", "initial_");
+
+        with_captured_output(|| {
+            run_command(&Commands::Add(AddArgs {
+                key: "TEST_ADD_RUN".to_string(),
+                value: "value".to_string(),
+                global: false,
+                process: None,
+            }));
+        });
+
+        assert_eq!(env::var("TEST_ADD_RUN").unwrap(), "initial_value");
+        env::remove_var("TEST_ADD_RUN");
+    }
+
+    #[test]
+    fn test_run_command_print() {
+        env::set_var("TEST_PRINT_RUN", "test_value");
+        with_captured_output(|| {
+            run_command(&Commands::Print);
+        });
+        env::remove_var("TEST_PRINT_RUN");
+    }
+
+    #[test]
+    fn test_run_command_delete() {
+        env::set_var("TEST_DELETE_RUN", "test_value");
+
+        with_captured_output(|| {
+            run_command(&Commands::Delete(DeleteArgs {
+                key: "TEST_DELETE_RUN".to_string(),
+                global: false,
+                process: None,
+            }));
+        });
+
+        assert!(env::var("TEST_DELETE_RUN").is_err());
+    }
+
+    #[test]
+    fn test_run_command_load() {
+        let mut temp_file = tempfile::NamedTempFile::new().unwrap();
+        writeln!(temp_file, "TEST_LOAD_RUN=test_value").unwrap();
+
+        with_captured_output(|| {
+            run_command(&Commands::Load(LoadArgs {
+                file: temp_file.path().to_string_lossy().to_string(),
+                global: false,
+                process: None,
+            }));
+        });
+
+        assert_eq!(env::var("TEST_LOAD_RUN").unwrap(), "test_value");
+        env::remove_var("TEST_LOAD_RUN");
+    }
 
     #[test]
     fn test_print_env_command() {
@@ -563,5 +714,169 @@ mod tests {
         let result = load(&args);
         assert!(result.is_err());
         assert!(matches!(result.unwrap_err(), ErrorKind::ParsingError(_)));
+    }
+
+    #[test]
+    fn test_run_command_print_env() {
+        env::set_var("TEST_PRINT_ENV", "test_value");
+        with_captured_output(|| {
+            assert_eq!(run_command(&Commands::Print), ExitCode::SUCCESS);
+        });
+        env::remove_var("TEST_PRINT_ENV");
+    }
+
+    #[test]
+    fn test_run_command_get_with_similar_names() {
+        env::set_var("TEST_SIMILAR_VAR", "value");
+        with_captured_output(|| {
+            assert_eq!(
+                run_command(&Commands::Get(GetArgs {
+                    key: "TEST_SMILAR_VAR".to_string(), // Intentional typo
+                    no_similar_names: false,
+                })),
+                ExitCode::FAILURE
+            );
+        });
+        env::remove_var("TEST_SIMILAR_VAR");
+    }
+
+    #[test]
+    fn test_run_command_set_with_process() {
+        with_captured_output(|| {
+            assert_eq!(
+                run_command(&Commands::Set(SetArgs {
+                    key: "TEST_SET_PROC".to_string(),
+                    value: "test_value".to_string(),
+                    global: false,
+                    process: Some("echo test".to_string()),
+                })),
+                ExitCode::SUCCESS
+            );
+        });
+        assert_eq!(env::var("TEST_SET_PROC").unwrap(), "test_value");
+        env::remove_var("TEST_SET_PROC");
+    }
+
+    #[test]
+    fn test_run_command_set_invalid_name() {
+        with_captured_output(|| {
+            assert_eq!(
+                run_command(&Commands::Set(SetArgs {
+                    key: "INVALID NAME".to_string(),
+                    value: "test_value".to_string(),
+                    global: false,
+                    process: None,
+                })),
+                ExitCode::FAILURE
+            );
+        });
+    }
+
+    #[test]
+    fn test_run_command_add_to_existing() {
+        env::set_var("TEST_ADD_EXISTING", "initial_");
+        with_captured_output(|| {
+            assert_eq!(
+                run_command(&Commands::Add(AddArgs {
+                    key: "TEST_ADD_EXISTING".to_string(),
+                    value: "appended".to_string(),
+                    global: false,
+                    process: None,
+                })),
+                ExitCode::SUCCESS
+            );
+        });
+        assert_eq!(env::var("TEST_ADD_EXISTING").unwrap(), "initial_appended");
+        env::remove_var("TEST_ADD_EXISTING");
+    }
+
+    #[test]
+    fn test_run_command_add_with_invalid_name() {
+        with_captured_output(|| {
+            assert_eq!(
+                run_command(&Commands::Add(AddArgs {
+                    key: "INVALID NAME".to_string(),
+                    value: "test_value".to_string(),
+                    global: false,
+                    process: None,
+                })),
+                ExitCode::FAILURE
+            );
+        });
+    }
+
+    #[test]
+    fn test_run_command_delete_nonexistent() {
+        with_captured_output(|| {
+            assert_eq!(
+                run_command(&Commands::Delete(DeleteArgs {
+                    key: "NONEXISTENT_VAR".to_string(),
+                    global: false,
+                    process: None,
+                })),
+                ExitCode::SUCCESS // Should succeed even if var doesn't exist
+            );
+        });
+    }
+
+    #[test]
+    fn test_run_command_load_nonexistent_file() {
+        with_captured_output(|| {
+            assert_eq!(
+                run_command(&Commands::Load(LoadArgs {
+                    file: "nonexistent.env".to_string(),
+                    global: false,
+                    process: None,
+                })),
+                ExitCode::FAILURE
+            );
+        });
+    }
+
+    #[test]
+    fn test_run_command_load_with_process() {
+        let mut temp_file = tempfile::NamedTempFile::new().unwrap();
+        writeln!(temp_file, "TEST_LOAD_PROC=test_value").unwrap();
+        
+        with_captured_output(|| {
+            assert_eq!(
+                run_command(&Commands::Load(LoadArgs {
+                    file: temp_file.path().to_string_lossy().to_string(),
+                    global: false,
+                    process: Some("echo test".to_string()),
+                })),
+                ExitCode::SUCCESS
+            );
+        });
+        assert_eq!(env::var("TEST_LOAD_PROC").unwrap(), "test_value");
+        env::remove_var("TEST_LOAD_PROC");
+    }
+
+    #[test]
+    fn test_run_command_global_operations() {
+        with_captured_output(|| {
+            let result = run_command(&Commands::Set(SetArgs {
+                key: "TEST_GLOBAL".to_string(),
+                value: "test_value".to_string(),
+                global: true,
+                process: None,
+            }));
+            // Test passes if operation succeeds OR fails with permission error
+            match result {
+                ExitCode::SUCCESS => {
+                    assert_eq!(env::var("TEST_GLOBAL").unwrap(), "test_value");
+                    assert_eq!(
+                        run_command(&Commands::Delete(DeleteArgs {
+                            key: "TEST_GLOBAL".to_string(),
+                            global: true,
+                            process: None,
+                        })),
+                        ExitCode::SUCCESS
+                    );
+                }
+                ExitCode::FAILURE => {} // Expected on non-admin
+                _ => panic!("Unexpected exit code"),
+            }
+        });
     }
 }

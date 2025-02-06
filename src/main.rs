@@ -10,12 +10,10 @@ mod utils;
 mod variables;
 
 use clap::Parser;
-use log::error;
-use std::{env, io::Write, process::ExitCode};
-use utils::find_similar_string;
+use std::{io::Write, process::ExitCode};
 
-use commands::{add, delete, get, load, print_env, set};
-use models::{Cli, Commands, ErrorKind};
+use commands::run_command;
+use models::Cli;
 
 fn main() -> ExitCode {
     let cli = Cli::parse();
@@ -32,167 +30,10 @@ fn main() -> ExitCode {
     run_command(&cli.command)
 }
 
-fn run_command(command: &Commands) -> ExitCode {
-    match command {
-        Commands::Get(ref opt) => {
-            if let Err(error) = get(opt) {
-                error!("{}", error);
-                if let ErrorKind::CannotFindVariable(key, no_similar_names) = error {
-                    if !no_similar_names {
-                        let similar_names = find_similar_string(
-                            key.clone(),
-                            env::vars().map(|(key, _)| key).collect(),
-                            0.6,
-                        );
-                        if !similar_names.is_empty() {
-                            eprintln!("Did you mean:");
-                            for name in similar_names {
-                                eprintln!("  {}", &name);
-                            }
-                        }
-                    }
-                }
-                return ExitCode::FAILURE;
-            }
-        }
-        Commands::Print => print_env(),
-        Commands::Load(ref opt) => {
-            if let Err(error) = load(opt) {
-                error!("{}", error);
-                return ExitCode::FAILURE;
-            }
-        }
-        Commands::Set(ref opt) => {
-            if let Err(error) = set(opt) {
-                error!("{}", error);
-                return ExitCode::FAILURE;
-            }
-        }
-        Commands::Add(ref opt) => {
-            if let Err(error) = add(opt) {
-                error!("{}", error);
-                return ExitCode::FAILURE;
-            }
-        }
-        Commands::Delete(ref opt) => {
-            if let Err(error) = delete(opt) {
-                error!("{}", error);
-                return ExitCode::FAILURE;
-            }
-        }
-    }
-    ExitCode::SUCCESS
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::models::*;
-    use std::io;
-
-    // Override stdout/stderr during tests
-    fn with_captured_output<F: FnOnce()>(test: F) {
-        let stdout = io::stdout();
-        let stderr = io::stderr();
-        let _lock_out = stdout.lock();
-        let _lock_err = stderr.lock();
-        test();
-    }
-
-    #[test]
-    fn test_run_command_get_success() {
-        env::set_var("TEST_RUN_VAR", "test_value");
-        with_captured_output(|| {
-            run_command(&Commands::Get(GetArgs {
-                key: "TEST_RUN_VAR".to_string(),
-                no_similar_names: false,
-            }));
-        });
-        env::remove_var("TEST_RUN_VAR");
-    }
-
-    #[test]
-    fn test_run_command_get_fail() {
-        with_captured_output(|| {
-            assert_eq!(run_command(&Commands::Get(GetArgs {
-                key: "TEST_RUN_VAR_awzsenfkaqyG".to_string(),
-                no_similar_names: false,
-            })), ExitCode::FAILURE);
-        });
-    }
-
-    #[test]
-    fn test_run_command_set() {
-        with_captured_output(|| {
-            run_command(&Commands::Set(SetArgs {
-                key: "TEST_SET_RUN".to_string(),
-                value: "test_value".to_string(),
-                global: false,
-                process: None,
-            }));
-        });
-
-        assert_eq!(env::var("TEST_SET_RUN").unwrap(), "test_value");
-        env::remove_var("TEST_SET_RUN");
-    }
-
-    #[test]
-    fn test_run_command_add() {
-        env::set_var("TEST_ADD_RUN", "initial_");
-
-        with_captured_output(|| {
-            run_command(&Commands::Add(AddArgs {
-                key: "TEST_ADD_RUN".to_string(),
-                value: "value".to_string(),
-                global: false,
-                process: None,
-            }));
-        });
-
-        assert_eq!(env::var("TEST_ADD_RUN").unwrap(), "initial_value");
-        env::remove_var("TEST_ADD_RUN");
-    }
-
-    #[test]
-    fn test_run_command_print() {
-        env::set_var("TEST_PRINT_RUN", "test_value");
-        with_captured_output(|| {
-            run_command(&Commands::Print);
-        });
-        env::remove_var("TEST_PRINT_RUN");
-    }
-
-    #[test]
-    fn test_run_command_delete() {
-        env::set_var("TEST_DELETE_RUN", "test_value");
-
-        with_captured_output(|| {
-            run_command(&Commands::Delete(DeleteArgs {
-                key: "TEST_DELETE_RUN".to_string(),
-                global: false,
-                process: None,
-            }));
-        });
-
-        assert!(env::var("TEST_DELETE_RUN").is_err());
-    }
-
-    #[test]
-    fn test_run_command_load() {
-        let mut temp_file = tempfile::NamedTempFile::new().unwrap();
-        writeln!(temp_file, "TEST_LOAD_RUN=test_value").unwrap();
-
-        with_captured_output(|| {
-            run_command(&Commands::Load(LoadArgs {
-                file: temp_file.path().to_string_lossy().to_string(),
-                global: false,
-                process: None,
-            }));
-        });
-
-        assert_eq!(env::var("TEST_LOAD_RUN").unwrap(), "test_value");
-        env::remove_var("TEST_LOAD_RUN");
-    }
 
     #[test]
     fn test_get_command_without_no_similar_names_flag() {
