@@ -1,4 +1,4 @@
-name: Test and coverage
+name: Test
 on:
   push:
     branches: ["main"]
@@ -32,26 +32,3 @@ jobs:
         run: cargo build --verbose
       - name: Run tests
         run: cargo test --verbose
-  coverage:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install Tarpaulin
-        run: cargo install cargo-tarpaulin
-      - name: Generate code coverage
-        run: cargo tarpaulin --out xml
-      - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v5
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          fail_ci_if_error: true
-      - name: Install cargo2junit
-        run: cargo install cargo2junit
-      - name: Generaete junit test file
-        run: RUSTC_BOOTSTRAP=1 cargo test -- -Z unstable-options --format json --report-time | cargo2junit > junit.xml
-      - name: Upload test results to Codecov
-        if: ${{ !cancelled() }}
-        uses: codecov/test-results-action@v1
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
