@@ -1,8 +1,8 @@
 use crate::models::ErrorKind;
 use log::error;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
-use subprocess::Exec;
 use std::io;
+use subprocess::Exec;
 
 // Override stdout/stderr during tests
 #[allow(unused)]
@@ -231,7 +231,7 @@ mod tests {
         #[cfg(not(windows))]
         let cmd = "echo test";
 
-        let result = run(cmd.to_string(), false);  // Set capture to false
+        let result = run(cmd.to_string(), false); // Set capture to false
         assert!(result.is_ok());
     }
 
@@ -242,7 +242,7 @@ mod tests {
         #[cfg(not(windows))]
         let cmd = "false";
 
-        let result = run(cmd.to_string(), false);  // Set capture to false
+        let result = run(cmd.to_string(), false); // Set capture to false
         assert!(result.is_err());
         assert!(matches!(result.unwrap_err(), ErrorKind::ProcessFailed));
     }

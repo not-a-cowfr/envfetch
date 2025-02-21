@@ -1,8 +1,8 @@
+use log::error;
 use log::warn;
 use rayon::prelude::*;
-use std::{env, fs};
 use std::process::ExitCode;
-use log::error;
+use std::{env, fs};
 
 use crate::models::*;
 use crate::utils::*;
@@ -188,10 +188,13 @@ mod tests {
     #[test]
     fn test_run_command_get_fail() {
         with_captured_output(|| {
-            assert_eq!(run_command(&Commands::Get(GetArgs {
-                key: "TEST_RUN_VAR_awzsenfkaqyG".to_string(),
-                no_similar_names: false,
-            })), ExitCode::FAILURE);
+            assert_eq!(
+                run_command(&Commands::Get(GetArgs {
+                    key: "TEST_RUN_VAR_awzsenfkaqyG".to_string(),
+                    no_similar_names: false,
+                })),
+                ExitCode::FAILURE
+            );
         });
     }
 
@@ -880,7 +883,7 @@ mod tests {
     fn test_run_command_load_with_process() {
         let mut temp_file = tempfile::NamedTempFile::new().unwrap();
         writeln!(temp_file, "TEST_LOAD_PROC=test_value").unwrap();
-        
+
         with_captured_output(|| {
             assert_eq!(
                 run_command(&Commands::Load(LoadArgs {
@@ -961,7 +964,7 @@ mod tests {
         with_captured_output(|| {
             assert_eq!(
                 run_command(&Commands::Delete(DeleteArgs {
-                    key: "".to_string(), 
+                    key: "".to_string(),
                     global: false,
                     process: None,
                 })),

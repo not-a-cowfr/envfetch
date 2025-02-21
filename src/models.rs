@@ -130,10 +130,18 @@ impl Display for ErrorKind {
             ErrorKind::StartingProcessError => write!(f, "Can't start process"),
             ErrorKind::ProcessFailed => write!(f, "Process failed"),
             ErrorKind::CannotSetVariableGlobally(err) => {
-                write!(f, "Can't set variable globally (try running with sudo or administrative privileges): {}", err)
+                write!(
+                    f,
+                    "Can't set variable globally (try running with sudo or administrative privileges): {}",
+                    err
+                )
             }
             ErrorKind::CannotDeleteVariableGlobally(err) => {
-                write!(f, "Can't delete variable globally (try running with sudo or administrative privileges): {}", err)
+                write!(
+                    f,
+                    "Can't delete variable globally (try running with sudo or administrative privileges): {}",
+                    err
+                )
             }
             ErrorKind::ParsingError(err) => write!(f, "Parsing error: {}", err),
             ErrorKind::FileError(err) => write!(f, "File error: {}", err),
@@ -150,37 +158,31 @@ mod tests {
     #[test]
     fn test_error_kind_display() {
         let test_cases = vec![
-            (
-                ErrorKind::StartingProcessError,
-                "Can't start process"
-            ),
-            (
-                ErrorKind::ProcessFailed,
-                "Process failed"
-            ),
+            (ErrorKind::StartingProcessError, "Can't start process"),
+            (ErrorKind::ProcessFailed, "Process failed"),
             (
                 ErrorKind::CannotSetVariableGlobally("Permission denied".to_string()),
-                "Can't set variable globally (try running with sudo or administrative privileges): Permission denied"
+                "Can't set variable globally (try running with sudo or administrative privileges): Permission denied",
             ),
             (
                 ErrorKind::CannotDeleteVariableGlobally("Access denied".to_string()),
-                "Can't delete variable globally (try running with sudo or administrative privileges): Access denied"
+                "Can't delete variable globally (try running with sudo or administrative privileges): Access denied",
             ),
             (
                 ErrorKind::ParsingError("Invalid syntax".to_string()),
-                "Parsing error: Invalid syntax"
+                "Parsing error: Invalid syntax",
             ),
             (
                 ErrorKind::FileError("File not found".to_string()),
-                "File error: File not found"
+                "File error: File not found",
             ),
             (
                 ErrorKind::CannotFindVariable("PATH".to_string(), true),
-                "Can't find variable: PATH"
+                "Can't find variable: PATH",
             ),
             (
                 ErrorKind::NameValidationError("Variable name cannot be empty".to_string()),
-                "Name validation error: Variable name cannot be empty"
+                "Name validation error: Variable name cannot be empty",
             ),
         ];
 
