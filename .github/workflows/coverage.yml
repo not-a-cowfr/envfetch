@@ -14,6 +14,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      - name: Update Rust
+        run: rustup update stable
       - name: Install Tarpaulin
         run: cargo install cargo-tarpaulin
       - name: Generate code coverage
