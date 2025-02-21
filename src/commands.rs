@@ -11,7 +11,7 @@ use crate::variables;
 /// Run tool's command
 pub fn run_command(command: &Commands) -> ExitCode {
     match command {
-        Commands::Get(ref opt) => {
+        Commands::Get(opt) => {
             if let Err(error) = get(opt) {
                 error!("{}", error);
                 if let ErrorKind::CannotFindVariable(key, no_similar_names) = error {
@@ -33,25 +33,25 @@ pub fn run_command(command: &Commands) -> ExitCode {
             }
         }
         Commands::Print => print_env(),
-        Commands::Load(ref opt) => {
+        Commands::Load(opt) => {
             if let Err(error) = load(opt) {
                 error!("{}", error);
                 return ExitCode::FAILURE;
             }
         }
-        Commands::Set(ref opt) => {
+        Commands::Set(opt) => {
             if let Err(error) = set(opt) {
                 error!("{}", error);
                 return ExitCode::FAILURE;
             }
         }
-        Commands::Add(ref opt) => {
+        Commands::Add(opt) => {
             if let Err(error) = add(opt) {
                 error!("{}", error);
                 return ExitCode::FAILURE;
             }
         }
-        Commands::Delete(ref opt) => {
+        Commands::Delete(opt) => {
             if let Err(error) = delete(opt) {
                 error!("{}", error);
                 return ExitCode::FAILURE;
@@ -173,14 +173,16 @@ mod tests {
 
     #[test]
     fn test_run_command_get_success() {
-        env::set_var("TEST_RUN_VAR", "test_value");
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::set_var("TEST_RUN_VAR", "test_value") };
         with_captured_output(|| {
             run_command(&Commands::Get(GetArgs {
                 key: "TEST_RUN_VAR".to_string(),
                 no_similar_names: false,
             }));
         });
-        env::remove_var("TEST_RUN_VAR");
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::remove_var("TEST_RUN_VAR") };
     }
 
     #[test]
@@ -205,12 +207,14 @@ mod tests {
         });
 
         assert_eq!(env::var("TEST_SET_RUN").unwrap(), "test_value");
-        env::remove_var("TEST_SET_RUN");
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::remove_var("TEST_SET_RUN") };
     }
 
     #[test]
     fn test_run_command_add() {
-        env::set_var("TEST_ADD_RUN", "initial_");
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::set_var("TEST_ADD_RUN", "initial_") };
 
         with_captured_output(|| {
             run_command(&Commands::Add(AddArgs {
@@ -222,21 +226,25 @@ mod tests {
         });
 
         assert_eq!(env::var("TEST_ADD_RUN").unwrap(), "initial_value");
-        env::remove_var("TEST_ADD_RUN");
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::remove_var("TEST_ADD_RUN") };
     }
 
     #[test]
     fn test_run_command_print() {
-        env::set_var("TEST_PRINT_RUN", "test_value");
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::set_var("TEST_PRINT_RUN", "test_value") };
         with_captured_output(|| {
             run_command(&Commands::Print);
         });
-        env::remove_var("TEST_PRINT_RUN");
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::remove_var("TEST_PRINT_RUN") };
     }
 
     #[test]
     fn test_run_command_delete() {
-        env::set_var("TEST_DELETE_RUN", "test_value");
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::set_var("TEST_DELETE_RUN", "test_value") };
 
         with_captured_output(|| {
             run_command(&Commands::Delete(DeleteArgs {
@@ -263,38 +271,46 @@ mod tests {
         });
 
         assert_eq!(env::var("TEST_LOAD_RUN").unwrap(), "test_value");
-        env::remove_var("TEST_LOAD_RUN");
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::remove_var("TEST_LOAD_RUN") };
     }
 
     #[test]
     fn test_print_env_command() {
         // Set test variable
-        env::set_var("TEST_PRINT_VAR", "test_value");
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::set_var("TEST_PRINT_VAR", "test_value") };
 
         // Call function - just verify it executes without panicking
         print_env();
 
         // Clean up
-        env::remove_var("TEST_PRINT_VAR");
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::remove_var("TEST_PRINT_VAR") };
     }
 
     #[test]
     fn test_print_env_multiple_variables() {
         // Set test variables
-        env::set_var("TEST_VAR_1", "value1");
-        env::set_var("TEST_VAR_2", "value2");
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::set_var("TEST_VAR_1", "value1") };
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::set_var("TEST_VAR_2", "value2") };
 
         // Call function - just verify it executes without panicking
         print_env();
 
         // Clean up
-        env::remove_var("TEST_VAR_1");
-        env::remove_var("TEST_VAR_2");
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::remove_var("TEST_VAR_1") };
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::remove_var("TEST_VAR_2") };
     }
 
     #[test]
     fn test_get_existing_variable() {
-        env::set_var("TEST_GET_VAR", "test_value");
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::set_var("TEST_GET_VAR", "test_value") };
 
         let args = GetArgs {
             key: "TEST_GET_VAR".to_string(),
@@ -304,12 +320,14 @@ mod tests {
         let result = get(&args);
         assert!(result.is_ok());
 
-        env::remove_var("TEST_GET_VAR");
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::remove_var("TEST_GET_VAR") };
     }
 
     #[test]
     fn test_get_nonexistent_variable_with_similar_names() {
-        env::set_var("TEST_SIMILAR", "value");
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::set_var("TEST_SIMILAR", "value") };
 
         let args = GetArgs {
             key: "TEST_SMILAR".to_string(), // Intentional typo
@@ -326,7 +344,8 @@ mod tests {
             _ => panic!("Unexpected error type"),
         }
 
-        env::remove_var("TEST_SIMILAR");
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::remove_var("TEST_SIMILAR") };
     }
 
     #[test]
@@ -349,7 +368,8 @@ mod tests {
 
     #[test]
     fn test_get_special_characters() {
-        env::set_var("TEST_SPECIAL_$#@", "special_value");
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::set_var("TEST_SPECIAL_$#@", "special_value") };
 
         let args = GetArgs {
             key: "TEST_SPECIAL_$#@".to_string(),
@@ -359,7 +379,8 @@ mod tests {
         let result = get(&args);
         assert!(result.is_ok());
 
-        env::remove_var("TEST_SPECIAL_$#@");
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::remove_var("TEST_SPECIAL_$#@") };
     }
 
     #[test]
@@ -375,7 +396,8 @@ mod tests {
         assert!(result.is_ok());
 
         assert_eq!(env::var("TEST_SET_VAR").unwrap(), "test_value");
-        env::remove_var("TEST_SET_VAR");
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::remove_var("TEST_SET_VAR") };
     }
 
     #[test]
@@ -431,12 +453,14 @@ mod tests {
         let result = set(&args);
         assert!(result.is_ok());
 
-        env::remove_var("TEST_PROCESS_VAR");
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::remove_var("TEST_PROCESS_VAR") };
     }
 
     #[test]
     fn test_set_overwrite_existing() {
-        env::set_var("TEST_OVERWRITE", "old_value");
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::set_var("TEST_OVERWRITE", "old_value") };
 
         let args = SetArgs {
             key: "TEST_OVERWRITE".to_string(),
@@ -449,7 +473,8 @@ mod tests {
         assert!(result.is_ok());
 
         assert_eq!(env::var("TEST_OVERWRITE").unwrap(), "new_value");
-        env::remove_var("TEST_OVERWRITE");
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::remove_var("TEST_OVERWRITE") };
     }
 
     #[test]
@@ -464,12 +489,14 @@ mod tests {
         let result = add(&args);
         assert!(result.is_ok());
         assert_eq!(env::var("TEST_ADD_NEW").unwrap(), "new_value");
-        env::remove_var("TEST_ADD_NEW");
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::remove_var("TEST_ADD_NEW") };
     }
 
     #[test]
     fn test_add_to_existing_variable() {
-        env::set_var("TEST_ADD_EXISTING", "existing_");
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::set_var("TEST_ADD_EXISTING", "existing_") };
 
         let args = AddArgs {
             key: "TEST_ADD_EXISTING".to_string(),
@@ -481,7 +508,8 @@ mod tests {
         let result = add(&args);
         assert!(result.is_ok());
         assert_eq!(env::var("TEST_ADD_EXISTING").unwrap(), "existing_appended");
-        env::remove_var("TEST_ADD_EXISTING");
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::remove_var("TEST_ADD_EXISTING") };
     }
 
     #[test]
@@ -505,7 +533,8 @@ mod tests {
 
     #[test]
     fn test_add_empty_value() {
-        env::set_var("TEST_ADD_EMPTY", "existing");
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::set_var("TEST_ADD_EMPTY", "existing") };
 
         let args = AddArgs {
             key: "TEST_ADD_EMPTY".to_string(),
@@ -517,7 +546,8 @@ mod tests {
         let result = add(&args);
         assert!(result.is_ok());
         assert_eq!(env::var("TEST_ADD_EMPTY").unwrap(), "existing");
-        env::remove_var("TEST_ADD_EMPTY");
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::remove_var("TEST_ADD_EMPTY") };
     }
 
     #[test]
@@ -529,16 +559,19 @@ mod tests {
             process: Some("echo test".to_string()),
         };
 
-        env::set_var("TEST_ADD_PROCESS", "initial");
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::set_var("TEST_ADD_PROCESS", "initial") };
         let result = add(&args);
         assert!(result.is_ok());
         assert_eq!(env::var("TEST_ADD_PROCESS").unwrap(), "initial_value");
-        env::remove_var("TEST_ADD_PROCESS");
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::remove_var("TEST_ADD_PROCESS") };
     }
 
     #[test]
     fn test_delete_existing_variable() {
-        env::set_var("TEST_DELETE_VAR", "test_value");
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::set_var("TEST_DELETE_VAR", "test_value") };
 
         let args = DeleteArgs {
             key: "TEST_DELETE_VAR".to_string(),
@@ -584,7 +617,8 @@ mod tests {
 
     #[test]
     fn test_delete_with_process() {
-        env::set_var("TEST_DELETE_PROCESS", "test_value");
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::set_var("TEST_DELETE_PROCESS", "test_value") };
 
         let args = DeleteArgs {
             key: "TEST_DELETE_PROCESS".to_string(),
@@ -631,8 +665,10 @@ mod tests {
         assert_eq!(env::var("TEST_VAR").unwrap(), "test_value");
         assert_eq!(env::var("OTHER_VAR").unwrap(), "other_value");
 
-        env::remove_var("TEST_VAR");
-        env::remove_var("OTHER_VAR");
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::remove_var("TEST_VAR") };
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::remove_var("OTHER_VAR") };
     }
 
     #[test]
@@ -718,16 +754,19 @@ mod tests {
 
     #[test]
     fn test_run_command_print_env() {
-        env::set_var("TEST_PRINT_ENV", "test_value");
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::set_var("TEST_PRINT_ENV", "test_value") };
         with_captured_output(|| {
             assert_eq!(run_command(&Commands::Print), ExitCode::SUCCESS);
         });
-        env::remove_var("TEST_PRINT_ENV");
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::remove_var("TEST_PRINT_ENV") };
     }
 
     #[test]
     fn test_run_command_get_with_similar_names() {
-        env::set_var("TEST_SIMILAR_VAR", "value");
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::set_var("TEST_SIMILAR_VAR", "value") };
         with_captured_output(|| {
             assert_eq!(
                 run_command(&Commands::Get(GetArgs {
@@ -737,7 +776,8 @@ mod tests {
                 ExitCode::FAILURE
             );
         });
-        env::remove_var("TEST_SIMILAR_VAR");
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::remove_var("TEST_SIMILAR_VAR") };
     }
 
     #[test]
@@ -754,7 +794,8 @@ mod tests {
             );
         });
         assert_eq!(env::var("TEST_SET_PROC").unwrap(), "test_value");
-        env::remove_var("TEST_SET_PROC");
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::remove_var("TEST_SET_PROC") };
     }
 
     #[test]
@@ -774,7 +815,8 @@ mod tests {
 
     #[test]
     fn test_run_command_add_to_existing() {
-        env::set_var("TEST_ADD_EXISTING", "initial_");
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::set_var("TEST_ADD_EXISTING", "initial_") };
         with_captured_output(|| {
             assert_eq!(
                 run_command(&Commands::Add(AddArgs {
@@ -787,7 +829,8 @@ mod tests {
             );
         });
         assert_eq!(env::var("TEST_ADD_EXISTING").unwrap(), "initial_appended");
-        env::remove_var("TEST_ADD_EXISTING");
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::remove_var("TEST_ADD_EXISTING") };
     }
 
     #[test]
@@ -849,7 +892,8 @@ mod tests {
             );
         });
         assert_eq!(env::var("TEST_LOAD_PROC").unwrap(), "test_value");
-        env::remove_var("TEST_LOAD_PROC");
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::remove_var("TEST_LOAD_PROC") };
     }
 
     #[test]
@@ -882,7 +926,8 @@ mod tests {
 
     #[test]
     fn test_run_command_delete_with_process_fail() {
-        env::set_var("TEST_DELETE_PROC_FAIL", "test_value");
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::set_var("TEST_DELETE_PROC_FAIL", "test_value") };
         with_captured_output(|| {
             assert_eq!(
                 run_command(&Commands::Delete(DeleteArgs {

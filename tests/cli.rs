@@ -44,7 +44,8 @@ fn set_command_failure() -> Result<(), Box<dyn std::error::Error>> {
 /// Test for get command if specified variable exists
 fn get_variable_exists() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin("envfetch")?;
-    env::set_var("MY_VAR", "Hello");
+    // TODO: Audit that the environment access only happens in single-threaded code.
+    unsafe { env::set_var("MY_VAR", "Hello") };
     cmd.arg("get").arg("MY_VAR");
     cmd.assert()
         .success()
@@ -66,7 +67,8 @@ fn get_variable_doesnt_exists() -> Result<(), Box<dyn std::error::Error>> {
 #[test]
 /// Test for get command if specified variable doesn't exist and showing similar variables is enabled
 fn get_variable_doesnt_exists_similar_enabled() -> Result<(), Box<dyn std::error::Error>> {
-    env::set_var("MY_VARIABLEE", "Hello");
+    // TODO: Audit that the environment access only happens in single-threaded code.
+    unsafe { env::set_var("MY_VARIABLEE", "Hello") };
     let mut cmd = Command::cargo_bin("envfetch")?;
     cmd.arg("get").arg("MY_VARIABLE");
     cmd.assert()
@@ -83,7 +85,8 @@ fn get_variable_doesnt_exists_similar_enabled() -> Result<(), Box<dyn std::error
 /// Test for get command if specified variable doesn't exist and showing similar variables is disabled
 fn get_variable_doesnt_exists_similar_disabled() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin("envfetch")?;
-    env::set_var("MY_VARIABLEE", "Hello");
+    // TODO: Audit that the environment access only happens in single-threaded code.
+    unsafe { env::set_var("MY_VARIABLEE", "Hello") };
     cmd.arg("get").arg("MY_VARIABLE").arg("--no-similar-names");
     cmd.assert().failure();
     Ok(())
@@ -93,7 +96,8 @@ fn get_variable_doesnt_exists_similar_disabled() -> Result<(), Box<dyn std::erro
 /// Test for print command
 fn print_success() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin("envfetch")?;
-    env::set_var("PRINT_TEST", "Print");
+    // TODO: Audit that the environment access only happens in single-threaded code.
+    unsafe { env::set_var("PRINT_TEST", "Print") };
     cmd.arg("print")
         .assert()
         .success()
@@ -105,7 +109,8 @@ fn print_success() -> Result<(), Box<dyn std::error::Error>> {
 /// Test for delete command if specified process is successful
 fn delete_command_success() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin("envfetch")?;
-    env::set_var("MY_VAR", "Hello");
+    // TODO: Audit that the environment access only happens in single-threaded code.
+    unsafe { env::set_var("MY_VAR", "Hello") };
     cmd.arg("delete").arg("MY_VAR");
     // Windows
     #[cfg(target_os = "windows")]
