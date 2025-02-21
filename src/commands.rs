@@ -77,12 +77,7 @@ pub fn load(args: &LoadArgs) -> Result<(), ErrorKind> {
                 Ok(variables) => {
                     variables.into_par_iter().try_for_each(
                         |(key, value)| -> Result<(), ErrorKind> {
-                            variables::set_variable(
-                                &key,
-                                &value,
-                                args.global,
-                                args.process.clone(),
-                            )
+                            variables::set_variable(&key, &value, args.global, args.process.clone())
                         },
                     )?;
                     if let Some(process) = args.process.clone() {
