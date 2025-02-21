@@ -77,12 +77,12 @@ pub fn load(args: &LoadArgs) -> Result<(), ErrorKind> {
                 Ok(variables) => {
                     variables.into_par_iter().try_for_each(
                         |(key, value)| -> Result<(), ErrorKind> {
-                            return variables::set_variable(
+                            variables::set_variable(
                                 &key,
                                 &value,
                                 args.global,
                                 args.process.clone(),
-                            );
+                            )
                         },
                     )?;
                     if let Some(process) = args.process.clone() {
@@ -119,7 +119,7 @@ pub fn get(args: &GetArgs) -> Result<(), ErrorKind> {
 
 /// Set value to environment variable
 pub fn set(args: &SetArgs) -> Result<(), ErrorKind> {
-    validate_var_name(&args.key).map_err(|err| ErrorKind::NameValidationError(err))?;
+    validate_var_name(&args.key).map_err(ErrorKind::NameValidationError)?;
 
     variables::set_variable(&args.key, &args.value, args.global, args.process.clone())?;
     Ok(())
@@ -127,7 +127,7 @@ pub fn set(args: &SetArgs) -> Result<(), ErrorKind> {
 
 /// Add value to environment variable
 pub fn add(args: &AddArgs) -> Result<(), ErrorKind> {
-    validate_var_name(&args.key).map_err(|err| ErrorKind::NameValidationError(err))?;
+    validate_var_name(&args.key).map_err(ErrorKind::NameValidationError)?;
 
     let current_value = if let Ok(value) = env::var(&args.key) {
         value
@@ -146,7 +146,7 @@ pub fn add(args: &AddArgs) -> Result<(), ErrorKind> {
 
 /// Delete environment variable
 pub fn delete(args: &DeleteArgs) -> Result<(), ErrorKind> {
-    validate_var_name(&args.key).map_err(|err| ErrorKind::NameValidationError(err))?;
+    validate_var_name(&args.key).map_err(ErrorKind::NameValidationError)?;
 
     // Check if variable exists
     match env::var(&args.key) {
