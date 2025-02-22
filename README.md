@@ -41,7 +41,7 @@ You can install envfetch from Scoop using this command:
 scoop install https://gist.githubusercontent.com/ankddev/f6314b552aa021f676fc999ec697f833/raw/envfetch.json
 ```
 Note, that it uses [manifest, published only as GitHub Gist.](https://gist.github.com/ankddev/f6314b552aa021f676fc999ec697f833)
-### From DEB package (Linux, Debian-based)
+### From DEB package (Debian-based Linux)
 You can download .deb package from [releases](https://github.com/ankddev/envfetch/releases) and thhen execute:
 ```sh
 sudo dpkg -i <deb-package>
