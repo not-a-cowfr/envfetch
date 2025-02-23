@@ -6,8 +6,9 @@ Closes #<number of issue>
 - [ ] Run tests
 - [ ] Tested in real cases
 # Checklist
-- [ ] Your code doesn't generated new warnings or errors
+- [ ] Your changes don't generate new warnings or errors
 - [ ] You have run `cargo clippy` and `cargo fmt`
 - [ ] You have tested this
+- [ ] You have updates documentation
 # Screenshots
 <!-- add screenshots if applicable -->
