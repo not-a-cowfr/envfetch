@@ -6,6 +6,7 @@ Closes #<number of issue>
 - [ ] Run tests
 - [ ] Tested in real cases
 # Checklist
+<!-- you should do all of this, mark applicable items with x inside brackets -->
 - [ ] Your changes don't generate new warnings or errors
 - [ ] You have run `cargo clippy` and `cargo fmt`
 - [ ] You have tested this
