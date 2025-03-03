@@ -22,6 +22,7 @@
 - [x] Load variables from dotenv-style file (temporary and permanent)
 - [x] Add string to the end of variable
 - [ ] Set and delete multiple variables at once
+- [ ] Interactive mode
 # Get started
 ## Installing
 
