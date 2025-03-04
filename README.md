@@ -24,6 +24,7 @@
 - [ ] Set and delete multiple variables at once
 - [ ] Interactive mode
   - [x] Basic support
+- [ ] Export variables
 # Get started
 ## Installing
 
