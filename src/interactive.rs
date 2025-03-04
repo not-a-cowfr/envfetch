@@ -1,5 +1,6 @@
 mod draw;
 mod list;
+mod tests;
 
 use std::io;
 
