@@ -3,6 +3,9 @@ use std::env;
 
 use crate::{models::ErrorKind, utils::*};
 
+/// List of variables
+type VariablesList = Vec<(String, String)>;
+
 /// Print all environment variables
 pub fn print_env() {
     for (key, value) in get_variables() {
@@ -11,7 +14,7 @@ pub fn print_env() {
 }
 
 /// Get list of environment variables with values
-pub fn get_variables() -> Vec<(String, String)> {
+pub fn get_variables() -> VariablesList {
     env::vars().collect()
 }
 
@@ -55,7 +58,7 @@ mod tests {
 
     #[test]
     fn test_get_variables_list() {
-        let expected = env::vars().collect::<Vec<(String, String)>>();
+        let expected = env::vars().collect::<VariablesList>();
         let actual = get_variables();
         assert_eq!(actual, expected)
     }
