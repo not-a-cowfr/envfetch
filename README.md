@@ -23,6 +23,7 @@
 - [x] Add string to the end of variable
 - [ ] Set and delete multiple variables at once
 - [ ] Interactive mode
+  - [x] Basic support
 # Get started
 ## Installing
 
@@ -64,6 +65,16 @@ To run envfetch, run `envfetch <COMMAND> <ARGS>` in your terminal.
 You can run `envfetch help` to see help message or `envfetch --version` to see program's version.
 
 ### Command list
+> [!NOTE]
+> Interactive mode is currently WIP and only list variables is available.
+> See for progress in https://github.com/ankddev/envfetch/issues/17
+### Interactive
+Run interactive mode with TUI.
+
+Usage:
+`envfetch interactive`
+
+This will start TUI, where you will be able to work with environment variables.
 #### Set
 Set environment variable and optionally run process.
 
