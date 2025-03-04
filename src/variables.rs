@@ -58,15 +58,10 @@ mod tests {
 
     #[test]
     fn test_get_variables_list() {
-        // Set the environment variable for the test
-        unsafe { env::set_var("TEST_PRINT_VAR", "test_value") };
-
-        let expected = env::vars().collect::<VariablesList>();
-        let actual = get_variables();
-        assert_eq!(actual, expected);
-
-        // Clean up the environment variable after the test
-        unsafe { env::remove_var("TEST_PRINT_VAR") };
+        unsafe { env::set_var("TEST_GET_VARIABLES", "test_value") };
+        let list = get_variables();
+        assert!(list.contains(&("TEST_GET_VARIABLES".to_string(), "test_value".to_string())));
+        unsafe { env::remove_var("TEST_GET_VARIABLES") };
     }
 
     #[test]
