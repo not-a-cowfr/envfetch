@@ -6,9 +6,7 @@ use std::io;
 
 use super::variables::get_variables;
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
-use ratatui::{
-    DefaultTerminal, Frame,
-};
+use ratatui::{DefaultTerminal, Frame};
 
 #[derive(Clone)]
 pub enum Mode {
@@ -30,7 +28,7 @@ pub struct InteractiveMode {
     scroll_offset: usize,
     visible_options: usize,
     truncation_len: usize,
-    value_scroll_offset: usize,  // For horizontal scrolling in value panel
+    value_scroll_offset: usize, // For horizontal scrolling in value panel
 }
 
 impl Default for InteractiveMode {
@@ -84,12 +82,20 @@ impl InteractiveMode {
     /// Handle keypresses
     fn handle_key_event(&mut self, key_event: KeyEvent) {
         match key_event.code {
-            KeyCode::Char('q') | KeyCode::Char('Q')  if key_event.modifiers == KeyModifiers::CONTROL => self.exit(),
+            KeyCode::Char('q') | KeyCode::Char('Q')
+                if key_event.modifiers == KeyModifiers::CONTROL =>
+            {
+                self.exit()
+            }
             KeyCode::Down => self.down(),
             KeyCode::Up => self.up(),
             KeyCode::Left => self.scroll_value_left(),
             KeyCode::Right => self.scroll_value_right(),
-            KeyCode::Char('r') | KeyCode::Char('R') if key_event.modifiers == KeyModifiers::CONTROL => self.reload(),
+            KeyCode::Char('r') | KeyCode::Char('R')
+                if key_event.modifiers == KeyModifiers::CONTROL =>
+            {
+                self.reload()
+            }
             _ => {}
         }
     }
@@ -121,11 +127,11 @@ impl InteractiveMode {
         if self.current_index < max_index {
             self.current_index += 1;
             self.value_scroll_offset = 0;
-            
+
             // Keep a fixed number of items visible before scrolling
             let visible_area = self.visible_options.saturating_sub(8);
             let scroll_trigger = self.scroll_offset + (visible_area.saturating_sub(4));
-            
+
             // Only scroll when we're past the visible area
             if self.current_index > scroll_trigger {
                 self.scroll_offset += 1;
@@ -138,7 +144,7 @@ impl InteractiveMode {
         if self.current_index > 0 {
             self.current_index -= 1;
             self.value_scroll_offset = 0;
-            
+
             // Scroll up when cursor moves above current scroll position
             if self.current_index < self.scroll_offset {
                 self.scroll_offset = self.current_index;

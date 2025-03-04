@@ -5,10 +5,10 @@
 //! to run process without it
 
 mod commands;
+mod interactive;
 mod models;
 mod utils;
 mod variables;
-mod interactive;
 
 use clap::Parser;
 use std::{io::Write, process::ExitCode};

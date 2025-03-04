@@ -4,10 +4,10 @@ use rayon::prelude::*;
 use std::process::ExitCode;
 use std::{env, fs};
 
+use crate::interactive::InteractiveMode;
 use crate::models::*;
 use crate::utils::*;
 use crate::variables;
-use crate::interactive::InteractiveMode;
 
 /// Run tool's command
 pub fn run_command(command: &Commands) -> ExitCode {
