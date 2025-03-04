@@ -24,6 +24,8 @@ pub struct Cli {
 /// All tool's commands
 #[derive(Subcommand, Debug, PartialEq, Eq)]
 pub enum Commands {
+    /// Open envfetch in interactive mode with TUI
+    Interactive,
     /// Print value of environment variable.
     Get(GetArgs),
     /// Set environment variable and optionally run given process.

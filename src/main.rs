@@ -8,6 +8,7 @@ mod commands;
 mod models;
 mod utils;
 mod variables;
+mod interactive;
 
 use clap::Parser;
 use std::{io::Write, process::ExitCode};

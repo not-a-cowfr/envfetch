@@ -7,6 +7,7 @@ use std::{env, fs};
 use crate::models::*;
 use crate::utils::*;
 use crate::variables;
+use crate::interactive::InteractiveMode;
 
 /// Run tool's command
 pub fn run_command(command: &Commands) -> ExitCode {
@@ -53,6 +54,15 @@ pub fn run_command(command: &Commands) -> ExitCode {
         }
         Commands::Delete(opt) => {
             if let Err(error) = delete(opt) {
+                error!("{}", error);
+                return ExitCode::FAILURE;
+            }
+        }
+        Commands::Interactive => {
+            let mut terminal = ratatui::init();
+            let result = InteractiveMode::init().run(&mut terminal);
+            ratatui::restore();
+            if let Err(error) = result {
                 error!("{}", error);
                 return ExitCode::FAILURE;
             }
