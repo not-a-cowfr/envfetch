@@ -5,9 +5,14 @@ use crate::{models::ErrorKind, utils::*};
 
 /// Print all environment variables
 pub fn print_env() {
-    for (key, value) in env::vars() {
+    for (key, value) in get_variables() {
         println!("{} = \"{}\"", key.blue(), value);
     }
+}
+
+/// Get list of environment variables with values
+pub fn get_variables() -> Vec<(String, String)> {
+    env::vars().collect()
 }
 
 /// Set variable with given key and value
@@ -47,6 +52,13 @@ pub fn delete_variable(name: String, global: bool) -> Result<(), ErrorKind> {
 mod tests {
     use super::*;
     use std::env;
+
+    #[test]
+    fn test_get_variables_list() {
+        let expected = env::vars().collect::<Vec<(String, String)>>();
+        let actual = get_variables();
+        assert_eq!(actual, expected)
+    }
 
     #[test]
     fn test_set_variable_simple() {
