@@ -49,10 +49,12 @@ impl Default for InteractiveMode {
 }
 
 impl InteractiveMode {
+    /// Initialize InteractiveMode
     pub fn init() -> Self {
         Self::default()
     }
 
+    /// Run TUI interface for interactive mode
     pub fn run(&mut self, terminal: &mut DefaultTerminal) -> io::Result<()> {
         while !self.exit {
             terminal.draw(|frame| self.draw(frame))?;
@@ -61,10 +63,12 @@ impl InteractiveMode {
         Ok(())
     }
 
+    /// Draw TUI
     fn draw(&mut self, frame: &mut Frame) {
         frame.render_widget(self, frame.area());
     }
 
+    /// Handle events
     fn handle_events(&mut self) -> io::Result<()> {
         match event::read()? {
             // it's important to check that the event is a key press event as
@@ -77,6 +81,7 @@ impl InteractiveMode {
         Ok(())
     }
 
+    /// Handle keypresses
     fn handle_key_event(&mut self, key_event: KeyEvent) {
         match key_event.code {
             KeyCode::Char('q') | KeyCode::Char('Q')  if key_event.modifiers == KeyModifiers::CONTROL => self.exit(),
@@ -89,12 +94,14 @@ impl InteractiveMode {
         }
     }
 
+    /// Scroll value left
     fn scroll_value_left(&mut self) {
         if self.value_scroll_offset > 0 {
             self.value_scroll_offset -= 1;
         }
     }
 
+    /// Scroll value right
     fn scroll_value_right(&mut self) {
         if let Some((_, value)) = self.entries.get(self.current_index) {
             if self.value_scroll_offset < value.len() {
@@ -103,10 +110,12 @@ impl InteractiveMode {
         }
     }
 
+    /// Exit
     fn exit(&mut self) {
         self.exit = true;
     }
 
+    /// Scroll list down
     fn down(&mut self) {
         let max_index = self.entries.len().saturating_sub(1);
         if self.current_index < max_index {
@@ -124,6 +133,7 @@ impl InteractiveMode {
         }
     }
 
+    /// Scroll list up
     fn up(&mut self) {
         if self.current_index > 0 {
             self.current_index -= 1;
@@ -136,6 +146,7 @@ impl InteractiveMode {
         }
     }
 
+    /// Reload variables list
     fn reload(&mut self) {
         self.entries = super::variables::get_variables();
         self.current_index = 0;
