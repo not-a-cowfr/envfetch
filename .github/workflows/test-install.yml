@@ -1,0 +1,58 @@
+name: Test Installation Script
+
+on:
+  push:
+    paths:
+      - 'install.ps1'
+      - '.github/workflows/test-install.yml'
+  pull_request:
+    paths:
+      - 'install.ps1'
+      - '.github/workflows/test-install.yml'
+
+jobs:
+  test-install:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        powershell: ['powershell', 'pwsh']
+    
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Run installation script
+        shell: ${{ matrix.powershell }}
+        run: |
+          ./install.ps1
+          
+      - name: Verify installation
+        shell: ${{ matrix.powershell }}
+        run: |
+          # Check if envfetch directory exists
+          $envfetchPath = "$env:APPDATA\envfetch"
+          if (-not (Test-Path $envfetchPath)) {
+            throw "envfetch directory not found"
+          }
+          
+          # Check if executable exists
+          if (-not (Test-Path "$envfetchPath\envfetch.exe")) {
+            throw "envfetch.exe not found"
+          }
+          
+          # Verify PATH
+          $userPath = [Environment]::GetEnvironmentVariable("Path", "User")
+          if ($userPath -notlike "*$envfetchPath*") {
+            throw "envfetch not found in PATH"
+          }
+          
+          # Try to run envfetch (this should at least not crash)
+          $env:Path = [Environment]::GetEnvironmentVariable("Path", "User")
+          $result = envfetch --version
+          if ($LASTEXITCODE -ne 0) {
+            throw "envfetch failed to run"
+          }
+
+      - name: Cleanup
+        shell: ${{ matrix.powershell }}
+        run: |
+          Remove-Item -Path "$env:APPDATA\envfetch" -Recurse -Force -ErrorAction SilentlyContinue
