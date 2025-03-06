@@ -9,6 +9,7 @@ on:
     paths:
       - 'install.ps1'
       - '.github/workflows/test-install.yml'
+  release:
 
 jobs:
   test-install:
