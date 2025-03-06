@@ -32,6 +32,13 @@
     <img src="https://repology.org/badge/vertical-allrepos/envfetch.svg" alt="Packaging status">
 </a>
 
+### Install script (Windows, PowerShell)
+You can install `envfetch` via install script:
+```ps
+Invoke-RestMethod "https://raw.githubusercontent.com/ankddev/envfetch/main/install.ps1" | Invoke-Expression
+```
+If you get an error regarding execution policy, please read the error carefully and determine the execution policy that is right for you. You may try re-running the installation script if you have updated the execution policy.
+
 ### AUR (Arch Linux)
 [envfetch](https://aur.archlinux.org/packages/envfetch) is available as a package in the [AUR](https://aur.archlinux.org). You can install it with an [AUR helper](https://wiki.archlinux.org/title/AUR_helpers) (e.g. `paru`):
 ```shell
