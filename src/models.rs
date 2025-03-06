@@ -58,7 +58,7 @@ pub struct LoadArgs {
     #[arg(required = false, long, short)]
     pub global: bool,
     /// Process to start, not required if --global flag is set
-    #[arg(required_unless_present = "global")]
+    #[arg(last = true, required_unless_present = "global")]
     pub process: Option<String>,
     /// Relative or absolute path to file to read variables from.
     /// Note that it must be in .env format
@@ -79,7 +79,7 @@ pub struct SetArgs {
     #[arg(required = false, long, short)]
     pub global: bool,
     /// Process to start, not required if --global flag is set
-    #[arg(required_unless_present = "global")]
+    #[arg(last = true, required_unless_present = "global")]
     pub process: Option<String>,
 }
 
@@ -96,7 +96,7 @@ pub struct AddArgs {
     #[arg(required = false, long, short)]
     pub global: bool,
     /// Process to start, not required if --global flag is set
-    #[arg(required_unless_present = "global")]
+    #[arg(last = true, required_unless_present = "global")]
     pub process: Option<String>,
 }
 
@@ -110,7 +110,7 @@ pub struct DeleteArgs {
     #[arg(required = false, long, short)]
     pub global: bool,
     /// Process to start, not required if --global flag is set
-    #[arg(required_unless_present = "global")]
+    #[arg(last = true, required_unless_present = "global")]
     pub process: Option<String>,
 }
 

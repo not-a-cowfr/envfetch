@@ -88,7 +88,7 @@ This will start TUI, where you will be able to work with environment variables.
 Set environment variable and optionally run process.
 
 Usage:
-`envfetch set <KEY> <VALUE> [PROCESS]`, where:
+`envfetch set <KEY> <VALUE> [-- <PROCESS>]`, where:
 - `KEY` - name of environment variable
 - `VALUE` - value of environment variable
 - `PROCESS` - name of process which you want to run (optional if --global is used)
@@ -101,14 +101,14 @@ Options:
 
 For example:
 ```shell
-$ envfetch set MY_VAR "Hello" "npm run"  # temporary for process
-$ envfetch set MY_VAR "Hello" --global   # permanent system-wide
+$ envfetch set MY_VAR "Hello" -- "npm run"  # temporary for process
+$ envfetch set MY_VAR "Hello" --global      # permanent system-wide
 ```
 #### Add
 Add value to the end of environment variable and optionally run the process
 
 Usage:
-`envfetch add <KEY> <VALUE> [PROCESS]`, where:
+`envfetch add <KEY> <VALUE> [-- <PROCESS>]`, where:
 - `KEY` - name of environment variable
 - `VALUE` - value of environment variable to add
 - `PROCESS` - name of process which you want to run (optional if --global is used)
@@ -121,8 +121,8 @@ Options:
 
 For example:
 ```shell
-$ envfetch add PATH "../hello.exe" "crago run"  # temporary for process
-$ envfetch add MY_VAR "Hello" --global   # permanent system-wide
+$ envfetch add PATH "../hello.exe" -- "cargo run"  # temporary for process
+$ envfetch add MY_VAR "Hello" --global             # permanent system-wide
 ```
 #### Print
 Print all environment variables
@@ -164,7 +164,7 @@ It will print value of specified variable.
 Delete variable and optionally start process.
 
 Usage:
-`envfetch delete <KEY> [PROCESS]`, where:
+`envfetch delete <KEY> [-- <PROCESS>]`, where:
 - `KEY` - name of environment variable
 - `PROCESS` - name of command to run (optional if --global is used)
 
@@ -174,8 +174,8 @@ Options:
 
 For example:
 ```shell
-$ envfetch delete MY_VAR "npm run"  # temporary for process
-$ envfetch delete MY_VAR --global   # permanent system-wide
+$ envfetch delete MY_VAR -- "npm run"  # temporary for process
+$ envfetch delete MY_VAR --global      # permanent system-wide
 ```
 
 #### Load
@@ -193,7 +193,7 @@ By default, program loads variables from `.env` file in current directory.
 
 For example:
 ```shell
-$ envfetch load "npm run"                    # temporary for process
+$ envfetch load -- "npm run"                 # temporary for process
 $ envfetch load --global                     # permanent system-wide
 $ envfetch load --global --file .env.prod    # permanent from specific file
 ```
@@ -223,7 +223,6 @@ $ cd envfetch
 $ cargo run -- <COMMAND> <ARGS>
 ```
 # See Also
-
 - [codewars-api-rs](https://github.com/ankddev/codewars-api-rs) - Rust library for Codewars API
 - [conemu-progressbar-go](https://github.com/ankddev/conemu-progressbar-go) - Progress bar for ConEmu for Go
 - [terminal-go](https://github.com/ankddev/terminal-go) - Go library for working with ANSI/VT terminal sequences

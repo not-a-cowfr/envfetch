@@ -68,7 +68,7 @@ mod tests {
 
     #[test]
     fn test_set_command_simple() {
-        let args = Cli::parse_from(["envfetch", "set", "VAR", "VALUE", "npm run"]);
+        let args = Cli::parse_from(["envfetch", "set", "VAR", "VALUE", "--", "npm run"]);
         assert_eq!(
             args.command,
             Commands::Set(SetArgs {
@@ -96,7 +96,7 @@ mod tests {
 
     #[test]
     fn test_set_command_with_global_flag_and_process() {
-        let args = Cli::parse_from(["envfetch", "set", "VAR", "VALUE", "npm run", "--global"]);
+        let args = Cli::parse_from(["envfetch", "set", "VAR", "VALUE", "--global", "--", "npm run"]);
         assert_eq!(
             args.command,
             Commands::Set(SetArgs {
@@ -110,7 +110,7 @@ mod tests {
 
     #[test]
     fn test_add_command_simple() {
-        let args = Cli::parse_from(["envfetch", "add", "PATH", "./executable", "npm run"]);
+        let args = Cli::parse_from(["envfetch", "add", "PATH", "./executable", "--", "npm run"]);
         assert_eq!(
             args.command,
             Commands::Add(AddArgs {
@@ -143,8 +143,9 @@ mod tests {
             "add",
             "PATH",
             "./executable",
-            "npm run",
             "--global",
+            "--",
+            "npm run",
         ]);
         assert_eq!(
             args.command,
@@ -159,7 +160,7 @@ mod tests {
 
     #[test]
     fn test_delete_command_simple() {
-        let args = Cli::parse_from(["envfetch", "delete", "VAR", "npm run"]);
+        let args = Cli::parse_from(["envfetch", "delete", "VAR", "--", "npm run"]);
         assert_eq!(
             args.command,
             Commands::Delete(DeleteArgs {
@@ -185,7 +186,7 @@ mod tests {
 
     #[test]
     fn test_delete_command_with_global_flag_and_process() {
-        let args = Cli::parse_from(["envfetch", "delete", "VAR", "npm run", "--global"]);
+        let args = Cli::parse_from(["envfetch", "delete", "VAR", "--global", "--", "npm run"]);
         assert_eq!(
             args.command,
             Commands::Delete(DeleteArgs {

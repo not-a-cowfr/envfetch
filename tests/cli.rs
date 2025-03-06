@@ -15,14 +15,14 @@ fn set_command_success() -> Result<(), Box<dyn std::error::Error>> {
     cmd.arg("set").arg("MY_VAR").arg("Hello");
     // Windows
     #[cfg(target_os = "windows")]
-    cmd.arg("echo %MY_VAR%")
+    cmd.arg("--").arg("echo %MY_VAR%")
         .assert()
         .success()
         .stdout(predicate::str::contains("Hello"));
 
     // Linux and macOS
     #[cfg(not(target_os = "windows"))]
-    cmd.arg("echo $MY_VAR")
+    cmd.arg("--").arg("echo $MY_VAR")
         .assert()
         .success()
         .stdout(predicate::str::contains("Hello"));
@@ -36,7 +36,7 @@ fn set_command_failure() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin("envfetch")?;
     cmd.arg("set").arg("MY_VARR").arg("Hello");
     // We can use only Windows command here because it should fail
-    cmd.arg("%MY_VARIABLE%").assert().failure();
+    cmd.arg("--").arg("%MY_VARIABLE%").assert().failure();
     Ok(())
 }
 
@@ -44,7 +44,6 @@ fn set_command_failure() -> Result<(), Box<dyn std::error::Error>> {
 /// Test for get command if specified variable exists
 fn get_variable_exists() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin("envfetch")?;
-    // TODO: Audit that the environment access only happens in single-threaded code.
     unsafe { env::set_var("MY_VAR", "Hello") };
     cmd.arg("get").arg("MY_VAR");
     cmd.assert()
@@ -67,7 +66,6 @@ fn get_variable_doesnt_exists() -> Result<(), Box<dyn std::error::Error>> {
 #[test]
 /// Test for get command if specified variable doesn't exist and showing similar variables is enabled
 fn get_variable_doesnt_exists_similar_enabled() -> Result<(), Box<dyn std::error::Error>> {
-    // TODO: Audit that the environment access only happens in single-threaded code.
     unsafe { env::set_var("MY_VARIABLEE", "Hello") };
     let mut cmd = Command::cargo_bin("envfetch")?;
     cmd.arg("get").arg("MY_VARIABLE");
@@ -85,7 +83,6 @@ fn get_variable_doesnt_exists_similar_enabled() -> Result<(), Box<dyn std::error
 /// Test for get command if specified variable doesn't exist and showing similar variables is disabled
 fn get_variable_doesnt_exists_similar_disabled() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin("envfetch")?;
-    // TODO: Audit that the environment access only happens in single-threaded code.
     unsafe { env::set_var("MY_VARIABLEE", "Hello") };
     cmd.arg("get").arg("MY_VARIABLE").arg("--no-similar-names");
     cmd.assert().failure();
@@ -96,7 +93,6 @@ fn get_variable_doesnt_exists_similar_disabled() -> Result<(), Box<dyn std::erro
 /// Test for print command
 fn print_success() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin("envfetch")?;
-    // TODO: Audit that the environment access only happens in single-threaded code.
     unsafe { env::set_var("PRINT_TEST", "Print") };
     cmd.arg("print")
         .assert()
@@ -109,12 +105,11 @@ fn print_success() -> Result<(), Box<dyn std::error::Error>> {
 /// Test for delete command if specified process is successful
 fn delete_command_success() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin("envfetch")?;
-    // TODO: Audit that the environment access only happens in single-threaded code.
     unsafe { env::set_var("MY_VAR", "Hello") };
     cmd.arg("delete").arg("MY_VAR");
     // Windows
     #[cfg(target_os = "windows")]
-    cmd.arg("echo 'Hello'")
+    cmd.arg("--").arg("echo 'Hello'")
         .assert()
         .success()
         .stdout(predicate::str::contains("Hello"));
@@ -137,14 +132,14 @@ fn load_custom_file_exists() -> Result<(), Box<dyn std::error::Error>> {
     cmd.arg("load").arg("--file").arg(file.path());
     // Windows
     #[cfg(target_os = "windows")]
-    cmd.arg("echo %MY_ENV_VAR%")
+    cmd.arg("--").arg("echo %MY_ENV_VAR%")
         .assert()
         .success()
         .stdout(predicate::str::contains("TEST"));
 
     // Linux and macOS
     #[cfg(not(target_os = "windows"))]
-    cmd.arg("echo $MY_ENV_VAR")
+    cmd.arg("--").arg("echo $MY_ENV_VAR")
         .assert()
         .success()
         .stdout(predicate::str::contains("TEST"));
@@ -163,14 +158,14 @@ fn load_custom_file_exists_command_failed() -> Result<(), Box<dyn std::error::Er
     cmd.arg("load").arg("--file").arg(file.path());
     // Windows
     #[cfg(target_os = "windows")]
-    cmd.arg("echo %MY_ENV_VAR_TEST%")
+    cmd.arg("--").arg("echo %MY_ENV_VAR_TEST%")
         .assert()
         .success()
         .stdout(predicate::str::contains("%MY_ENV_VAR_TEST%"));
 
     // Linux and macOS
     #[cfg(not(target_os = "windows"))]
-    cmd.arg("(exit 1)").assert().failure();
+    cmd.arg("--").arg("(exit 1)").assert().failure();
     // Close file after test
     file.close().unwrap();
     Ok(())
@@ -183,11 +178,11 @@ fn load_custom_file_doesnt_exists() -> Result<(), Box<dyn std::error::Error>> {
     cmd.arg("load").arg("--file").arg(".env.production");
     // Windows
     #[cfg(target_os = "windows")]
-    cmd.arg("echo %MY_ENV_VAR%").assert().failure();
+    cmd.arg("--").arg("echo %MY_ENV_VAR%").assert().failure();
 
     // Linux and macOS
     #[cfg(not(target_os = "windows"))]
-    cmd.arg("echo $MY_VARIABLE").assert().failure();
+    cmd.arg("--").arg("echo $MY_VARIABLE").assert().failure();
     Ok(())
 }
 
@@ -203,6 +198,7 @@ fn test_add_local_variable() -> Result<(), Box<dyn std::error::Error>> {
         "add",
         "TEST_VAR",
         "test_value",
+        "--",
         &format!("{} get TEST_VAR", envfetch),
     ])
     .assert()
@@ -224,6 +220,7 @@ fn test_add_variable_with_special_characters() -> Result<(), Box<dyn std::error:
         "add",
         "SPECIAL_VAR",
         "test@#$%^&*",
+        "--",
         &format!("{} get SPECIAL_VAR", envfetch),
     ])
     .assert()
@@ -245,6 +242,7 @@ fn test_add_empty_value() -> Result<(), Box<dyn std::error::Error>> {
         "add",
         "EMPTY_VAR",
         "",
+        "--",
         &format!("{} get EMPTY_VAR", envfetch),
     ])
     .assert()
@@ -257,7 +255,7 @@ fn test_add_empty_value() -> Result<(), Box<dyn std::error::Error>> {
 #[test]
 fn test_add_invalid_variable_name() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin("envfetch")?;
-    cmd.args(["add", "INVALID NAME", "test_value", "echo test"])
+    cmd.args(["add", "INVALID NAME", "test_value", "--", "echo test"])
         .assert()
         .failure()
         .stderr(predicates::str::contains(
@@ -285,6 +283,7 @@ fn test_add_with_process() -> Result<(), Box<dyn std::error::Error>> {
         "add",
         "PROCESS_VAR",
         "test_value",
+        "--",
         &format!("{} get PROCESS_VAR", envfetch),
     ])
     .assert()
