@@ -116,7 +116,7 @@ fn delete_command_success() -> Result<(), Box<dyn std::error::Error>> {
 
     // Linux and macOS
     #[cfg(not(target_os = "windows"))]
-    cmd.arg("echo 'Hello'")
+    cmd.arg("--").arg("echo 'Hello'")
         .assert()
         .success()
         .stdout(predicate::str::contains("Hello"));
