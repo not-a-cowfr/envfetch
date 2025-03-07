@@ -76,7 +76,8 @@ You can run `envfetch help` to see help message or `envfetch --version` to see p
 ### Interactive
 > [!NOTE]
 > Interactive mode is currently WIP and only list variables is available.
-> See for progress in https://github.com/ankddev/envfetch/issues/17
+> See for progress in https://github.com/ankddev/envfetch/issues/17. Also it isn't in latest released ersion `v1.4.0`, if you want to test it,
+> wait for `v2.0.0` or build `envfetch` from source yourself
 
 Run interactive mode with TUI.
 
