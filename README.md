@@ -25,6 +25,7 @@
 - [ ] Interactive mode
   - [x] Basic support
 - [ ] Export variables
+- [ ] Configuration support
 # Get started
 ## Installing
 
