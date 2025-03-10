@@ -20,7 +20,7 @@
 - [x] Set variable (temporary and permanent)
 - [x] Delete variable (temporary and permanent)
 - [x] Load variables from dotenv-style file (temporary and permanent)
-- [x] Add string to the end of variable
+- [x] Add string to the end of variable (temporary and permanent)
 - [ ] Set and delete multiple variables at once
 - [ ] Interactive mode
   - [x] Basic support
