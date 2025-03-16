@@ -1,4 +1,4 @@
-# Create gengo directory in AppData/Roaming
+# Create envfetch directory in AppData/Roaming
 $envfetchPath = "$env:APPDATA\envfetch"
 New-Item -ItemType Directory -Force -Path $envfetchPath -ErrorAction SilentlyContinue | Out-Null
 Write-Host "Installing envfetch to $envfetchPath"
