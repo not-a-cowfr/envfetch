@@ -14,7 +14,7 @@
 </div>
 
 # Features
-- [x] Print all environment variables
+- [x] Print list of all environment variables
 - [x] Get value of variable by name
     - [x] Show similar variables if given variable not found
 - [x] Set variable (temporary and permanent)
