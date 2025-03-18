@@ -1,0 +1,5 @@
+# Config for envfetch. See for documentation in our documentation.
+# https://github.com/ankddev/envfetch
+
+# Custom format for list of variables. {name} is replaced with variable's name and {value} is replaced with it's value
+# print_format = "{name} = {value}"

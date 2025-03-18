@@ -80,7 +80,7 @@ To run envfetch, run `envfetch <COMMAND> <ARGS>` in your terminal.
 You can run `envfetch help` to see help message or `envfetch --version` to see program's version.
 
 ### Command list
-### Interactive
+#### Interactive
 > [!NOTE]
 > Interactive mode is currently WIP and only list variables is available.
 > See for progress in https://github.com/ankddev/envfetch/issues/17. Also it isn't in latest released ersion `v1.4.0`, if you want to test it,
@@ -92,6 +92,17 @@ Usage:
 `envfetch interactive`
 
 This will start TUI, where you will be able to work with environment variables.
+#### Init config
+Initialize config file for `envfetch`.
+
+Usage:
+`envfetch init-config`
+
+Options:
+- `--help`/`-h` - showw help message.
+
+> [!WARNING]
+> Currently this command will overwrite any existing config file!
 #### Set
 Set environment variable and optionally run process.
 
@@ -223,6 +234,15 @@ $ envfetch load --global --file .env.prod    # permanent from specific file
 > - On Unix-like systems, variables are stored in shell configuration files (.bashrc, .zshrc, or config.fish)
 > 
 > Without `--global` flag, variables are only set for the current process run
+## Configuration
+`envfetch` support some configuration. Fitsly, you need to run `envfetch init-config` to create config file, it will return you path of config.
+| Platform |                       Path                        |
+| -------- | ------------------------------------------------- |
+| Windows  |  `C:\Users\<USER>\AppData\Roaming\envfetch.toml`  |
+|  Linux   |           `$HOME/.config/envfetch.toml`           |
+|  macOS   | `$HOME/Library/Application Support/envfetch.toml` |
+### Keys
+- `print_format` - Format string for print command
 # Building from source
 - Install Rust. If it already installed, update with
 ```shell

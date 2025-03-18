@@ -30,6 +30,11 @@ env_logger = "0.11.6"
 # Interactive mode with TUI
 ratatui = "0.29.0"
 crossterm = "0.28.1"
+# Config parsing
+serde = { version = "1.0.219", features = ["derive"] }
+toml = "0.8.20"
+# Finding directories
+dirs = "6.0.0"
 
 [dev-dependencies]
 # Asserting CLI programs

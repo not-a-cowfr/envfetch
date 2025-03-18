@@ -9,12 +9,16 @@ mod interactive;
 mod models;
 mod utils;
 mod variables;
+mod config;
 
 use clap::Parser;
+use config::read_config;
 use std::{io::Write, process::ExitCode};
 
+use log::error;
+
 use commands::run_command;
-use models::Cli;
+use models::{Cli, ConfigParsingError};
 
 fn main() -> ExitCode {
     let cli = Cli::parse();
@@ -28,7 +32,21 @@ fn main() -> ExitCode {
             )
         })
         .init();
-    run_command(&cli.command)
+    let config = read_config();
+    let config = match config {
+        Ok(config) => Some(config),
+        Err(ConfigParsingError::FileDoesntExists) => None,
+        Err(ConfigParsingError::FSError(err)) => {
+            error!("Failed to read config: {}", err);
+            return ExitCode::FAILURE;
+        }
+        Err(ConfigParsingError::ParsingError(err)) => {
+            error!("Failed to parse config: {}", err);
+            return ExitCode::FAILURE;
+        }
+    };
+
+    run_command(&cli.command, config)
 }
 
 #[cfg(test)]
@@ -70,6 +88,12 @@ mod tests {
     fn test_print_command_with_format() {
         let args = Cli::parse_from(["envfetch", "print", "--format", "{name}: \"{value}\""]);
         assert_eq!(args.command, Commands::Print(PrintArgs { format: Some("{name}: \"{value}\"".to_owned()) }));
+    }
+
+    #[test]
+    fn test_init_config() {
+        let args = Cli::parse_from(["envfetch", "init-config"]);
+        assert_eq!(args.command, Commands::InitConfig);
     }
 
     #[test]

@@ -1,5 +1,7 @@
 use std::fmt::Display;
+use std::error::Error;
 
+use serde::{Serialize, Deserialize};
 use clap::{Args, Parser, Subcommand};
 
 #[derive(Parser)]
@@ -24,7 +26,7 @@ pub struct Cli {
 /// All tool's commands
 #[derive(Subcommand, Debug, PartialEq, Eq)]
 pub enum Commands {
-    /// Open envfetch in interactive mode with TUI
+    /// Open envfetch in interactive mode with TUI.
     Interactive,
     /// Print value of environment variable.
     Get(GetArgs),
@@ -38,6 +40,8 @@ pub enum Commands {
     Load(LoadArgs),
     /// Print all environment variables.
     Print(PrintArgs),
+    /// Initialize config file.
+    InitConfig,
 }
 
 /// Args for print command
@@ -134,6 +138,25 @@ pub enum ErrorKind {
     NameValidationError(String),
 }
 
+#[derive(Debug)]
+pub enum ConfigParsingError {
+    FSError(String),
+    ParsingError(String),
+    FileDoesntExists,
+}
+
+impl Display for ConfigParsingError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ConfigParsingError::FSError(err) => write!(f, "Error while reading file: {}", err),
+            ConfigParsingError::ParsingError(err) => write!(f, "Error while parsing file: {}", err),
+            ConfigParsingError::FileDoesntExists => write!(f, "Config file doesn't exists")
+        }
+    }
+}
+
+impl Error for ConfigParsingError {}
+
 impl Display for ErrorKind {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -159,6 +182,12 @@ impl Display for ErrorKind {
             ErrorKind::NameValidationError(err) => write!(f, "Name validation error: {}", err),
         }
     }
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct Config {
+    /// Format, used to print variables using print command
+    pub print_format: Option<String>,
 }
 
 #[cfg(test)]

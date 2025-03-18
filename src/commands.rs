@@ -4,14 +4,21 @@ use rayon::prelude::*;
 use std::process::ExitCode;
 use std::{env, fs};
 
+use crate::config;
 use crate::interactive::InteractiveMode;
 use crate::models::*;
 use crate::utils::*;
 use crate::variables;
 
 /// Run tool's command
-pub fn run_command(command: &Commands) -> ExitCode {
+pub fn run_command(command: &Commands, config: Option<Config>) -> ExitCode {
     match command {
+        Commands::InitConfig => {
+            if let Err(error) = config::init_config() {
+                error!("{}", error);
+                return ExitCode::FAILURE;
+            }
+        }
         Commands::Get(opt) => {
             if let Err(error) = get(opt) {
                 error!("{}", error);
@@ -33,7 +40,16 @@ pub fn run_command(command: &Commands) -> ExitCode {
                 return ExitCode::FAILURE;
             }
         }
-        Commands::Print(opt) => print_env(opt),
+        Commands::Print(opt) => {
+            let opt = if opt.format.is_some() || config.is_none() {
+                opt
+            } else {
+                &PrintArgs {
+                    format: config.expect("Here we know that it is some").print_format
+                }
+            };
+            print_env(opt)
+        },
         Commands::Load(opt) => {
             if let Err(error) = load(opt) {
                 error!("{}", error);
@@ -184,7 +200,7 @@ mod tests {
             run_command(&Commands::Get(GetArgs {
                 key: "TEST_RUN_VAR".to_string(),
                 no_similar_names: false,
-            }));
+            }), None);
         });
         unsafe { env::remove_var("TEST_RUN_VAR") };
     }
@@ -196,7 +212,7 @@ mod tests {
                 run_command(&Commands::Get(GetArgs {
                     key: "TEST_RUN_VAR_awzsenfkaqyG".to_string(),
                     no_similar_names: false,
-                })),
+                }), None),
                 ExitCode::FAILURE
             );
         });
@@ -210,7 +226,7 @@ mod tests {
                 value: "test_value".to_string(),
                 global: false,
                 process: None,
-            }));
+            }), None);
         });
 
         assert_eq!(env::var("TEST_SET_RUN").unwrap(), "test_value");
@@ -227,7 +243,7 @@ mod tests {
                 value: "value".to_string(),
                 global: false,
                 process: None,
-            }));
+            }), None);
         });
 
         assert_eq!(env::var("TEST_ADD_RUN").unwrap(), "initial_value");
@@ -238,7 +254,7 @@ mod tests {
     fn test_run_command_print() {
         unsafe { env::set_var("TEST_PRINT_RUN", "test_value") };
         with_captured_output(|| {
-            run_command(&Commands::Print(PrintArgs { format: None }));
+            run_command(&Commands::Print(PrintArgs { format: None }), None);
         });
         unsafe { env::remove_var("TEST_PRINT_RUN") };
     }
@@ -247,7 +263,7 @@ mod tests {
     fn test_run_command_print_with_format() {
         unsafe { env::set_var("TEST_PRINT_RUN", "test_value") };
         with_captured_output(|| {
-            run_command(&Commands::Print(PrintArgs { format: Some("{name} = {value}".to_owned()) }));
+            run_command(&Commands::Print(PrintArgs { format: Some("{name} = {value}".to_owned()) }), None);
         });
         unsafe { env::remove_var("TEST_PRINT_RUN") };
     }
@@ -261,7 +277,7 @@ mod tests {
                 key: "TEST_DELETE_RUN".to_string(),
                 global: false,
                 process: None,
-            }));
+            }), None);
         });
 
         assert!(env::var("TEST_DELETE_RUN").is_err());
@@ -277,7 +293,7 @@ mod tests {
                 file: temp_file.path().to_string_lossy().to_string(),
                 global: false,
                 process: None,
-            }));
+            }), None);
         });
 
         assert_eq!(env::var("TEST_LOAD_RUN").unwrap(), "test_value");
@@ -738,7 +754,7 @@ mod tests {
     fn test_run_command_print_env() {
         unsafe { env::set_var("TEST_PRINT_ENV", "test_value") };
         with_captured_output(|| {
-            assert_eq!(run_command(&Commands::Print(PrintArgs { format: None })), ExitCode::SUCCESS);
+            assert_eq!(run_command(&Commands::Print(PrintArgs { format: None }), None), ExitCode::SUCCESS);
         });
         unsafe { env::remove_var("TEST_PRINT_ENV") };
     }
@@ -751,7 +767,7 @@ mod tests {
                 run_command(&Commands::Get(GetArgs {
                     key: "TEST_SMILAR_VAR".to_string(), // Intentional typo
                     no_similar_names: false,
-                })),
+                }), None),
                 ExitCode::FAILURE
             );
         });
@@ -767,7 +783,7 @@ mod tests {
                     value: "test_value".to_string(),
                     global: false,
                     process: Some("echo test".to_string()),
-                })),
+                }), None),
                 ExitCode::SUCCESS
             );
         });
@@ -784,7 +800,7 @@ mod tests {
                     value: "test_value".to_string(),
                     global: false,
                     process: None,
-                })),
+                }), None),
                 ExitCode::FAILURE
             );
         });
@@ -800,7 +816,7 @@ mod tests {
                     value: "appended".to_string(),
                     global: false,
                     process: None,
-                })),
+                }), None),
                 ExitCode::SUCCESS
             );
         });
@@ -817,7 +833,7 @@ mod tests {
                     value: "test_value".to_string(),
                     global: false,
                     process: None,
-                })),
+                }), None),
                 ExitCode::FAILURE
             );
         });
@@ -831,7 +847,7 @@ mod tests {
                     key: "NONEXISTENT_VAR".to_string(),
                     global: false,
                     process: None,
-                })),
+                }), None),
                 ExitCode::SUCCESS // Should succeed even if var doesn't exist
             );
         });
@@ -845,7 +861,7 @@ mod tests {
                     file: "nonexistent.env".to_string(),
                     global: false,
                     process: None,
-                })),
+                }), None),
                 ExitCode::FAILURE
             );
         });
@@ -862,7 +878,7 @@ mod tests {
                     file: temp_file.path().to_string_lossy().to_string(),
                     global: false,
                     process: Some("echo test".to_string()),
-                })),
+                }), None),
                 ExitCode::SUCCESS
             );
         });
@@ -878,7 +894,7 @@ mod tests {
                 value: "test_value".to_string(),
                 global: true,
                 process: None,
-            }));
+            }), None);
             // Test passes if operation succeeds OR fails with permission error
             match result {
                 ExitCode::SUCCESS => {
@@ -888,7 +904,7 @@ mod tests {
                             key: "TEST_GLOBAL".to_string(),
                             global: true,
                             process: None,
-                        })),
+                        }), None),
                         ExitCode::SUCCESS
                     );
                 }
@@ -907,7 +923,7 @@ mod tests {
                     key: "TEST_DELETE_PROC_FAIL".to_string(),
                     global: false,
                     process: Some("nonexistent_command_123".to_string()),
-                })),
+                }), None),
                 ExitCode::FAILURE
             );
         });
@@ -923,7 +939,7 @@ mod tests {
                     key: "INVALID NAME".to_string(),
                     global: false,
                     process: None,
-                })),
+                }), None),
                 ExitCode::FAILURE
             );
         });
@@ -937,7 +953,7 @@ mod tests {
                     key: "".to_string(),
                     global: false,
                     process: None,
-                })),
+                }), None),
                 ExitCode::FAILURE
             );
         });
