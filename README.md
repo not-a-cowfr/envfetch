@@ -40,6 +40,12 @@ Invoke-RestMethod "https://raw.githubusercontent.com/ankddev/envfetch/main/insta
 ```
 If you get an error regarding execution policy, please read the error carefully and determine the execution policy that is right for you. You may try re-running the installation script if you have updated the execution policy.
 
+### Install script (Linux and macOS)
+You can install `envfetch` via install script:
+```sh
+curl https://raw.githubusercontent.com/ankddev/envfetch/main/install.sh | sh
+```
+
 ### AUR (Arch Linux)
 [envfetch](https://aur.archlinux.org/packages/envfetch) is available as a package in the [AUR](https://aur.archlinux.org). You can install it with an [AUR helper](https://wiki.archlinux.org/title/AUR_helpers) (e.g. `paru`):
 ```shell
