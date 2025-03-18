@@ -33,7 +33,7 @@
     <img src="https://repology.org/badge/vertical-allrepos/envfetch.svg" alt="Packaging status">
 </a>
 
-Read about installing `envfetch` in the [Wiki](https://github.com/ankddev/envfetch/wiki/Installation).
+Read about installing `envfetch` in the [Wiki](https://github.com/ankddev/envfetch/wiki/2.-Installation).
 ## Using
 To run envfetch, run `envfetch <COMMAND> <ARGS>` in your terminal.
 You can run `envfetch help` to see help message or `envfetch --version` to see program's version.
@@ -191,7 +191,7 @@ $ envfetch load --global --file .env.prod    # permanent from specific file
 > When using `--global` flag:
 > - On Windows, variables are stored in the registry under HKEY_CURRENT_USER\Environment
 > - On Unix-like systems, variables are stored in shell configuration files (.bashrc, .zshrc, or config.fish)
-> 
+>
 > Without `--global` flag, variables are only set for the current process run
 ## Configuration
 `envfetch` support some configuration. Fitsly, you need to run `envfetch init-config` to create config file, it will return you path of config.
