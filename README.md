@@ -33,48 +33,7 @@
     <img src="https://repology.org/badge/vertical-allrepos/envfetch.svg" alt="Packaging status">
 </a>
 
-### Install script (Windows, PowerShell)
-You can install `envfetch` via install script:
-```ps
-Invoke-RestMethod "https://raw.githubusercontent.com/ankddev/envfetch/main/install.ps1" | Invoke-Expression
-```
-If you get an error regarding execution policy, please read the error carefully and determine the execution policy that is right for you. You may try re-running the installation script if you have updated the execution policy.
-
-### Install script (Linux and macOS)
-You can install `envfetch` via install script:
-```sh
-curl https://raw.githubusercontent.com/ankddev/envfetch/main/install.sh | sh
-```
-
-### AUR (Arch Linux)
-[envfetch](https://aur.archlinux.org/packages/envfetch) is available as a package in the [AUR](https://aur.archlinux.org). You can install it with an [AUR helper](https://wiki.archlinux.org/title/AUR_helpers) (e.g. `paru`):
-```shell
-$ paru -S envfetch
-```
-Thanks to [@adamperkowski](https://github.com/adamperkowski) for maintaining this package!
-### Scoop (Windows)
-You can install envfetch from Scoop using this command:
-```shell
-scoop install https://gist.githubusercontent.com/ankddev/f6314b552aa021f676fc999ec697f833/raw/envfetch.json
-```
-Note, that it uses [manifest, published only as GitHub Gist.](https://gist.github.com/ankddev/f6314b552aa021f676fc999ec697f833)
-### From DEB package (Debian-based Linux)
-You can download .deb package from [releases](https://github.com/ankddev/envfetch/releases) and thhen execute:
-```sh
-sudo dpkg -i <deb-package>
-```
-### Cargo (from crates.io)
-You can install envfetch from Cargo (needs Rust installed):
-```shell
-$ cargo install envfetch
-```
-### Cargo (from source)
-Also, you can install it from source (needs Rust installed):
-```shell
-$ cargo install --git https://github.com/ankddev/envfetch envfetch
-```
-### Download binary
-Or, get binary from [GitHub Actions (needs GutHub account)](https://github.com/ankddev/envfetch/actions/) or [releases](https://github.com/ankddev/envfetch/releases/)
+Read about installing `envfetch` in the [Wiki](https://github.com/ankddev/envfetch/wiki/Installation).
 ## Using
 To run envfetch, run `envfetch <COMMAND> <ARGS>` in your terminal.
 You can run `envfetch help` to see help message or `envfetch --version` to see program's version.
