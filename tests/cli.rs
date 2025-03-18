@@ -102,6 +102,18 @@ fn print_success() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
+/// Test for print command
+fn print_with_format_success() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = Command::cargo_bin("envfetch")?;
+    unsafe { env::set_var("PRINT_TEST", "Print") };
+    cmd.arg("print").arg("--format").arg("{name}: {value}")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("PRINT_TEST: Print"));
+    Ok(())
+}
+
+#[test]
 /// Test for delete command if specified process is successful
 fn delete_command_success() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin("envfetch")?;

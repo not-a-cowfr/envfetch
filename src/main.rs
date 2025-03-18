@@ -67,6 +67,12 @@ mod tests {
     }
 
     #[test]
+    fn test_print_command_with_format() {
+        let args = Cli::parse_from(["envfetch", "print", "--format", "{name}: \"{value}\""]);
+        assert_eq!(args.command, Commands::Print(PrintArgs { format: Some("{name}: \"{value}\"".to_owned()) }));
+    }
+
+    #[test]
     fn test_set_command_simple() {
         let args = Cli::parse_from(["envfetch", "set", "VAR", "VALUE", "--", "npm run"]);
         assert_eq!(

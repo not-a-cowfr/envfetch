@@ -244,6 +244,15 @@ mod tests {
     }
 
     #[test]
+    fn test_run_command_print_with_format() {
+        unsafe { env::set_var("TEST_PRINT_RUN", "test_value") };
+        with_captured_output(|| {
+            run_command(&Commands::Print(PrintArgs { format: Some("{name} = {value}".to_owned()) }));
+        });
+        unsafe { env::remove_var("TEST_PRINT_RUN") };
+    }
+
+    #[test]
     fn test_run_command_delete() {
         unsafe { env::set_var("TEST_DELETE_RUN", "test_value") };
 
