@@ -45,11 +45,11 @@ pub fn run_command(command: &Commands, config: Option<Config>) -> ExitCode {
                 opt
             } else {
                 &PrintArgs {
-                    format: config.expect("Here we know that it is some").print_format
+                    format: config.expect("Here we know that it is some").print_format,
                 }
             };
             print_env(opt)
-        },
+        }
         Commands::Load(opt) => {
             if let Err(error) = load(opt) {
                 error!("{}", error);
@@ -89,7 +89,10 @@ pub fn run_command(command: &Commands, config: Option<Config>) -> ExitCode {
 
 /// Print all environment variables
 pub fn print_env(opt: &PrintArgs) {
-    let format = &opt.format.clone().unwrap_or("{name} = \"{value}\"".to_owned());
+    let format = &opt
+        .format
+        .clone()
+        .unwrap_or("{name} = \"{value}\"".to_owned());
     // Print all environment variables
     variables::print_env(format);
 }
@@ -197,10 +200,13 @@ mod tests {
     fn test_run_command_get_success() {
         unsafe { env::set_var("TEST_RUN_VAR", "test_value") };
         with_captured_output(|| {
-            run_command(&Commands::Get(GetArgs {
-                key: "TEST_RUN_VAR".to_string(),
-                no_similar_names: false,
-            }), None);
+            run_command(
+                &Commands::Get(GetArgs {
+                    key: "TEST_RUN_VAR".to_string(),
+                    no_similar_names: false,
+                }),
+                None,
+            );
         });
         unsafe { env::remove_var("TEST_RUN_VAR") };
     }
@@ -209,10 +215,13 @@ mod tests {
     fn test_run_command_get_fail() {
         with_captured_output(|| {
             assert_eq!(
-                run_command(&Commands::Get(GetArgs {
-                    key: "TEST_RUN_VAR_awzsenfkaqyG".to_string(),
-                    no_similar_names: false,
-                }), None),
+                run_command(
+                    &Commands::Get(GetArgs {
+                        key: "TEST_RUN_VAR_awzsenfkaqyG".to_string(),
+                        no_similar_names: false,
+                    }),
+                    None
+                ),
                 ExitCode::FAILURE
             );
         });
@@ -221,12 +230,15 @@ mod tests {
     #[test]
     fn test_run_command_set() {
         with_captured_output(|| {
-            run_command(&Commands::Set(SetArgs {
-                key: "TEST_SET_RUN".to_string(),
-                value: "test_value".to_string(),
-                global: false,
-                process: None,
-            }), None);
+            run_command(
+                &Commands::Set(SetArgs {
+                    key: "TEST_SET_RUN".to_string(),
+                    value: "test_value".to_string(),
+                    global: false,
+                    process: None,
+                }),
+                None,
+            );
         });
 
         assert_eq!(env::var("TEST_SET_RUN").unwrap(), "test_value");
@@ -238,12 +250,15 @@ mod tests {
         unsafe { env::set_var("TEST_ADD_RUN", "initial_") };
 
         with_captured_output(|| {
-            run_command(&Commands::Add(AddArgs {
-                key: "TEST_ADD_RUN".to_string(),
-                value: "value".to_string(),
-                global: false,
-                process: None,
-            }), None);
+            run_command(
+                &Commands::Add(AddArgs {
+                    key: "TEST_ADD_RUN".to_string(),
+                    value: "value".to_string(),
+                    global: false,
+                    process: None,
+                }),
+                None,
+            );
         });
 
         assert_eq!(env::var("TEST_ADD_RUN").unwrap(), "initial_value");
@@ -263,7 +278,12 @@ mod tests {
     fn test_run_command_print_with_format() {
         unsafe { env::set_var("TEST_PRINT_RUN", "test_value") };
         with_captured_output(|| {
-            run_command(&Commands::Print(PrintArgs { format: Some("{name} = {value}".to_owned()) }), None);
+            run_command(
+                &Commands::Print(PrintArgs {
+                    format: Some("{name} = {value}".to_owned()),
+                }),
+                None,
+            );
         });
         unsafe { env::remove_var("TEST_PRINT_RUN") };
     }
@@ -273,11 +293,14 @@ mod tests {
         unsafe { env::set_var("TEST_DELETE_RUN", "test_value") };
 
         with_captured_output(|| {
-            run_command(&Commands::Delete(DeleteArgs {
-                key: "TEST_DELETE_RUN".to_string(),
-                global: false,
-                process: None,
-            }), None);
+            run_command(
+                &Commands::Delete(DeleteArgs {
+                    key: "TEST_DELETE_RUN".to_string(),
+                    global: false,
+                    process: None,
+                }),
+                None,
+            );
         });
 
         assert!(env::var("TEST_DELETE_RUN").is_err());
@@ -289,11 +312,14 @@ mod tests {
         writeln!(temp_file, "TEST_LOAD_RUN=test_value").unwrap();
 
         with_captured_output(|| {
-            run_command(&Commands::Load(LoadArgs {
-                file: temp_file.path().to_string_lossy().to_string(),
-                global: false,
-                process: None,
-            }), None);
+            run_command(
+                &Commands::Load(LoadArgs {
+                    file: temp_file.path().to_string_lossy().to_string(),
+                    global: false,
+                    process: None,
+                }),
+                None,
+            );
         });
 
         assert_eq!(env::var("TEST_LOAD_RUN").unwrap(), "test_value");
@@ -754,7 +780,10 @@ mod tests {
     fn test_run_command_print_env() {
         unsafe { env::set_var("TEST_PRINT_ENV", "test_value") };
         with_captured_output(|| {
-            assert_eq!(run_command(&Commands::Print(PrintArgs { format: None }), None), ExitCode::SUCCESS);
+            assert_eq!(
+                run_command(&Commands::Print(PrintArgs { format: None }), None),
+                ExitCode::SUCCESS
+            );
         });
         unsafe { env::remove_var("TEST_PRINT_ENV") };
     }
@@ -764,10 +793,13 @@ mod tests {
         unsafe { env::set_var("TEST_SIMILAR_VAR", "value") };
         with_captured_output(|| {
             assert_eq!(
-                run_command(&Commands::Get(GetArgs {
-                    key: "TEST_SMILAR_VAR".to_string(), // Intentional typo
-                    no_similar_names: false,
-                }), None),
+                run_command(
+                    &Commands::Get(GetArgs {
+                        key: "TEST_SMILAR_VAR".to_string(), // Intentional typo
+                        no_similar_names: false,
+                    }),
+                    None
+                ),
                 ExitCode::FAILURE
             );
         });
@@ -778,12 +810,15 @@ mod tests {
     fn test_run_command_set_with_process() {
         with_captured_output(|| {
             assert_eq!(
-                run_command(&Commands::Set(SetArgs {
-                    key: "TEST_SET_PROC".to_string(),
-                    value: "test_value".to_string(),
-                    global: false,
-                    process: Some("echo test".to_string()),
-                }), None),
+                run_command(
+                    &Commands::Set(SetArgs {
+                        key: "TEST_SET_PROC".to_string(),
+                        value: "test_value".to_string(),
+                        global: false,
+                        process: Some("echo test".to_string()),
+                    }),
+                    None
+                ),
                 ExitCode::SUCCESS
             );
         });
@@ -795,12 +830,15 @@ mod tests {
     fn test_run_command_set_invalid_name() {
         with_captured_output(|| {
             assert_eq!(
-                run_command(&Commands::Set(SetArgs {
-                    key: "INVALID NAME".to_string(),
-                    value: "test_value".to_string(),
-                    global: false,
-                    process: None,
-                }), None),
+                run_command(
+                    &Commands::Set(SetArgs {
+                        key: "INVALID NAME".to_string(),
+                        value: "test_value".to_string(),
+                        global: false,
+                        process: None,
+                    }),
+                    None
+                ),
                 ExitCode::FAILURE
             );
         });
@@ -811,12 +849,15 @@ mod tests {
         unsafe { env::set_var("TEST_ADD_EXISTING", "initial_") };
         with_captured_output(|| {
             assert_eq!(
-                run_command(&Commands::Add(AddArgs {
-                    key: "TEST_ADD_EXISTING".to_string(),
-                    value: "appended".to_string(),
-                    global: false,
-                    process: None,
-                }), None),
+                run_command(
+                    &Commands::Add(AddArgs {
+                        key: "TEST_ADD_EXISTING".to_string(),
+                        value: "appended".to_string(),
+                        global: false,
+                        process: None,
+                    }),
+                    None
+                ),
                 ExitCode::SUCCESS
             );
         });
@@ -828,12 +869,15 @@ mod tests {
     fn test_run_command_add_with_invalid_name() {
         with_captured_output(|| {
             assert_eq!(
-                run_command(&Commands::Add(AddArgs {
-                    key: "INVALID NAME".to_string(),
-                    value: "test_value".to_string(),
-                    global: false,
-                    process: None,
-                }), None),
+                run_command(
+                    &Commands::Add(AddArgs {
+                        key: "INVALID NAME".to_string(),
+                        value: "test_value".to_string(),
+                        global: false,
+                        process: None,
+                    }),
+                    None
+                ),
                 ExitCode::FAILURE
             );
         });
@@ -843,11 +887,14 @@ mod tests {
     fn test_run_command_delete_nonexistent() {
         with_captured_output(|| {
             assert_eq!(
-                run_command(&Commands::Delete(DeleteArgs {
-                    key: "NONEXISTENT_VAR".to_string(),
-                    global: false,
-                    process: None,
-                }), None),
+                run_command(
+                    &Commands::Delete(DeleteArgs {
+                        key: "NONEXISTENT_VAR".to_string(),
+                        global: false,
+                        process: None,
+                    }),
+                    None
+                ),
                 ExitCode::SUCCESS // Should succeed even if var doesn't exist
             );
         });
@@ -857,11 +904,14 @@ mod tests {
     fn test_run_command_load_nonexistent_file() {
         with_captured_output(|| {
             assert_eq!(
-                run_command(&Commands::Load(LoadArgs {
-                    file: "nonexistent.env".to_string(),
-                    global: false,
-                    process: None,
-                }), None),
+                run_command(
+                    &Commands::Load(LoadArgs {
+                        file: "nonexistent.env".to_string(),
+                        global: false,
+                        process: None,
+                    }),
+                    None
+                ),
                 ExitCode::FAILURE
             );
         });
@@ -874,11 +924,14 @@ mod tests {
 
         with_captured_output(|| {
             assert_eq!(
-                run_command(&Commands::Load(LoadArgs {
-                    file: temp_file.path().to_string_lossy().to_string(),
-                    global: false,
-                    process: Some("echo test".to_string()),
-                }), None),
+                run_command(
+                    &Commands::Load(LoadArgs {
+                        file: temp_file.path().to_string_lossy().to_string(),
+                        global: false,
+                        process: Some("echo test".to_string()),
+                    }),
+                    None
+                ),
                 ExitCode::SUCCESS
             );
         });
@@ -889,22 +942,28 @@ mod tests {
     #[test]
     fn test_run_command_global_operations() {
         with_captured_output(|| {
-            let result = run_command(&Commands::Set(SetArgs {
-                key: "TEST_GLOBAL".to_string(),
-                value: "test_value".to_string(),
-                global: true,
-                process: None,
-            }), None);
+            let result = run_command(
+                &Commands::Set(SetArgs {
+                    key: "TEST_GLOBAL".to_string(),
+                    value: "test_value".to_string(),
+                    global: true,
+                    process: None,
+                }),
+                None,
+            );
             // Test passes if operation succeeds OR fails with permission error
             match result {
                 ExitCode::SUCCESS => {
                     assert_eq!(env::var("TEST_GLOBAL").unwrap(), "test_value");
                     assert_eq!(
-                        run_command(&Commands::Delete(DeleteArgs {
-                            key: "TEST_GLOBAL".to_string(),
-                            global: true,
-                            process: None,
-                        }), None),
+                        run_command(
+                            &Commands::Delete(DeleteArgs {
+                                key: "TEST_GLOBAL".to_string(),
+                                global: true,
+                                process: None,
+                            }),
+                            None
+                        ),
                         ExitCode::SUCCESS
                     );
                 }
@@ -919,11 +978,14 @@ mod tests {
         unsafe { env::set_var("TEST_DELETE_PROC_FAIL", "test_value") };
         with_captured_output(|| {
             assert_eq!(
-                run_command(&Commands::Delete(DeleteArgs {
-                    key: "TEST_DELETE_PROC_FAIL".to_string(),
-                    global: false,
-                    process: Some("nonexistent_command_123".to_string()),
-                }), None),
+                run_command(
+                    &Commands::Delete(DeleteArgs {
+                        key: "TEST_DELETE_PROC_FAIL".to_string(),
+                        global: false,
+                        process: Some("nonexistent_command_123".to_string()),
+                    }),
+                    None
+                ),
                 ExitCode::FAILURE
             );
         });
@@ -935,11 +997,14 @@ mod tests {
     fn test_run_command_delete_invalid_name() {
         with_captured_output(|| {
             assert_eq!(
-                run_command(&Commands::Delete(DeleteArgs {
-                    key: "INVALID NAME".to_string(),
-                    global: false,
-                    process: None,
-                }), None),
+                run_command(
+                    &Commands::Delete(DeleteArgs {
+                        key: "INVALID NAME".to_string(),
+                        global: false,
+                        process: None,
+                    }),
+                    None
+                ),
                 ExitCode::FAILURE
             );
         });
@@ -949,11 +1014,14 @@ mod tests {
     fn test_run_command_delete_empty_name() {
         with_captured_output(|| {
             assert_eq!(
-                run_command(&Commands::Delete(DeleteArgs {
-                    key: "".to_string(),
-                    global: false,
-                    process: None,
-                }), None),
+                run_command(
+                    &Commands::Delete(DeleteArgs {
+                        key: "".to_string(),
+                        global: false,
+                        process: None,
+                    }),
+                    None
+                ),
                 ExitCode::FAILURE
             );
         });

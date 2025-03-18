@@ -5,11 +5,11 @@
 //! to run process without it
 
 mod commands;
+mod config;
 mod interactive;
 mod models;
 mod utils;
 mod variables;
-mod config;
 
 use clap::Parser;
 use config::read_config;
@@ -87,7 +87,12 @@ mod tests {
     #[test]
     fn test_print_command_with_format() {
         let args = Cli::parse_from(["envfetch", "print", "--format", "{name}: \"{value}\""]);
-        assert_eq!(args.command, Commands::Print(PrintArgs { format: Some("{name}: \"{value}\"".to_owned()) }));
+        assert_eq!(
+            args.command,
+            Commands::Print(PrintArgs {
+                format: Some("{name}: \"{value}\"".to_owned())
+            })
+        );
     }
 
     #[test]
@@ -126,7 +131,9 @@ mod tests {
 
     #[test]
     fn test_set_command_with_global_flag_and_process() {
-        let args = Cli::parse_from(["envfetch", "set", "VAR", "VALUE", "--global", "--", "npm run"]);
+        let args = Cli::parse_from([
+            "envfetch", "set", "VAR", "VALUE", "--global", "--", "npm run",
+        ]);
         assert_eq!(
             args.command,
             Commands::Set(SetArgs {

@@ -315,9 +315,9 @@ fn test_interactive_mode_run() {
     let mut mode = InteractiveMode::default();
     let backend = TestBackend::new(100, 30);
     let mut terminal = Terminal::new(backend).unwrap();
-    
+
     // Simulate quit event
-    let _result = mode.handle_key_event(create_key_event(KeyCode::Char('q'), KeyModifiers::CONTROL));
+    mode.handle_key_event(create_key_event(KeyCode::Char('q'), KeyModifiers::CONTROL));
     assert!(mode.exit);
     assert!(terminal.draw(|f| mode.draw(f)).is_ok());
 }
@@ -334,7 +334,7 @@ fn test_handle_events_quit() {
 fn test_handle_events_navigation() {
     let mut mode = InteractiveMode::default();
     let initial_index = mode.current_index;
-    
+
     // Test down arrow
     mode.handle_key_event(create_key_event(KeyCode::Down, KeyModifiers::NONE));
     assert_eq!(mode.current_index, initial_index + 1);
@@ -349,14 +349,14 @@ fn test_string_list_filter() {
     let entries = vec![
         ("TEST1".to_string(), "value1".to_string()),
         ("TEST2".to_string(), "value2".to_string()),
-        ("OTHER".to_string(), "value3".to_string())
+        ("OTHER".to_string(), "value3".to_string()),
     ];
-    
+
     let mode = InteractiveMode {
         entries,
         ..Default::default()
     };
-    
+
     assert!(!mode.entries.is_empty());
     assert_eq!(mode.entries.len(), 3);
 }

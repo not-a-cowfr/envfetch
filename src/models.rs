@@ -1,8 +1,8 @@
-use std::fmt::Display;
 use std::error::Error;
+use std::fmt::Display;
 
-use serde::{Serialize, Deserialize};
 use clap::{Args, Parser, Subcommand};
+use serde::{Deserialize, Serialize};
 
 #[derive(Parser)]
 #[command(
@@ -150,7 +150,7 @@ impl Display for ConfigParsingError {
         match self {
             ConfigParsingError::FSError(err) => write!(f, "Error while reading file: {}", err),
             ConfigParsingError::ParsingError(err) => write!(f, "Error while parsing file: {}", err),
-            ConfigParsingError::FileDoesntExists => write!(f, "Config file doesn't exists")
+            ConfigParsingError::FileDoesntExists => write!(f, "Config file doesn't exists"),
         }
     }
 }

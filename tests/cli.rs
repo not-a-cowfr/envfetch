@@ -15,14 +15,16 @@ fn set_command_success() -> Result<(), Box<dyn std::error::Error>> {
     cmd.arg("set").arg("MY_VAR").arg("Hello");
     // Windows
     #[cfg(target_os = "windows")]
-    cmd.arg("--").arg("echo %MY_VAR%")
+    cmd.arg("--")
+        .arg("echo %MY_VAR%")
         .assert()
         .success()
         .stdout(predicate::str::contains("Hello"));
 
     // Linux and macOS
     #[cfg(not(target_os = "windows"))]
-    cmd.arg("--").arg("echo $MY_VAR")
+    cmd.arg("--")
+        .arg("echo $MY_VAR")
         .assert()
         .success()
         .stdout(predicate::str::contains("Hello"));
@@ -106,7 +108,9 @@ fn print_success() -> Result<(), Box<dyn std::error::Error>> {
 fn print_with_format_success() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin("envfetch")?;
     unsafe { env::set_var("PRINT_TEST", "Print") };
-    cmd.arg("print").arg("--format").arg("{name}: {value}")
+    cmd.arg("print")
+        .arg("--format")
+        .arg("{name}: {value}")
         .assert()
         .success()
         .stdout(predicate::str::contains("PRINT_TEST: Print"));
@@ -121,14 +125,16 @@ fn delete_command_success() -> Result<(), Box<dyn std::error::Error>> {
     cmd.arg("delete").arg("MY_VAR");
     // Windows
     #[cfg(target_os = "windows")]
-    cmd.arg("--").arg("echo 'Hello'")
+    cmd.arg("--")
+        .arg("echo 'Hello'")
         .assert()
         .success()
         .stdout(predicate::str::contains("Hello"));
 
     // Linux and macOS
     #[cfg(not(target_os = "windows"))]
-    cmd.arg("--").arg("echo 'Hello'")
+    cmd.arg("--")
+        .arg("echo 'Hello'")
         .assert()
         .success()
         .stdout(predicate::str::contains("Hello"));
@@ -144,14 +150,16 @@ fn load_custom_file_exists() -> Result<(), Box<dyn std::error::Error>> {
     cmd.arg("load").arg("--file").arg(file.path());
     // Windows
     #[cfg(target_os = "windows")]
-    cmd.arg("--").arg("echo %MY_ENV_VAR%")
+    cmd.arg("--")
+        .arg("echo %MY_ENV_VAR%")
         .assert()
         .success()
         .stdout(predicate::str::contains("TEST"));
 
     // Linux and macOS
     #[cfg(not(target_os = "windows"))]
-    cmd.arg("--").arg("echo $MY_ENV_VAR")
+    cmd.arg("--")
+        .arg("echo $MY_ENV_VAR")
         .assert()
         .success()
         .stdout(predicate::str::contains("TEST"));
@@ -170,7 +178,8 @@ fn load_custom_file_exists_command_failed() -> Result<(), Box<dyn std::error::Er
     cmd.arg("load").arg("--file").arg(file.path());
     // Windows
     #[cfg(target_os = "windows")]
-    cmd.arg("--").arg("echo %MY_ENV_VAR_TEST%")
+    cmd.arg("--")
+        .arg("echo %MY_ENV_VAR_TEST%")
         .assert()
         .success()
         .stdout(predicate::str::contains("%MY_ENV_VAR_TEST%"));
