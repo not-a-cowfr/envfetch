@@ -38,42 +38,11 @@ Read about installing `envfetch` in the [Wiki](https://github.com/ankddev/envfet
 Read in [Wiki](https://github.com/ankddev/envfetch/wiki/3.-Basic-Usage).
 ## Configuration
 Read in [this Wiki page](https://github.com/ankddev/envfetch/wiki/4.-Configuration)
-# Building from source
-- Install Rust. If it already installed, update with
-```shell
-$ rustup update
-```
-- Fork this project using button `Fork` on the top of this page
-- Clone your fork (replace `<YOUR_USERNAME>` with your username on GitHub):
-```shell
-$ git clone https://github.com/<YOUR_USERNAME>/envfetch.git
-```
-- Go to directory, where you cloned envfetch:
-```shell
-$ cd envfetch
-```
-- Run program using Cargo (replace `<COMMAND>` and `<ARGS>` to your command and args):
-```shell
-$ cargo run -- <COMMAND> <ARGS>
+# Contributing and building from source
+Read in [this Wiki page](https://github.com/ankddev/envfetch/wiki/6.-Contributing)
 ```
 # See Also
 - [codewars-api-rs](https://github.com/ankddev/codewars-api-rs) - Rust library for Codewars API
 - [conemu-progressbar-go](https://github.com/ankddev/conemu-progressbar-go) - Progress bar for ConEmu for Go
 - [terminal-go](https://github.com/ankddev/terminal-go) - Go library for working with ANSI/VT terminal sequences
 - [zapret-discord-youtube](https://github.com/ankddev/zapret-discord-youtube) - Zapret build for Windows for fixing Discord and YouTube in Russia or other services
-# Contributing
-- Read [section above to build envfetch from source](#building-from-source)
-- Create new branch
-- Made your changes
-- Test that everything works correctly
-- Format and lint code with
-```shell
-$ cargo fmt
-$ cargo clippy --fix
-```
-- Run tests with
-```shell
-$ cargo test
-```
-- Push changes
-- Open pull request
