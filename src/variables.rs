@@ -1,4 +1,3 @@
-use colored::Colorize;
 use std::env;
 
 use crate::{models::ErrorKind, utils::*};
@@ -7,9 +6,10 @@ use crate::{models::ErrorKind, utils::*};
 type VariablesList = Vec<(String, String)>;
 
 /// Print all environment variables
-pub fn print_env() {
+pub fn print_env(format: &str) {
     for (key, value) in get_variables() {
-        println!("{} = \"{}\"", key.blue(), value);
+        let entry = format.replace("{name}", &key).replace("{value}", &value);
+        println!("{}", entry);
     }
 }
 
@@ -88,7 +88,7 @@ mod tests {
     #[test]
     fn test_print_env() {
         unsafe { env::set_var("TEST_PRINT_VAR", "test_value") };
-        print_env();
+        print_env("{name} = \"{value}\"");
         unsafe { env::remove_var("TEST_PRINT_VAR") };
     }
 
@@ -134,7 +134,7 @@ mod tests {
         unsafe { env::set_var("TEST_VAR_1", "value1") };
         unsafe { env::set_var("TEST_VAR_2", "value2") };
 
-        print_env();
+        print_env("{name} = \"{value}\"");
 
         // Clean up
         unsafe { env::remove_var("TEST_VAR_1") };
@@ -145,7 +145,7 @@ mod tests {
     fn test_print_env_empty_value() {
         unsafe { env::set_var("TEST_EMPTY", "") };
 
-        print_env();
+        print_env("{name} = \"{value}\"");
 
         unsafe { env::remove_var("TEST_EMPTY") };
     }
@@ -154,7 +154,7 @@ mod tests {
     fn test_print_env_special_characters() {
         unsafe { env::set_var("TEST_SPECIAL", "value with spaces and $#@!") };
 
-        print_env();
+        print_env("{name} = \"{value}\"");
 
         unsafe { env::remove_var("TEST_SPECIAL") };
     }

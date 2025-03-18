@@ -33,7 +33,7 @@ pub fn run_command(command: &Commands) -> ExitCode {
                 return ExitCode::FAILURE;
             }
         }
-        Commands::Print => print_env(),
+        Commands::Print(opt) => print_env(opt),
         Commands::Load(opt) => {
             if let Err(error) = load(opt) {
                 error!("{}", error);
@@ -72,9 +72,10 @@ pub fn run_command(command: &Commands) -> ExitCode {
 }
 
 /// Print all environment variables
-pub fn print_env() {
+pub fn print_env(opt: &PrintArgs) {
+    let format = &opt.format.clone().unwrap_or("{name} = \"{value}\"".to_owned());
     // Print all environment variables
-    variables::print_env();
+    variables::print_env(format);
 }
 
 /// Load variables from dotenv-style file
@@ -237,7 +238,7 @@ mod tests {
     fn test_run_command_print() {
         unsafe { env::set_var("TEST_PRINT_RUN", "test_value") };
         with_captured_output(|| {
-            run_command(&Commands::Print);
+            run_command(&Commands::Print(PrintArgs { format: None }));
         });
         unsafe { env::remove_var("TEST_PRINT_RUN") };
     }
@@ -280,7 +281,7 @@ mod tests {
         unsafe { env::set_var("TEST_PRINT_VAR", "test_value") };
 
         // Call function - just verify it executes without panicking
-        print_env();
+        print_env(&PrintArgs { format: None });
 
         // Clean up
         unsafe { env::remove_var("TEST_PRINT_VAR") };
@@ -293,7 +294,7 @@ mod tests {
         unsafe { env::set_var("TEST_VAR_2", "value2") };
 
         // Call function - just verify it executes without panicking
-        print_env();
+        print_env(&PrintArgs { format: None });
 
         // Clean up
         unsafe { env::remove_var("TEST_VAR_1") };
@@ -728,7 +729,7 @@ mod tests {
     fn test_run_command_print_env() {
         unsafe { env::set_var("TEST_PRINT_ENV", "test_value") };
         with_captured_output(|| {
-            assert_eq!(run_command(&Commands::Print), ExitCode::SUCCESS);
+            assert_eq!(run_command(&Commands::Print(PrintArgs { format: None })), ExitCode::SUCCESS);
         });
         unsafe { env::remove_var("TEST_PRINT_ENV") };
     }

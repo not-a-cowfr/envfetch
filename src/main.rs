@@ -63,7 +63,7 @@ mod tests {
     #[test]
     fn test_print_command() {
         let args = Cli::parse_from(["envfetch", "print"]);
-        assert_eq!(args.command, Commands::Print);
+        assert_eq!(args.command, Commands::Print(PrintArgs { format: None }));
     }
 
     #[test]

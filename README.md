@@ -140,6 +140,9 @@ Usage:
 
 Options:
 - `--help`/`-h` - show help message
+- `--format <FORMAT>`/`-f <FORMAT>` - set custom format.
+
+By default, it uses format `{name} - "{value}"`. In format string `{name}` is replaced with name of the variable and `{value}` is replaced with it's value.
 
 For example:
 ```shell
@@ -150,7 +153,15 @@ SystemDrive = "C:"
 SystemRoot = "C:\\Windows"
 ...
 ```
-It will print all environment variables in format `VAR = "VALUE"`.
+```shell
+$ envfetch print --format "{name}: {value};"
+SHELL: powershell;
+windir: C:\\Windows;
+SystemDrive: C:;
+SystemRoot: C:\\Windows;
+...
+```
+It will print all environment variables in given format.
 #### Get
 Get value of environment variable
 

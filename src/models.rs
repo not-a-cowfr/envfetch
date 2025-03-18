@@ -37,7 +37,15 @@ pub enum Commands {
     /// Load environment variables from dotenv file and optionally run given process.
     Load(LoadArgs),
     /// Print all environment variables.
-    Print,
+    Print(PrintArgs),
+}
+
+/// Args for print command
+#[derive(Args, Debug, PartialEq, Eq)]
+pub struct PrintArgs {
+    /// Set custom format, by default {name} = "{value}" is used.
+    #[arg(long, short)]
+    pub format: Option<String>,
 }
 
 /// Args for get command
