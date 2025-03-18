@@ -37,14 +37,7 @@ Read about installing `envfetch` in the [Wiki](https://github.com/ankddev/envfet
 ## Using
 Read in [Wiki](https://github.com/ankddev/envfetch/wiki/3.-Basic-Usage).
 ## Configuration
-`envfetch` support some configuration. Fitsly, you need to run `envfetch init-config` to create config file, it will return you path of config.
-| Platform |                       Path                        |
-| -------- | ------------------------------------------------- |
-| Windows  |  `C:\Users\<USER>\AppData\Roaming\envfetch.toml`  |
-|  Linux   |           `$HOME/.config/envfetch.toml`           |
-|  macOS   | `$HOME/Library/Application Support/envfetch.toml` |
-### Keys
-- `print_format` - Format string for print command
+Read in [this Wiki page](https://github.com/ankddev/envfetch/wiki/4.-Configuration)
 # Building from source
 - Install Rust. If it already installed, update with
 ```shell
