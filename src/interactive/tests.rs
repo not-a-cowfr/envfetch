@@ -360,3 +360,35 @@ fn test_string_list_filter() {
     assert!(!mode.entries.is_empty());
     assert_eq!(mode.entries.len(), 3);
 }
+
+#[test]
+fn test_value_truncation_and_name_padding() {
+    let mut mode = InteractiveMode {
+        entries: vec![
+            ("short".to_string(), "short_value".to_string()),
+            ("very_long_name".to_string(), "value_that_needs_truncation".to_string()),
+        ],
+        truncation_len: 10,
+        current_index: 1,
+        scroll_offset: 0,
+        value_scroll_offset: 0,
+        ..Default::default()
+    };
+
+    let area = Rect::new(0, 0, 100, 30);
+    let mut buffer = Buffer::empty(area);
+    Widget::render(&mut mode, area, &mut buffer);
+
+    // Convert buffer content to string for easier testing
+    let content = buffer
+        .content
+        .iter()
+        .map(|cell| cell.symbol().to_string())
+        .collect::<String>();
+
+    // Test value truncation (line 131)
+    assert!(content.contains("value_that..."));
+
+    // Test name padding (line 134)
+    assert!(content.contains(&format!("{:38}", "very_long_name")));
+}
