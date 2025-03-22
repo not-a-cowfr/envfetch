@@ -12,7 +12,11 @@ use crate::utils::*;
 use crate::variables;
 
 /// Run tool's command
-pub fn run_command<W: Write>(command: &Commands, config: Option<Config>, mut buffer: W) -> ExitCode {
+pub fn run_command<W: Write>(
+    command: &Commands,
+    config: Option<Config>,
+    mut buffer: W,
+) -> ExitCode {
     match command {
         Commands::InitConfig => {
             if let Err(error) = config::init_config(config::get_config_file_path(), buffer) {
@@ -31,9 +35,11 @@ pub fn run_command<W: Write>(command: &Commands, config: Option<Config>, mut buf
                             0.6,
                         );
                         if !similar_names.is_empty() {
-                            writeln!(&mut buffer, "Did you mean:").expect("Failed to write to buffer");
+                            writeln!(&mut buffer, "Did you mean:")
+                                .expect("Failed to write to buffer");
                             for name in similar_names {
-                                writeln!(&mut buffer, "  {}", &name).expect("Failed to write to buffer");
+                                writeln!(&mut buffer, "  {}", &name)
+                                    .expect("Failed to write to buffer");
                             }
                         }
                     }
@@ -211,9 +217,13 @@ mod tests {
                 no_similar_names: false,
             }),
             None,
-            &mut buffer
+            &mut buffer,
         );
-        assert!(String::from_utf8(buffer).unwrap().contains("\"test_value\""));
+        assert!(
+            String::from_utf8(buffer)
+                .unwrap()
+                .contains("\"test_value\"")
+        );
         unsafe { env::remove_var("TEST_RUN_VAR") };
     }
 
@@ -246,7 +256,7 @@ mod tests {
                 process: None,
             }),
             None,
-            &mut buffer
+            &mut buffer,
         );
 
         assert_eq!(env::var("TEST_SET_RUN").unwrap(), "test_value");
@@ -267,7 +277,7 @@ mod tests {
                 process: None,
             }),
             None,
-            &mut buffer
+            &mut buffer,
         );
         assert_eq!(env::var("TEST_ADD_RUN").unwrap(), "initial_value");
         unsafe { env::remove_var("TEST_ADD_RUN") };
@@ -278,8 +288,16 @@ mod tests {
         init();
         unsafe { env::set_var("TEST_PRINT_RUN", "test_value") };
         let mut buffer = vec![];
-        run_command(&Commands::Print(PrintArgs { format: None }), None, &mut buffer);
-        assert!(String::from_utf8(buffer).unwrap().contains("TEST_PRINT_RUN = \"test_value\""));
+        run_command(
+            &Commands::Print(PrintArgs { format: None }),
+            None,
+            &mut buffer,
+        );
+        assert!(
+            String::from_utf8(buffer)
+                .unwrap()
+                .contains("TEST_PRINT_RUN = \"test_value\"")
+        );
 
         unsafe { env::remove_var("TEST_PRINT_RUN") };
     }
@@ -294,9 +312,13 @@ mod tests {
                 format: Some("{name} = {value}".to_owned()),
             }),
             None,
-            &mut buffer
+            &mut buffer,
         );
-        assert!(String::from_utf8(buffer).unwrap().contains("TEST_PRINT_RUN = test_value"));
+        assert!(
+            String::from_utf8(buffer)
+                .unwrap()
+                .contains("TEST_PRINT_RUN = test_value")
+        );
         unsafe { env::remove_var("TEST_PRINT_RUN") };
     }
 
@@ -312,7 +334,7 @@ mod tests {
                 process: None,
             }),
             None,
-            &mut buffer
+            &mut buffer,
         );
 
         assert!(env::var("TEST_DELETE_RUN").is_err());
@@ -331,7 +353,7 @@ mod tests {
                 process: None,
             }),
             None,
-            &mut buffer
+            &mut buffer,
         );
 
         assert_eq!(env::var("TEST_LOAD_RUN").unwrap(), "test_value");
@@ -346,7 +368,11 @@ mod tests {
 
         let mut buffer = vec![];
         print_env(&PrintArgs { format: None }, &mut buffer);
-        assert!(String::from_utf8(buffer).unwrap().contains("TEST_PRINT_VAR = \"test_value\""));
+        assert!(
+            String::from_utf8(buffer)
+                .unwrap()
+                .contains("TEST_PRINT_VAR = \"test_value\"")
+        );
 
         // Clean up
         unsafe { env::remove_var("TEST_PRINT_VAR") };
@@ -361,8 +387,16 @@ mod tests {
 
         let mut buffer = vec![];
         print_env(&PrintArgs { format: None }, &mut buffer);
-        assert!(String::from_utf8(buffer.clone()).unwrap().contains("TEST_VAR_1 = \"value1\""));
-        assert!(String::from_utf8(buffer).unwrap().contains("TEST_VAR_2 = \"value2\""));
+        assert!(
+            String::from_utf8(buffer.clone())
+                .unwrap()
+                .contains("TEST_VAR_1 = \"value1\"")
+        );
+        assert!(
+            String::from_utf8(buffer)
+                .unwrap()
+                .contains("TEST_VAR_2 = \"value2\"")
+        );
 
         // Clean up
         unsafe { env::remove_var("TEST_VAR_1") };
@@ -382,7 +416,11 @@ mod tests {
 
         let result = get(&args, &mut buffer);
         assert!(result.is_ok());
-        assert!(String::from_utf8(buffer).unwrap().contains("\"test_value\""));
+        assert!(
+            String::from_utf8(buffer)
+                .unwrap()
+                .contains("\"test_value\"")
+        );
 
         unsafe { env::remove_var("TEST_GET_VAR") };
     }
@@ -808,10 +846,18 @@ mod tests {
         unsafe { env::set_var("TEST_PRINT_ENV", "test_value") };
         let mut buffer = vec![];
         assert_eq!(
-            run_command(&Commands::Print(PrintArgs { format: None }), None, &mut buffer),
+            run_command(
+                &Commands::Print(PrintArgs { format: None }),
+                None,
+                &mut buffer
+            ),
             ExitCode::SUCCESS
         );
-        assert!(String::from_utf8(buffer).unwrap().contains("TEST_PRINT_ENV = \"test_value\""));
+        assert!(
+            String::from_utf8(buffer)
+                .unwrap()
+                .contains("TEST_PRINT_ENV = \"test_value\"")
+        );
         unsafe { env::remove_var("TEST_PRINT_ENV") };
     }
 
@@ -956,7 +1002,7 @@ mod tests {
         init();
         let mut temp_file = tempfile::NamedTempFile::new().unwrap();
         writeln!(temp_file, "TEST_LOAD_PROC=test_value").unwrap();
-        
+
         let mut buffer = vec![];
         assert_eq!(
             run_command(
@@ -986,7 +1032,7 @@ mod tests {
                 process: None,
             }),
             None,
-            &mut buffer
+            &mut buffer,
         );
         // Test passes if operation succeeds OR fails with permission error
         match result {
@@ -1014,7 +1060,7 @@ mod tests {
     fn test_run_command_delete_with_process_fail() {
         init();
         unsafe { env::set_var("TEST_DELETE_PROC_FAIL", "test_value") };
-        
+
         let mut buffer = vec![];
         assert_eq!(
             run_command(

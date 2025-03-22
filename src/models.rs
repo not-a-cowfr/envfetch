@@ -235,15 +235,15 @@ mod tests {
         let test_cases = vec![
             (
                 ConfigParsingError::FSError("Permission denied".to_string()),
-                "Error while reading file: Permission denied"
+                "Error while reading file: Permission denied",
             ),
             (
                 ConfigParsingError::ParsingError("Invalid JSON".to_string()),
-                "Error while parsing file: Invalid JSON"
+                "Error while parsing file: Invalid JSON",
             ),
             (
                 ConfigParsingError::FileDoesntExists,
-                "Config file doesn't exists"
+                "Config file doesn't exists",
             ),
         ];
 

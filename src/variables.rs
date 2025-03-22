@@ -23,7 +23,7 @@ pub fn set_variable(
     key: &str,
     value: &str,
     global: bool,
-    process: Option<String>
+    process: Option<String>,
 ) -> Result<(), ErrorKind> {
     if global {
         if let Err(err) = globalenv::set_var(key, value) {
@@ -90,7 +90,11 @@ mod tests {
         unsafe { env::set_var("TEST_PRINT_VAR", "test_value") };
         let mut buffer = vec![];
         print_env("{name} = \"{value}\"", &mut buffer);
-        assert!(String::from_utf8(buffer).unwrap().contains("TEST_PRINT_VAR = \"test_value\""));
+        assert!(
+            String::from_utf8(buffer)
+                .unwrap()
+                .contains("TEST_PRINT_VAR = \"test_value\"")
+        );
         unsafe { env::remove_var("TEST_PRINT_VAR") };
     }
 
@@ -137,9 +141,17 @@ mod tests {
         unsafe { env::set_var("TEST_VAR_2", "value2") };
 
         let mut buffer = vec![];
-        print_env("{name} = \"{value}\"",&mut buffer);
-        assert!(String::from_utf8(buffer.clone()).unwrap().contains("TEST_VAR_1 = \"value1\""));
-        assert!(String::from_utf8(buffer).unwrap().contains("TEST_VAR_2 = \"value2\""));
+        print_env("{name} = \"{value}\"", &mut buffer);
+        assert!(
+            String::from_utf8(buffer.clone())
+                .unwrap()
+                .contains("TEST_VAR_1 = \"value1\"")
+        );
+        assert!(
+            String::from_utf8(buffer)
+                .unwrap()
+                .contains("TEST_VAR_2 = \"value2\"")
+        );
 
         // Clean up
         unsafe { env::remove_var("TEST_VAR_1") };
@@ -152,7 +164,11 @@ mod tests {
 
         let mut buffer = vec![];
         print_env("{name} = \"{value}\"", &mut buffer);
-        assert!(String::from_utf8(buffer).unwrap().contains("TEST_EMPTY = \"\""));
+        assert!(
+            String::from_utf8(buffer)
+                .unwrap()
+                .contains("TEST_EMPTY = \"\"")
+        );
 
         unsafe { env::remove_var("TEST_EMPTY") };
     }
@@ -163,7 +179,11 @@ mod tests {
 
         let mut buffer = vec![];
         print_env("{name} = \"{value}\"", &mut buffer);
-        assert!(String::from_utf8(buffer).unwrap().contains("TEST_SPECIAL = \"value with spaces and $#@!\""));
+        assert!(
+            String::from_utf8(buffer)
+                .unwrap()
+                .contains("TEST_SPECIAL = \"value with spaces and $#@!\"")
+        );
 
         unsafe { env::remove_var("TEST_SPECIAL") };
     }

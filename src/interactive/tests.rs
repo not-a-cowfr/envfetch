@@ -366,7 +366,10 @@ fn test_value_truncation_and_name_padding() {
     let mut mode = InteractiveMode {
         entries: vec![
             ("short".to_string(), "short_value".to_string()),
-            ("very_long_name".to_string(), "value_that_needs_truncation".to_string()),
+            (
+                "very_long_name".to_string(),
+                "value_that_needs_truncation".to_string(),
+            ),
         ],
         truncation_len: 10,
         current_index: 1,

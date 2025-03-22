@@ -1,4 +1,8 @@
-use std::{fs, io::{self, Write}, path::PathBuf};
+use std::{
+    fs,
+    io::{self, Write},
+    path::PathBuf,
+};
 
 use dirs::config_dir;
 
@@ -36,8 +40,14 @@ fn read_config(content: String) -> Result<Config, ConfigParsingError> {
 pub fn init_config<W: Write>(path: PathBuf, mut buffer: W) -> io::Result<()> {
     let default = default_config();
 
-    fs::write(&path, default)
-        .map(|_| writeln!(buffer, "Successfully initialized config at {}", path.display()).expect("Failed to write to buffer"))
+    fs::write(&path, default).map(|_| {
+        writeln!(
+            buffer,
+            "Successfully initialized config at {}",
+            path.display()
+        )
+        .expect("Failed to write to buffer")
+    })
 }
 
 /// Get default config ile content
@@ -58,20 +68,24 @@ mod tests {
 
     #[test]
     fn test_get_config_file() {
-        assert_eq!(get_config_file_path(), config_dir().unwrap_or_default().join("envfetch.toml"));
+        assert_eq!(
+            get_config_file_path(),
+            config_dir().unwrap_or_default().join("envfetch.toml")
+        );
     }
 
     #[test]
     fn test_default_config() {
-        assert_eq!(default_config(), include_str!("../assets/default_config.toml"));
+        assert_eq!(
+            default_config(),
+            include_str!("../assets/default_config.toml")
+        );
     }
 
     #[test]
     fn test_read_config_default() {
         let result = read_config(default_config().to_owned()).unwrap();
-        assert_eq!(result, Config {
-            print_format: None
-        })
+        assert_eq!(result, Config { print_format: None })
     }
 
     #[test]
@@ -79,9 +93,7 @@ mod tests {
         let file = assert_fs::NamedTempFile::new("envfetch.toml").unwrap();
         file.write_str(default_config()).unwrap();
         let result = read_config_from_file(file.path().to_path_buf()).unwrap();
-        assert_eq!(result, Config {
-            print_format: None
-        })
+        assert_eq!(result, Config { print_format: None })
     }
 
     #[test]
@@ -91,7 +103,7 @@ mod tests {
         file.write_str("aegkbiv wlecn k").unwrap();
         match read_config_from_file(file.path().to_path_buf()) {
             Err(ConfigParsingError::ParsingError(_)) => (),
-            _ => panic!("Should crash with ParsingError")
+            _ => panic!("Should crash with ParsingError"),
         }
     }
 
@@ -109,6 +121,9 @@ mod tests {
         let file = assert_fs::NamedTempFile::new("envfetch.toml").unwrap();
         let mut buffer = vec![];
         init_config(file.path().to_path_buf(), &mut buffer).unwrap();
-        assert!(String::from_utf8(buffer).unwrap().contains(&format!("Successfully initialized config at {}", file.display())));
+        assert!(String::from_utf8(buffer).unwrap().contains(&format!(
+            "Successfully initialized config at {}",
+            file.display()
+        )));
     }
 }

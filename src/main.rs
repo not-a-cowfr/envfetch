@@ -12,8 +12,11 @@ mod utils;
 mod variables;
 
 use clap::Parser;
-use config::{read_config_from_file, get_config_file_path};
-use std::{io::{stdout, Write}, process::ExitCode};
+use config::{get_config_file_path, read_config_from_file};
+use std::{
+    io::{Write, stdout},
+    process::ExitCode,
+};
 
 use log::error;
 
