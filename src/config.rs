@@ -160,4 +160,13 @@ mod tests {
         assert!(result.is_err()); // Now we expect an error since the buffer write fails
         assert!(file.exists()); // File should still be created even though buffer write failed
     }
+
+    #[test]
+    fn test_init_config_file_write_failure() -> io::Result<()> {
+        let non_existent_dir = PathBuf::from("/non/existent/dir/envfetch.toml");
+        let mut buffer = Vec::new();
+        let result = init_config(non_existent_dir, &mut buffer);
+        assert!(result.is_err());  // This should fail on fs::write
+        Ok(())
+    }
 }

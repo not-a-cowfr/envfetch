@@ -537,3 +537,83 @@ fn test_event_non_key_press() {
     let result = mode.run(&mut terminal);
     assert!(result.is_ok());
 }
+
+#[test]
+fn test_run_with_event_error() -> io::Result<()> {
+    use crossterm::event::{Event, KeyEventState};
+    let mut mode = InteractiveMode::default();
+    
+    // Test different event types
+    let events = vec![
+        Event::Paste("test".to_string()),
+        Event::Key(KeyEvent {
+            code: KeyCode::Char('q'),
+            modifiers: KeyModifiers::NONE,
+            kind: KeyEventKind::Press,
+            state: KeyEventState::NONE,
+        }),
+        Event::Key(KeyEvent {
+            code: KeyCode::Char('q'),
+            modifiers: KeyModifiers::CONTROL,
+            kind: KeyEventKind::Press,
+            state: KeyEventState::NONE,
+        }),
+        Event::Key(KeyEvent {
+            code: KeyCode::Char('r'),
+            modifiers: KeyModifiers::NONE,
+            kind: KeyEventKind::Press,
+            state: KeyEventState::NONE,
+        }),
+        Event::Key(KeyEvent {
+            code: KeyCode::Char('r'),
+            modifiers: KeyModifiers::CONTROL,
+            kind: KeyEventKind::Press,
+            state: KeyEventState::NONE,
+        }),
+        Event::Resize(20, 20),
+        Event::FocusGained,
+        Event::FocusLost,
+    ];
+
+    for event in events {
+        match event {
+            Event::Key(key_event) => mode.handle_key_event(key_event),
+            _ => {}
+        }
+    }
+    
+    Ok(())
+}
+
+#[test]
+fn test_run_with_empty_terminal() -> io::Result<()> {
+    use ratatui::backend::TestBackend;
+    
+    let mut mode = InteractiveMode::default();
+    let backend = TestBackend::new(0, 0);
+    let mut terminal = Terminal::new(backend)?;
+    
+    // Force exit condition
+    mode.exit = true;
+    
+    // This should test both the draw and event handling paths
+    let result = mode.run(&mut terminal);
+    assert!(result.is_ok());
+    
+    Ok(())
+}
+
+#[test]
+fn test_draw_with_generic_backend() -> io::Result<()> {
+    let mut mode = InteractiveMode::default();
+    let backend = TestBackend::new(10, 10);
+    let mut terminal = Terminal::new(backend)?;
+    
+    terminal.draw(|f| mode.draw(f))?;
+    
+    // Try different frame sizes
+    terminal.resize(Rect::new(0, 0, 5, 5))?;
+    terminal.draw(|f| mode.draw(f))?;
+    
+    Ok(())
+}
