@@ -451,3 +451,70 @@ fn test_run_with_terminal_draw_error() -> io::Result<()> {
     assert!(mode.exit);
     Ok(())
 }
+
+#[test]
+fn test_render_with_truncated_value_and_scroll() {
+    let mut mode = InteractiveMode {
+        entries: vec![
+            ("test".to_string(), "a".repeat(100)),  // long value that needs truncation
+        ],
+        truncation_len: 10,
+        current_index: 0,
+        scroll_offset: 0,
+        value_scroll_offset: 5,  // Force some scroll offset
+        ..Default::default()
+    };
+
+    let area = Rect::new(0, 0, 100, 30);
+    let mut buffer = Buffer::empty(area);
+    Widget::render(&mut mode, area, &mut buffer);
+
+    // Get the rendered content
+    let content: String = buffer.content.iter()
+        .map(|cell| cell.symbol().to_string())
+        .collect();
+
+    // This should specifically test line 131 in list.rs (value truncation)
+    assert!(content.contains("aaaaaaaaaa..."));  // 10 'a's + "..."
+}
+
+#[test]
+fn test_render_with_exact_length_value() {
+    let mut mode = InteractiveMode {
+        entries: vec![
+            ("test".to_string(), "a".repeat(30)),  // exactly truncation_len
+        ],
+        truncation_len: 30,
+        current_index: 0,
+        ..Default::default()
+    };
+
+    let area = Rect::new(0, 0, 100, 30);
+    let mut buffer = Buffer::empty(area);
+    Widget::render(&mut mode, area, &mut buffer);
+
+    let content: String = buffer.content.iter()
+        .map(|cell| cell.symbol().to_string())
+        .collect();
+
+    // The value should not be truncated as it's exactly truncation_len
+    assert!(content.contains(&"a".repeat(30)));
+    assert!(!content.contains("..."));
+}
+
+#[test]
+fn test_event_non_key_press() {
+    let mut mode = InteractiveMode::default();
+    let mut terminal = create_test_terminal();
+
+    // Force test coverage of the non-key-press branch in handle_events
+    mode.handle_key_event(KeyEvent {
+        code: KeyCode::Char('q'),
+        modifiers: KeyModifiers::CONTROL,
+        kind: KeyEventKind::Release,  // This should hit the non-press branch
+        state: crossterm::event::KeyEventState::NONE,
+    });
+
+    let result = mode.run(&mut terminal);
+    assert!(result.is_ok());
+}
