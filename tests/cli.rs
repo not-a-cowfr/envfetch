@@ -314,4 +314,16 @@ fn test_add_with_process() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-// TODO: add tests for commands with --global flag
+#[test]
+/// Test for print command with custom format
+fn print_with_custom_format() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = Command::cargo_bin("envfetch")?;
+    unsafe { env::set_var("FORMAT_TEST", "Hello") };
+    cmd.arg("print")
+        .arg("--format")
+        .arg("{name}={value}")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("FORMAT_TEST=Hello"));
+    Ok(())
+}
