@@ -229,4 +229,26 @@ mod tests {
             assert_eq!(error.to_string(), expected);
         }
     }
+
+    #[test]
+    fn test_config_parsing_error_display() {
+        let test_cases = vec![
+            (
+                ConfigParsingError::FSError("Permission denied".to_string()),
+                "Error while reading file: Permission denied"
+            ),
+            (
+                ConfigParsingError::ParsingError("Invalid JSON".to_string()),
+                "Error while parsing file: Invalid JSON"
+            ),
+            (
+                ConfigParsingError::FileDoesntExists,
+                "Config file doesn't exists"
+            ),
+        ];
+
+        for (error, expected) in test_cases {
+            assert_eq!(error.to_string(), expected);
+        }
+    }
 }
