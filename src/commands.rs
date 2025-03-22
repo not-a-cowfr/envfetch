@@ -1,6 +1,7 @@
 use log::error;
 use log::warn;
 use rayon::prelude::*;
+use std::io::Write;
 use std::process::ExitCode;
 use std::{env, fs};
 
@@ -11,7 +12,7 @@ use crate::utils::*;
 use crate::variables;
 
 /// Run tool's command
-pub fn run_command(command: &Commands, config: Option<Config>) -> ExitCode {
+pub fn run_command<W: Write>(command: &Commands, config: Option<Config>, mut buffer: W) -> ExitCode {
     match command {
         Commands::InitConfig => {
             if let Err(error) = config::init_config() {
@@ -20,7 +21,7 @@ pub fn run_command(command: &Commands, config: Option<Config>) -> ExitCode {
             }
         }
         Commands::Get(opt) => {
-            if let Err(error) = get(opt) {
+            if let Err(error) = get(opt, &mut buffer) {
                 error!("{}", error);
                 if let ErrorKind::CannotFindVariable(key, no_similar_names) = error {
                     if !no_similar_names {
@@ -30,9 +31,9 @@ pub fn run_command(command: &Commands, config: Option<Config>) -> ExitCode {
                             0.6,
                         );
                         if !similar_names.is_empty() {
-                            eprintln!("Did you mean:");
+                            writeln!(&mut buffer, "Did you mean:").expect("Failed to write to buffer");
                             for name in similar_names {
-                                eprintln!("  {}", &name);
+                                writeln!(&mut buffer, "  {}", &name).expect("Failed to write to buffer");
                             }
                         }
                     }
@@ -48,7 +49,7 @@ pub fn run_command(command: &Commands, config: Option<Config>) -> ExitCode {
                     format: config.expect("Here we know that it is some").print_format,
                 }
             };
-            print_env(opt)
+            print_env(opt, buffer)
         }
         Commands::Load(opt) => {
             if let Err(error) = load(opt) {
@@ -88,13 +89,13 @@ pub fn run_command(command: &Commands, config: Option<Config>) -> ExitCode {
 }
 
 /// Print all environment variables
-pub fn print_env(opt: &PrintArgs) {
+pub fn print_env<W: Write>(opt: &PrintArgs, buffer: W) {
     let format = &opt
         .format
         .clone()
         .unwrap_or("{name} = \"{value}\"".to_owned());
     // Print all environment variables
-    variables::print_env(format);
+    variables::print_env(format, buffer);
 }
 
 /// Load variables from dotenv-style file
@@ -127,10 +128,10 @@ pub fn load(args: &LoadArgs) -> Result<(), ErrorKind> {
 }
 
 /// Get value of variable
-pub fn get(args: &GetArgs) -> Result<(), ErrorKind> {
+pub fn get<W: Write>(args: &GetArgs, mut buffer: W) -> Result<(), ErrorKind> {
     // Check if variable with specified name exists
     match env::var(&args.key) {
-        Ok(value) => println!("{:?}", &value),
+        Ok(value) => writeln!(buffer, "{:?}", &value).expect("Failed to write to buffer"),
         // If variable not found
         _ => {
             return Err(ErrorKind::CannotFindVariable(
@@ -193,53 +194,60 @@ mod tests {
     use tempfile::NamedTempFile;
 
     use super::*;
-    use crate::utils::with_captured_output;
     use std::io::Write;
+
+    fn init() {
+        let _ = env_logger::builder().is_test(true).try_init();
+    }
 
     #[test]
     fn test_run_command_get_success() {
+        init();
         unsafe { env::set_var("TEST_RUN_VAR", "test_value") };
-        with_captured_output(|| {
-            run_command(
-                &Commands::Get(GetArgs {
-                    key: "TEST_RUN_VAR".to_string(),
-                    no_similar_names: false,
-                }),
-                None,
-            );
-        });
+        let mut buffer = vec![];
+        run_command(
+            &Commands::Get(GetArgs {
+                key: "TEST_RUN_VAR".to_string(),
+                no_similar_names: false,
+            }),
+            None,
+            &mut buffer
+        );
+        assert!(String::from_utf8(buffer).unwrap().contains("\"test_value\""));
         unsafe { env::remove_var("TEST_RUN_VAR") };
     }
 
     #[test]
     fn test_run_command_get_fail() {
-        with_captured_output(|| {
-            assert_eq!(
-                run_command(
-                    &Commands::Get(GetArgs {
-                        key: "TEST_RUN_VAR_awzsenfkaqyG".to_string(),
-                        no_similar_names: false,
-                    }),
-                    None
-                ),
-                ExitCode::FAILURE
-            );
-        });
+        init();
+        let mut buffer = vec![];
+        assert_eq!(
+            run_command(
+                &Commands::Get(GetArgs {
+                    key: "TEST_RUN_VAR_awzsenfkaqyG".to_string(),
+                    no_similar_names: false,
+                }),
+                None,
+                &mut buffer
+            ),
+            ExitCode::FAILURE
+        );
     }
 
     #[test]
     fn test_run_command_set() {
-        with_captured_output(|| {
-            run_command(
-                &Commands::Set(SetArgs {
-                    key: "TEST_SET_RUN".to_string(),
-                    value: "test_value".to_string(),
-                    global: false,
-                    process: None,
-                }),
-                None,
-            );
-        });
+        init();
+        let mut buffer = vec![];
+        run_command(
+            &Commands::Set(SetArgs {
+                key: "TEST_SET_RUN".to_string(),
+                value: "test_value".to_string(),
+                global: false,
+                process: None,
+            }),
+            None,
+            &mut buffer
+        );
 
         assert_eq!(env::var("TEST_SET_RUN").unwrap(), "test_value");
         unsafe { env::remove_var("TEST_SET_RUN") };
@@ -247,80 +255,84 @@ mod tests {
 
     #[test]
     fn test_run_command_add() {
+        init();
         unsafe { env::set_var("TEST_ADD_RUN", "initial_") };
 
-        with_captured_output(|| {
-            run_command(
-                &Commands::Add(AddArgs {
-                    key: "TEST_ADD_RUN".to_string(),
-                    value: "value".to_string(),
-                    global: false,
-                    process: None,
-                }),
-                None,
-            );
-        });
-
+        let mut buffer = vec![];
+        run_command(
+            &Commands::Add(AddArgs {
+                key: "TEST_ADD_RUN".to_string(),
+                value: "value".to_string(),
+                global: false,
+                process: None,
+            }),
+            None,
+            &mut buffer
+        );
         assert_eq!(env::var("TEST_ADD_RUN").unwrap(), "initial_value");
         unsafe { env::remove_var("TEST_ADD_RUN") };
     }
 
     #[test]
     fn test_run_command_print() {
+        init();
         unsafe { env::set_var("TEST_PRINT_RUN", "test_value") };
-        with_captured_output(|| {
-            run_command(&Commands::Print(PrintArgs { format: None }), None);
-        });
+        let mut buffer = vec![];
+        run_command(&Commands::Print(PrintArgs { format: None }), None, &mut buffer);
+        assert!(String::from_utf8(buffer).unwrap().contains("TEST_PRINT_RUN = \"test_value\""));
+
         unsafe { env::remove_var("TEST_PRINT_RUN") };
     }
 
     #[test]
     fn test_run_command_print_with_format() {
+        init();
         unsafe { env::set_var("TEST_PRINT_RUN", "test_value") };
-        with_captured_output(|| {
-            run_command(
-                &Commands::Print(PrintArgs {
-                    format: Some("{name} = {value}".to_owned()),
-                }),
-                None,
-            );
-        });
+        let mut buffer = vec![];
+        run_command(
+            &Commands::Print(PrintArgs {
+                format: Some("{name} = {value}".to_owned()),
+            }),
+            None,
+            &mut buffer
+        );
+        assert!(String::from_utf8(buffer).unwrap().contains("TEST_PRINT_RUN = test_value"));
         unsafe { env::remove_var("TEST_PRINT_RUN") };
     }
 
     #[test]
     fn test_run_command_delete() {
+        init();
         unsafe { env::set_var("TEST_DELETE_RUN", "test_value") };
-
-        with_captured_output(|| {
-            run_command(
-                &Commands::Delete(DeleteArgs {
-                    key: "TEST_DELETE_RUN".to_string(),
-                    global: false,
-                    process: None,
-                }),
-                None,
-            );
-        });
+        let mut buffer = vec![];
+        run_command(
+            &Commands::Delete(DeleteArgs {
+                key: "TEST_DELETE_RUN".to_string(),
+                global: false,
+                process: None,
+            }),
+            None,
+            &mut buffer
+        );
 
         assert!(env::var("TEST_DELETE_RUN").is_err());
     }
 
     #[test]
     fn test_run_command_load() {
+        init();
         let mut temp_file = tempfile::NamedTempFile::new().unwrap();
         writeln!(temp_file, "TEST_LOAD_RUN=test_value").unwrap();
-
-        with_captured_output(|| {
-            run_command(
-                &Commands::Load(LoadArgs {
-                    file: temp_file.path().to_string_lossy().to_string(),
-                    global: false,
-                    process: None,
-                }),
-                None,
-            );
-        });
+        let mut buffer = vec![];
+        run_command(
+            &Commands::Load(LoadArgs {
+                file: temp_file.path().to_string_lossy().to_string(),
+                global: false,
+                process: None,
+            }),
+            None,
+            &mut buffer
+        );
 
         assert_eq!(env::var("TEST_LOAD_RUN").unwrap(), "test_value");
         unsafe { env::remove_var("TEST_LOAD_RUN") };
@@ -328,11 +340,13 @@ mod tests {
 
     #[test]
     fn test_print_env_command() {
+        init();
         // Set test variable
         unsafe { env::set_var("TEST_PRINT_VAR", "test_value") };
 
-        // Call function - just verify it executes without panicking
-        print_env(&PrintArgs { format: None });
+        let mut buffer = vec![];
+        print_env(&PrintArgs { format: None }, &mut buffer);
+        assert!(String::from_utf8(buffer).unwrap().contains("TEST_PRINT_VAR = \"test_value\""));
 
         // Clean up
         unsafe { env::remove_var("TEST_PRINT_VAR") };
@@ -340,12 +354,15 @@ mod tests {
 
     #[test]
     fn test_print_env_multiple_variables() {
+        init();
         // Set test variables
         unsafe { env::set_var("TEST_VAR_1", "value1") };
         unsafe { env::set_var("TEST_VAR_2", "value2") };
 
-        // Call function - just verify it executes without panicking
-        print_env(&PrintArgs { format: None });
+        let mut buffer = vec![];
+        print_env(&PrintArgs { format: None }, &mut buffer);
+        assert!(String::from_utf8(buffer.clone()).unwrap().contains("TEST_VAR_1 = \"value1\""));
+        assert!(String::from_utf8(buffer).unwrap().contains("TEST_VAR_2 = \"value2\""));
 
         // Clean up
         unsafe { env::remove_var("TEST_VAR_1") };
@@ -354,21 +371,25 @@ mod tests {
 
     #[test]
     fn test_get_existing_variable() {
+        init();
         unsafe { env::set_var("TEST_GET_VAR", "test_value") };
 
         let args = GetArgs {
             key: "TEST_GET_VAR".to_string(),
             no_similar_names: false,
         };
+        let mut buffer = vec![];
 
-        let result = get(&args);
+        let result = get(&args, &mut buffer);
         assert!(result.is_ok());
+        assert!(String::from_utf8(buffer).unwrap().contains("\"test_value\""));
 
         unsafe { env::remove_var("TEST_GET_VAR") };
     }
 
     #[test]
     fn test_get_nonexistent_variable_with_similar_names() {
+        init();
         unsafe { env::set_var("TEST_SIMILAR", "value") };
 
         let args = GetArgs {
@@ -376,7 +397,8 @@ mod tests {
             no_similar_names: false,
         };
 
-        let result = get(&args);
+        let mut buffer = vec![];
+        let result = get(&args, &mut buffer);
         assert!(result.is_err());
         match result.unwrap_err() {
             ErrorKind::CannotFindVariable(var, no_similar) => {
@@ -391,12 +413,14 @@ mod tests {
 
     #[test]
     fn test_get_nonexistent_variable_no_similar_names() {
+        init();
         let args = GetArgs {
             key: "NONEXISTENT_VAR".to_string(),
             no_similar_names: true,
         };
 
-        let result = get(&args);
+        let mut buffer = vec![];
+        let result = get(&args, &mut buffer);
         assert!(result.is_err());
         match result.unwrap_err() {
             ErrorKind::CannotFindVariable(var, no_similar) => {
@@ -409,6 +433,7 @@ mod tests {
 
     #[test]
     fn test_get_special_characters() {
+        init();
         unsafe { env::set_var("TEST_SPECIAL_$#@", "special_value") };
 
         let args = GetArgs {
@@ -416,7 +441,8 @@ mod tests {
             no_similar_names: false,
         };
 
-        let result = get(&args);
+        let mut buffer = vec![];
+        let result = get(&args, &mut buffer);
         assert!(result.is_ok());
 
         unsafe { env::remove_var("TEST_SPECIAL_$#@") };
@@ -778,252 +804,267 @@ mod tests {
 
     #[test]
     fn test_run_command_print_env() {
+        init();
         unsafe { env::set_var("TEST_PRINT_ENV", "test_value") };
-        with_captured_output(|| {
-            assert_eq!(
-                run_command(&Commands::Print(PrintArgs { format: None }), None),
-                ExitCode::SUCCESS
-            );
-        });
+        let mut buffer = vec![];
+        assert_eq!(
+            run_command(&Commands::Print(PrintArgs { format: None }), None, &mut buffer),
+            ExitCode::SUCCESS
+        );
+        assert!(String::from_utf8(buffer).unwrap().contains("TEST_PRINT_ENV = \"test_value\""));
         unsafe { env::remove_var("TEST_PRINT_ENV") };
     }
 
     #[test]
     fn test_run_command_get_with_similar_names() {
+        init();
         unsafe { env::set_var("TEST_SIMILAR_VAR", "value") };
-        with_captured_output(|| {
-            assert_eq!(
-                run_command(
-                    &Commands::Get(GetArgs {
-                        key: "TEST_SMILAR_VAR".to_string(), // Intentional typo
-                        no_similar_names: false,
-                    }),
-                    None
-                ),
-                ExitCode::FAILURE
-            );
-        });
+        let mut buffer = vec![];
+        assert_eq!(
+            run_command(
+                &Commands::Get(GetArgs {
+                    key: "TEST_SMILAR_VAR".to_string(), // Intentional typo
+                    no_similar_names: false,
+                }),
+                None,
+                &mut buffer
+            ),
+            ExitCode::FAILURE
+        );
         unsafe { env::remove_var("TEST_SIMILAR_VAR") };
     }
 
     #[test]
     fn test_run_command_set_with_process() {
-        with_captured_output(|| {
-            assert_eq!(
-                run_command(
-                    &Commands::Set(SetArgs {
-                        key: "TEST_SET_PROC".to_string(),
-                        value: "test_value".to_string(),
-                        global: false,
-                        process: Some("echo test".to_string()),
-                    }),
-                    None
-                ),
-                ExitCode::SUCCESS
-            );
-        });
+        init();
+        let mut buffer = vec![];
+        assert_eq!(
+            run_command(
+                &Commands::Set(SetArgs {
+                    key: "TEST_SET_PROC".to_string(),
+                    value: "test_value".to_string(),
+                    global: false,
+                    process: Some("echo test".to_string()),
+                }),
+                None,
+                &mut buffer
+            ),
+            ExitCode::SUCCESS
+        );
         assert_eq!(env::var("TEST_SET_PROC").unwrap(), "test_value");
         unsafe { env::remove_var("TEST_SET_PROC") };
     }
 
     #[test]
     fn test_run_command_set_invalid_name() {
-        with_captured_output(|| {
-            assert_eq!(
-                run_command(
-                    &Commands::Set(SetArgs {
-                        key: "INVALID NAME".to_string(),
-                        value: "test_value".to_string(),
-                        global: false,
-                        process: None,
-                    }),
-                    None
-                ),
-                ExitCode::FAILURE
-            );
-        });
+        init();
+        let mut buffer = vec![];
+        assert_eq!(
+            run_command(
+                &Commands::Set(SetArgs {
+                    key: "INVALID NAME".to_string(),
+                    value: "test_value".to_string(),
+                    global: false,
+                    process: None,
+                }),
+                None,
+                &mut buffer
+            ),
+            ExitCode::FAILURE
+        );
     }
 
     #[test]
     fn test_run_command_add_to_existing() {
+        init();
         unsafe { env::set_var("TEST_ADD_EXISTING", "initial_") };
-        with_captured_output(|| {
-            assert_eq!(
-                run_command(
-                    &Commands::Add(AddArgs {
-                        key: "TEST_ADD_EXISTING".to_string(),
-                        value: "appended".to_string(),
-                        global: false,
-                        process: None,
-                    }),
-                    None
-                ),
-                ExitCode::SUCCESS
-            );
-        });
+        let mut buffer = vec![];
+        assert_eq!(
+            run_command(
+                &Commands::Add(AddArgs {
+                    key: "TEST_ADD_EXISTING".to_string(),
+                    value: "appended".to_string(),
+                    global: false,
+                    process: None,
+                }),
+                None,
+                &mut buffer
+            ),
+            ExitCode::SUCCESS
+        );
         assert_eq!(env::var("TEST_ADD_EXISTING").unwrap(), "initial_appended");
         unsafe { env::remove_var("TEST_ADD_EXISTING") };
     }
 
     #[test]
     fn test_run_command_add_with_invalid_name() {
-        with_captured_output(|| {
-            assert_eq!(
-                run_command(
-                    &Commands::Add(AddArgs {
-                        key: "INVALID NAME".to_string(),
-                        value: "test_value".to_string(),
-                        global: false,
-                        process: None,
-                    }),
-                    None
-                ),
-                ExitCode::FAILURE
-            );
-        });
+        init();
+        let mut buffer = vec![];
+        assert_eq!(
+            run_command(
+                &Commands::Add(AddArgs {
+                    key: "INVALID NAME".to_string(),
+                    value: "test_value".to_string(),
+                    global: false,
+                    process: None,
+                }),
+                None,
+                &mut buffer
+            ),
+            ExitCode::FAILURE
+        );
     }
 
     #[test]
     fn test_run_command_delete_nonexistent() {
-        with_captured_output(|| {
-            assert_eq!(
-                run_command(
-                    &Commands::Delete(DeleteArgs {
-                        key: "NONEXISTENT_VAR".to_string(),
-                        global: false,
-                        process: None,
-                    }),
-                    None
-                ),
-                ExitCode::SUCCESS // Should succeed even if var doesn't exist
-            );
-        });
+        init();
+        let mut buffer = vec![];
+        assert_eq!(
+            run_command(
+                &Commands::Delete(DeleteArgs {
+                    key: "NONEXISTENT_VAR".to_string(),
+                    global: false,
+                    process: None,
+                }),
+                None,
+                &mut buffer
+            ),
+            ExitCode::SUCCESS // Should succeed even if var doesn't exist
+        );
     }
 
     #[test]
     fn test_run_command_load_nonexistent_file() {
-        with_captured_output(|| {
-            assert_eq!(
-                run_command(
-                    &Commands::Load(LoadArgs {
-                        file: "nonexistent.env".to_string(),
-                        global: false,
-                        process: None,
-                    }),
-                    None
-                ),
-                ExitCode::FAILURE
-            );
-        });
+        init();
+        let mut buffer = vec![];
+        assert_eq!(
+            run_command(
+                &Commands::Load(LoadArgs {
+                    file: "nonexistent.env".to_string(),
+                    global: false,
+                    process: None,
+                }),
+                None,
+                &mut buffer
+            ),
+            ExitCode::FAILURE
+        );
     }
 
     #[test]
     fn test_run_command_load_with_process() {
+        init();
         let mut temp_file = tempfile::NamedTempFile::new().unwrap();
         writeln!(temp_file, "TEST_LOAD_PROC=test_value").unwrap();
-
-        with_captured_output(|| {
-            assert_eq!(
-                run_command(
-                    &Commands::Load(LoadArgs {
-                        file: temp_file.path().to_string_lossy().to_string(),
-                        global: false,
-                        process: Some("echo test".to_string()),
-                    }),
-                    None
-                ),
-                ExitCode::SUCCESS
-            );
-        });
+        
+        let mut buffer = vec![];
+        assert_eq!(
+            run_command(
+                &Commands::Load(LoadArgs {
+                    file: temp_file.path().to_string_lossy().to_string(),
+                    global: false,
+                    process: Some("echo test".to_string()),
+                }),
+                None,
+                &mut buffer
+            ),
+            ExitCode::SUCCESS
+        );
         assert_eq!(env::var("TEST_LOAD_PROC").unwrap(), "test_value");
         unsafe { env::remove_var("TEST_LOAD_PROC") };
     }
 
     #[test]
     fn test_run_command_global_operations() {
-        with_captured_output(|| {
-            let result = run_command(
-                &Commands::Set(SetArgs {
-                    key: "TEST_GLOBAL".to_string(),
-                    value: "test_value".to_string(),
-                    global: true,
-                    process: None,
-                }),
-                None,
-            );
-            // Test passes if operation succeeds OR fails with permission error
-            match result {
-                ExitCode::SUCCESS => {
-                    assert_eq!(env::var("TEST_GLOBAL").unwrap(), "test_value");
-                    assert_eq!(
-                        run_command(
-                            &Commands::Delete(DeleteArgs {
-                                key: "TEST_GLOBAL".to_string(),
-                                global: true,
-                                process: None,
-                            }),
-                            None
-                        ),
-                        ExitCode::SUCCESS
-                    );
-                }
-                ExitCode::FAILURE => {} // Expected on non-admin
-                _ => panic!("Unexpected exit code"),
+        init();
+        let mut buffer = vec![];
+        let result = run_command(
+            &Commands::Set(SetArgs {
+                key: "TEST_GLOBAL".to_string(),
+                value: "test_value".to_string(),
+                global: true,
+                process: None,
+            }),
+            None,
+            &mut buffer
+        );
+        // Test passes if operation succeeds OR fails with permission error
+        match result {
+            ExitCode::SUCCESS => {
+                assert_eq!(env::var("TEST_GLOBAL").unwrap(), "test_value");
+                assert_eq!(
+                    run_command(
+                        &Commands::Delete(DeleteArgs {
+                            key: "TEST_GLOBAL".to_string(),
+                            global: true,
+                            process: None,
+                        }),
+                        None,
+                        &mut buffer
+                    ),
+                    ExitCode::SUCCESS
+                );
             }
-        });
+            ExitCode::FAILURE => {} // Expected on non-admin
+            _ => panic!("Unexpected exit code"),
+        }
     }
 
     #[test]
     fn test_run_command_delete_with_process_fail() {
+        init();
         unsafe { env::set_var("TEST_DELETE_PROC_FAIL", "test_value") };
-        with_captured_output(|| {
-            assert_eq!(
-                run_command(
-                    &Commands::Delete(DeleteArgs {
-                        key: "TEST_DELETE_PROC_FAIL".to_string(),
-                        global: false,
-                        process: Some("nonexistent_command_123".to_string()),
-                    }),
-                    None
-                ),
-                ExitCode::FAILURE
-            );
-        });
+        
+        let mut buffer = vec![];
+        assert_eq!(
+            run_command(
+                &Commands::Delete(DeleteArgs {
+                    key: "TEST_DELETE_PROC_FAIL".to_string(),
+                    global: false,
+                    process: Some("nonexistent_command_123".to_string()),
+                }),
+                None,
+                &mut buffer
+            ),
+            ExitCode::FAILURE
+        );
         // Variable should still be deleted even if process fails
         assert!(env::var("TEST_DELETE_PROC_FAIL").is_err());
     }
 
     #[test]
     fn test_run_command_delete_invalid_name() {
-        with_captured_output(|| {
-            assert_eq!(
-                run_command(
-                    &Commands::Delete(DeleteArgs {
-                        key: "INVALID NAME".to_string(),
-                        global: false,
-                        process: None,
-                    }),
-                    None
-                ),
-                ExitCode::FAILURE
-            );
-        });
+        init();
+        let mut buffer = vec![];
+        assert_eq!(
+            run_command(
+                &Commands::Delete(DeleteArgs {
+                    key: "INVALID NAME".to_string(),
+                    global: false,
+                    process: None,
+                }),
+                None,
+                &mut buffer
+            ),
+            ExitCode::FAILURE
+        );
     }
 
     #[test]
     fn test_run_command_delete_empty_name() {
-        with_captured_output(|| {
-            assert_eq!(
-                run_command(
-                    &Commands::Delete(DeleteArgs {
-                        key: "".to_string(),
-                        global: false,
-                        process: None,
-                    }),
-                    None
-                ),
-                ExitCode::FAILURE
-            );
-        });
+        init();
+        let mut buffer = vec![];
+        assert_eq!(
+            run_command(
+                &Commands::Delete(DeleteArgs {
+                    key: "".to_string(),
+                    global: false,
+                    process: None,
+                }),
+                None,
+                &mut buffer
+            ),
+            ExitCode::FAILURE
+        );
     }
 }

@@ -1,4 +1,4 @@
-use std::env;
+use std::{env, io::Write};
 
 use crate::{models::ErrorKind, utils::*};
 
@@ -6,10 +6,10 @@ use crate::{models::ErrorKind, utils::*};
 type VariablesList = Vec<(String, String)>;
 
 /// Print all environment variables
-pub fn print_env(format: &str) {
+pub fn print_env<W: Write>(format: &str, mut buffer: W) {
     for (key, value) in get_variables() {
         let entry = format.replace("{name}", &key).replace("{value}", &value);
-        println!("{}", entry);
+        writeln!(buffer, "{}", entry).expect("Failed to write to buffer");
     }
 }
 
@@ -23,7 +23,7 @@ pub fn set_variable(
     key: &str,
     value: &str,
     global: bool,
-    process: Option<String>,
+    process: Option<String>
 ) -> Result<(), ErrorKind> {
     if global {
         if let Err(err) = globalenv::set_var(key, value) {
@@ -88,7 +88,9 @@ mod tests {
     #[test]
     fn test_print_env() {
         unsafe { env::set_var("TEST_PRINT_VAR", "test_value") };
-        print_env("{name} = \"{value}\"");
+        let mut buffer = vec![];
+        print_env("{name} = \"{value}\"", &mut buffer);
+        assert!(String::from_utf8(buffer).unwrap().contains("TEST_PRINT_VAR = \"test_value\""));
         unsafe { env::remove_var("TEST_PRINT_VAR") };
     }
 
@@ -134,7 +136,10 @@ mod tests {
         unsafe { env::set_var("TEST_VAR_1", "value1") };
         unsafe { env::set_var("TEST_VAR_2", "value2") };
 
-        print_env("{name} = \"{value}\"");
+        let mut buffer = vec![];
+        print_env("{name} = \"{value}\"",&mut buffer);
+        assert!(String::from_utf8(buffer.clone()).unwrap().contains("TEST_VAR_1 = \"value1\""));
+        assert!(String::from_utf8(buffer).unwrap().contains("TEST_VAR_2 = \"value2\""));
 
         // Clean up
         unsafe { env::remove_var("TEST_VAR_1") };
@@ -145,7 +150,9 @@ mod tests {
     fn test_print_env_empty_value() {
         unsafe { env::set_var("TEST_EMPTY", "") };
 
-        print_env("{name} = \"{value}\"");
+        let mut buffer = vec![];
+        print_env("{name} = \"{value}\"", &mut buffer);
+        assert!(String::from_utf8(buffer).unwrap().contains("TEST_EMPTY = \"\""));
 
         unsafe { env::remove_var("TEST_EMPTY") };
     }
@@ -154,7 +161,9 @@ mod tests {
     fn test_print_env_special_characters() {
         unsafe { env::set_var("TEST_SPECIAL", "value with spaces and $#@!") };
 
-        print_env("{name} = \"{value}\"");
+        let mut buffer = vec![];
+        print_env("{name} = \"{value}\"", &mut buffer);
+        assert!(String::from_utf8(buffer).unwrap().contains("TEST_SPECIAL = \"value with spaces and $#@!\""));
 
         unsafe { env::remove_var("TEST_SPECIAL") };
     }

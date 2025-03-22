@@ -13,7 +13,7 @@ mod variables;
 
 use clap::Parser;
 use config::read_config;
-use std::{io::Write, process::ExitCode};
+use std::{io::{stdout, Write}, process::ExitCode};
 
 use log::error;
 
@@ -46,7 +46,7 @@ fn main() -> ExitCode {
         }
     };
 
-    run_command(&cli.command, config)
+    run_command(&cli.command, config, stdout())
 }
 
 #[cfg(test)]

@@ -76,8 +76,8 @@ fn get_variable_doesnt_exists_similar_enabled() -> Result<(), Box<dyn std::error
         .stderr(predicate::str::contains(
             "error: Can't find variable: MY_VARIABLE",
         ))
-        .stderr(predicate::str::contains("Did you mean:"))
-        .stderr(predicate::str::contains("MY_VARIABLEE"));
+        .stdout(predicate::str::contains("Did you mean:"))
+        .stdout(predicate::str::contains("MY_VARIABLEE"));
     Ok(())
 }
 
