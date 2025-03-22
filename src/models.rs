@@ -138,7 +138,7 @@ pub enum ErrorKind {
     NameValidationError(String),
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum ConfigParsingError {
     FSError(String),
     ParsingError(String),
@@ -184,7 +184,7 @@ impl Display for ErrorKind {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
 pub struct Config {
     /// Format, used to print variables using print command
     pub print_format: Option<String>,

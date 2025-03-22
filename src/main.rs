@@ -12,7 +12,7 @@ mod utils;
 mod variables;
 
 use clap::Parser;
-use config::read_config;
+use config::{read_config_from_file, get_config_file_path};
 use std::{io::{stdout, Write}, process::ExitCode};
 
 use log::error;
@@ -32,7 +32,7 @@ fn main() -> ExitCode {
             )
         })
         .init();
-    let config = read_config();
+    let config = read_config_from_file(get_config_file_path());
     let config = match config {
         Ok(config) => Some(config),
         Err(ConfigParsingError::FileDoesntExists) => None,

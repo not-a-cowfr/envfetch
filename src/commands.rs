@@ -15,7 +15,7 @@ use crate::variables;
 pub fn run_command<W: Write>(command: &Commands, config: Option<Config>, mut buffer: W) -> ExitCode {
     match command {
         Commands::InitConfig => {
-            if let Err(error) = config::init_config() {
+            if let Err(error) = config::init_config(config::get_config_file_path(), buffer) {
                 error!("{}", error);
                 return ExitCode::FAILURE;
             }
