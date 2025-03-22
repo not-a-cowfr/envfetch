@@ -1,0 +1,47 @@
+name: Feature request
+description: Request new feature to envfetch.
+title: "feat: "
+labels: ["feature", "triage"]
+assignees:
+  - ankddev
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this feature request!
+  - type: checkboxes
+    id: requirements
+    attributes:
+      label: Requirements to open issue
+      description: By submitting this issue, you follow that you are followed all of this steps
+      options:
+        - label: Searched for similar issues
+          required: true
+        - label: This is **feature request**. If you want to tell us about issue, choose another template
+          required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Which feature do you want to add?
+      description: Description of proposed feature.
+      placeholder: Tell us what you want to add!
+      value: "An awesome feature..."
+    validations:
+      required: true
+  - type: textarea
+    id: proposed-solution
+    attributes:
+      label: How we can implement feature?
+      description: You can add images, code blocks, etc.
+      placeholder: Feature implementation.
+      value: "We can add..."
+    validations:
+      required: false
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Code of Conduct
+      description: By submitting this issue, you agree to follow our [Code of Conduct](https://example.com).
+      options:
+        - label: I agree to follow this project's Code of Conduct
+          required: true
