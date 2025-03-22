@@ -61,12 +61,12 @@ mod tests {
 
     // Add new struct for testing write failures
     struct FailingWriter;
-    
+
     impl Write for FailingWriter {
         fn write(&mut self, _buf: &[u8]) -> io::Result<usize> {
             Err(io::Error::new(io::ErrorKind::Other, "Mock write error"))
         }
-        
+
         fn flush(&mut self) -> io::Result<()> {
             Ok(())
         }
@@ -144,7 +144,7 @@ mod tests {
         let file = assert_fs::NamedTempFile::new("envfetch.toml").unwrap();
         let mut buffer = Vec::new();
         init_config(file.path().to_path_buf(), &mut buffer)?;
-        
+
         let written = String::from_utf8(buffer).unwrap();
         assert!(written.contains("Successfully initialized"));
         assert!(written.contains(&file.path().display().to_string()));
@@ -155,7 +155,7 @@ mod tests {
     fn test_init_config_buffer_write_failure() {
         let file = assert_fs::NamedTempFile::new("envfetch.toml").unwrap();
         let mut failing_writer = FailingWriter;
-        
+
         let result = init_config(file.path().to_path_buf(), &mut failing_writer);
         assert!(result.is_err()); // Now we expect an error since the buffer write fails
         assert!(file.exists()); // File should still be created even though buffer write failed
