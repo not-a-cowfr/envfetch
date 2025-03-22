@@ -10,6 +10,6 @@ Closes #<number of issue>
 - [ ] Your changes don't generate new warnings or errors
 - [ ] You have run `cargo clippy` and `cargo fmt`
 - [ ] You have tested this
-- [ ] You have updates documentation
+- [ ] You have updated documentation
 # Screenshots
 <!-- add screenshots if applicable -->
