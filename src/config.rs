@@ -39,15 +39,13 @@ fn read_config(content: String) -> Result<Config, ConfigParsingError> {
 /// Initialize config file
 pub fn init_config<W: Write>(path: PathBuf, mut buffer: W) -> io::Result<()> {
     let default = default_config();
-
-    fs::write(&path, default).map(|_| {
-        writeln!(
-            buffer,
-            "Successfully initialized config at {}",
-            path.display()
-        )
-        .expect("Failed to write to buffer")
-    })
+    fs::write(&path, default)?;
+    writeln!(
+        buffer,
+        "Successfully initialized config at {}",
+        path.display()
+    )?;
+    Ok(())
 }
 
 /// Get default config ile content
@@ -60,6 +58,19 @@ mod tests {
     use super::*;
     use assert_fs::prelude::*;
     use dirs::config_dir;
+
+    // Add new struct for testing write failures
+    struct FailingWriter;
+    
+    impl Write for FailingWriter {
+        fn write(&mut self, _buf: &[u8]) -> io::Result<usize> {
+            Err(io::Error::new(io::ErrorKind::Other, "Mock write error"))
+        }
+        
+        fn flush(&mut self) -> io::Result<()> {
+            Ok(())
+        }
+    }
 
     #[test]
     fn test_get_config_dir() {
@@ -125,5 +136,28 @@ mod tests {
             "Successfully initialized config at {}",
             file.display()
         )));
+    }
+
+    // Add new test for successful buffer writing
+    #[test]
+    fn test_init_config_buffer_write() -> io::Result<()> {
+        let file = assert_fs::NamedTempFile::new("envfetch.toml").unwrap();
+        let mut buffer = Vec::new();
+        init_config(file.path().to_path_buf(), &mut buffer)?;
+        
+        let written = String::from_utf8(buffer).unwrap();
+        assert!(written.contains("Successfully initialized"));
+        assert!(written.contains(&file.path().display().to_string()));
+        Ok(())
+    }
+
+    #[test]
+    fn test_init_config_buffer_write_failure() {
+        let file = assert_fs::NamedTempFile::new("envfetch.toml").unwrap();
+        let mut failing_writer = FailingWriter;
+        
+        let result = init_config(file.path().to_path_buf(), &mut failing_writer);
+        assert!(result.is_err()); // Now we expect an error since the buffer write fails
+        assert!(file.exists()); // File should still be created even though buffer write failed
     }
 }
