@@ -85,6 +85,17 @@ mod tests {
     }
 
     #[test]
+    fn test_read_config_from_invalid_file() {
+        let file = assert_fs::NamedTempFile::new("envfetch.toml").unwrap();
+        // Just print anything wrong to file
+        file.write_str("aegkbiv wlecn k").unwrap();
+        match read_config_from_file(file.path().to_path_buf()) {
+            Err(ConfigParsingError::ParsingError(_)) => (),
+            _ => panic!("Should crash with ParsingError")
+        }
+    }
+
+    #[test]
     fn test_read_config_from_unexistent_file() {
         let file = assert_fs::NamedTempFile::new("envfetch.toml").unwrap();
         let path = file.path().to_path_buf();
