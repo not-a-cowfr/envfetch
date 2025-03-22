@@ -40,7 +40,7 @@ Read in [Wiki](https://github.com/ankddev/envfetch/wiki/3.-Basic-Usage).
 Read in [this Wiki page](https://github.com/ankddev/envfetch/wiki/4.-Configuration)
 # Contributing and building from source
 Read in [this Wiki page](https://github.com/ankddev/envfetch/wiki/6.-Contributing)
-```
+
 # See Also
 - [codewars-api-rs](https://github.com/ankddev/codewars-api-rs) - Rust library for Codewars API
 - [conemu-progressbar-go](https://github.com/ankddev/conemu-progressbar-go) - Progress bar for ConEmu for Go
