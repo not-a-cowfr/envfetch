@@ -6,7 +6,7 @@ use std::io;
 
 use super::variables::get_variables;
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
-use ratatui::{DefaultTerminal, Frame};
+use ratatui::{Frame, Terminal};
 
 #[derive(Clone)]
 pub enum Mode {
@@ -53,7 +53,10 @@ impl InteractiveMode {
     }
 
     /// Run TUI interface for interactive mode
-    pub fn run(&mut self, terminal: &mut DefaultTerminal) -> io::Result<()> {
+    pub fn run<B>(&mut self, terminal: &mut Terminal<B>) -> io::Result<()>
+    where
+        B: ratatui::backend::Backend,
+    {
         while !self.exit {
             terminal.draw(|frame| self.draw(frame))?;
             self.handle_events()?;

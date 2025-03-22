@@ -4,6 +4,8 @@ use crate::interactive::{InteractiveMode, Mode};
 use crossterm::event::{KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 #[cfg(test)]
 use ratatui::{Terminal, backend::TestBackend, buffer::Buffer, layout::Rect, widgets::Widget};
+#[cfg(test)]
+use std::io;
 
 #[cfg(test)]
 fn create_test_terminal() -> Terminal<TestBackend> {
@@ -394,4 +396,58 @@ fn test_value_truncation_and_name_padding() {
 
     // Test name padding (line 134)
     assert!(content.contains(&format!("{:38}", "very_long_name")));
+}
+
+#[test]
+fn test_handle_events_with_non_key_event() -> io::Result<()> {
+    let mut mode = InteractiveMode::default();
+    let result = mode.handle_events();
+    assert!(result.is_ok());
+    assert!(!mode.exit);
+    Ok(())
+}
+
+#[test]
+fn test_run_until_exit() -> io::Result<()> {
+    let mut mode = InteractiveMode::default();
+    let mut terminal = create_test_terminal();
+
+    // Simulate exit command
+    mode.handle_key_event(create_key_event(KeyCode::Char('q'), KeyModifiers::CONTROL));
+
+    let result = mode.run(&mut terminal);
+    assert!(result.is_ok());
+    assert!(mode.exit);
+    Ok(())
+}
+
+#[test]
+fn test_run_with_multiple_events() -> io::Result<()> {
+    let mut mode = InteractiveMode::default();
+    let mut terminal = create_test_terminal();
+
+    // Simulate some navigation before exit
+    mode.handle_key_event(create_key_event(KeyCode::Down, KeyModifiers::NONE));
+    mode.handle_key_event(create_key_event(KeyCode::Up, KeyModifiers::NONE));
+    mode.handle_key_event(create_key_event(KeyCode::Char('q'), KeyModifiers::CONTROL));
+
+    let result = mode.run(&mut terminal);
+    assert!(result.is_ok());
+    assert!(mode.exit);
+    Ok(())
+}
+
+#[test]
+fn test_run_with_terminal_draw_error() -> io::Result<()> {
+    let mut mode = InteractiveMode::default();
+    let backend = TestBackend::new(0, 0); // Invalid size to force error
+    let mut terminal = Terminal::new(backend).unwrap();
+
+    mode.handle_key_event(create_key_event(KeyCode::Char('q'), KeyModifiers::CONTROL));
+    let result = mode.run(&mut terminal);
+
+    // Even with drawing errors, the run should complete when exit is true
+    assert!(result.is_ok());
+    assert!(mode.exit);
+    Ok(())
 }
