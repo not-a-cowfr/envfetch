@@ -24,7 +24,7 @@ body:
       label: Requirements to open issue
       description: By submitting this issue, you follow that you are followed all of this steps
       options:
-        - label: Searched that similar issue doesn't already opened
+        - label: Searched for similar issues
           required: true
         - label: Running on **latest** version
           required: true
@@ -53,7 +53,7 @@ body:
   - type: dropdown
     id: os
     attributes:
-      label: Which platfotm are you use?
+      label: Which platform are you use?
       options:
         - Android (with Termux)
         - Windows
