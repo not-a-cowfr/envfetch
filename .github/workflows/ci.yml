@@ -1,0 +1,155 @@
+name: CI
+on:
+  push:
+    paths-ignore:
+      - "**.md"
+  pull_request:
+    paths-ignore:
+      - "**.md"
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macOS-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update Rust
+        run: rustup update stable
+      - name: Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: Build
+        run: cargo build --verbose --locked
+      - name: Upload artifacts for Windows
+        if: ${{ matrix.os == 'windows-latest'}}
+        uses: actions/upload-artifact@v4
+        with:
+          name: envfetch-debug-windows
+          path: |
+            target/debug/envfetch.exe
+      - name: Upload artifacts for Linux
+        if: ${{ matrix.os == 'ubuntu-latest'}}
+        uses: actions/upload-artifact@v4
+        with:
+          name: envfetch-debug-linux
+          path: |
+            target/debug/envfetch
+      - name: Upload artifacts for macOS
+        if: ${{ matrix.os == 'macOS-latest'}}
+        uses: actions/upload-artifact@v4
+        with:
+          name: envfetch-debug-macos
+          path: |
+            target/debug/envfetch
+  lint:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macOS-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - name: Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - uses: auguwu/clippy-action@1.4.0
+        with:
+          token: ${{secrets.GITHUB_TOKEN}}
+  tests:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macOS-latest]
+        toolchain:
+          - stable
+          - beta
+          - nightly
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update rust
+        run: rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }}
+      - name: Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: Build
+        run: cargo build --verbose --locked
+      - name: Run tests
+        run: cargo test --verbose
+  coverage:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update Rust
+        run: rustup update stable
+      - name: Main cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: Bin Cache
+        id: bin-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+          key: ${{ runner.os }}-cargo-bin-tarpaulin
+      - name: Install Tarpaulin
+        if: steps.bin-cache.outputs.cache-hit != 'true'
+        run: cargo install cargo-tarpaulin
+      - name: Generate code coverage
+        run: cargo tarpaulin --out xml --locked
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: true
+      - name: Install cargo2junit
+        if: steps.bin-cache.outputs.cache-hit != 'true'
+        run: cargo install cargo2junit
+      - name: Generaete junit test file
+        run: RUSTC_BOOTSTRAP=1 cargo test -- -Z unstable-options --format json --report-time | cargo2junit > junit.xml
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/test-results-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
