@@ -3,20 +3,22 @@ name: Test Installation Script
 on:
   push:
     paths:
-      - 'install.ps1'
-      - '.github/workflows/test-install.yml'
+      - "install.ps1"
+      - "install.sh"
+      - ".github/workflows/test-install.yml"
   pull_request:
     paths:
-      - 'install.ps1'
-      - '.github/workflows/test-install.yml'
+      - "install.ps1"
+      - "install.sh"
+      - ".github/workflows/test-install.yml"
   release:
 
 jobs:
-  test-install:
+  test-install-windows:
     runs-on: windows-latest
     strategy:
       fail-fast: false
-    
+
     steps:
       - uses: actions/checkout@v3
 
@@ -24,7 +26,7 @@ jobs:
         run: |
           .\\install.ps1
         shell: powershell
-          
+
       - name: Verify installation
         run: |
           # Check if envfetch directory exists
@@ -32,18 +34,18 @@ jobs:
           if (-not (Test-Path $envfetchPath)) {
             throw "envfetch directory not found"
           }
-          
+
           # Check if executable exists
           if (-not (Test-Path "$envfetchPath\envfetch.exe")) {
             throw "envfetch.exe not found"
           }
-          
+
           # Verify PATH
           $userPath = [Environment]::GetEnvironmentVariable("Path", "User")
           if ($userPath -notlike "*$envfetchPath*") {
             throw "envfetch not found in PATH"
           }
-          
+
           # Try to run envfetch (this should at least not crash)
           $env:Path = [Environment]::GetEnvironmentVariable("Path", "User")
           $result = envfetch --version
@@ -56,3 +58,46 @@ jobs:
         run: |
           Remove-Item -Path "$env:APPDATA\envfetch" -Recurse -Force -ErrorAction SilentlyContinue
         shell: powershell
+
+  test-install-unix:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Run installation script
+        run: |
+          chmod +x ./install.sh
+          ./install.sh
+        shell: bash
+
+      - name: Verify installation
+        run: |
+          # Check if executable exists
+          if [ ! -f "/usr/local/bin/envfetch" ]; then
+            echo "envfetch not found in /usr/local/bin"
+            exit 1
+          fi
+
+          # Check if executable permissions are set
+          if [ ! -x "/usr/local/bin/envfetch" ]; then
+            echo "envfetch is not executable"
+            exit 1
+          fi
+
+          # Try to run envfetch
+          result=$(envfetch --version)
+          if [ $? -ne 0 ]; then
+            echo "envfetch failed to run"
+            exit 1
+          fi
+        shell: bash
+
+      - name: Cleanup
+        run: |
+          sudo rm -f /usr/local/bin/envfetch
+        shell: bash
