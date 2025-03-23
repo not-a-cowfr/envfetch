@@ -46,6 +46,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
       - name: Install cargo2junit
+        if: steps.bin-cache.outputs.cache-hit != 'true'
         run: cargo install cargo2junit
       - name: Generaete junit test file
         run: RUSTC_BOOTSTRAP=1 cargo test -- -Z unstable-options --format json --report-time | cargo2junit > junit.xml
