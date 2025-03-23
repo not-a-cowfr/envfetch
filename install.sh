@@ -17,7 +17,7 @@ if [ "$OS_NAME" = "Linux" ]; then
 
     if [ "$ARCH_NAME" = "x86_64" ]; then
 	    BUILD_TARGET="linux-amd64"
-    elif [ "$ARCH_NAME" = "arm" || "$ARCH_NAME" = "arm64" ]; then
+    elif [ "$ARCH_NAME" = "arm" ] || [ "$ARCH_NAME" = "arm64" ]; then
         BUILD_TARGET="linux-arm64"
     else
         NO_RELEASE_ASSET="true"
@@ -28,7 +28,7 @@ elif [ "$OS_NAME" = "Darwin" ]; then
 	
     if [ "$ARCH_NAME" = "x86_64" ]; then
 	    BUILD_TARGET="darwin-amd64"
-    elif [ "$ARCH_NAME" = "arm" || "$ARCH_NAME" = "arm64" ]; then
+    elif [ "$ARCH_NAME" = "arm" ] || [ "$ARCH_NAME" = "arm64" ]; then
         BUILD_TARGET="darwin-arm64"
     else
         NO_RELEASE_ASSET="true"
