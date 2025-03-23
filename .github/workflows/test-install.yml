@@ -1,6 +1,7 @@
 name: Test Installation Script
 
 on:
+  workflow_call:
   push:
     paths:
       - "install.ps1"
@@ -11,7 +12,6 @@ on:
       - "install.ps1"
       - "install.sh"
       - ".github/workflows/test-install.yml"
-  release:
 
 jobs:
   test-install-windows:

@@ -98,3 +98,7 @@ jobs:
           files: |
             target/${{ matrix.platform.target }}/release/envfetch-windows-amd64.zip
             target/${{ matrix.platform.target }}/release/envfetch-windows-amd64.zip.sha256
+  test-install-scripts:
+    needs: publish
+    uses: ./.github/workflows/test-install.yml
+
