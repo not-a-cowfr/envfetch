@@ -48,12 +48,14 @@ pub fn run_command<W: Write>(
             }
         }
         Commands::Print(opt) => {
-            let opt = if opt.format.is_some() || config.is_none() {
+            let opt = if opt.format.is_some() {
                 opt
-            } else {
+            } else if let Some(config) = config {
                 &PrintArgs {
-                    format: config.expect("Here we know that it is some").print_format,
+                    format: config.print_format,
                 }
+            } else {
+                opt
             };
             print_env(opt, buffer)
         }
