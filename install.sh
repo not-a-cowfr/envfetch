@@ -54,11 +54,14 @@ if [ "$NO_RELEASE_ASSET" ]; then
 	exit 1
 fi
 
+if [ -f $INSTALL_DIR/envfetch ]; then
+    echo "envfetch is already installed. Updating..."
+fi
+
 # Download file directly to install directory
 sudo curl -sSL "https://github.com/ankddev/envfetch/releases/latest/download/envfetch-$BUILD_TARGET" --output "$INSTALL_DIR/envfetch"
 
 # Check integrity
-
 EXPECTED_CHECKSUM=$(curl -sSL "https://github.com/ankddev/envfetch/releases/latest/download/envfetch-$BUILD_TARGET.sha256" | tr -d '[:space:]' | tr -d '\n')
 ACTUAL_CHECKSUM=$(calculate_checksum "$INSTALL_DIR/envfetch" | awk '{print $1}')
 
