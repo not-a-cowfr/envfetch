@@ -7,6 +7,9 @@ Push-Location $envfetchPath
 
 try {
     $outFile = "envfetch.exe"
+    if ([System.IO.File]::Exists($outFile)) {
+        Write-Host "envfetch already exists. Updating..."
+    }
     Invoke-WebRequest -Uri "https://github.com/ankddev/envfetch/releases/latest/download/envfetch-windows-amd64.exe" -OutFile $outFile
 
     # Check integrity
