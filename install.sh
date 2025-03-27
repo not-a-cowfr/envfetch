@@ -8,6 +8,17 @@ ARCH=""
 INSTALL_DIR="/usr/local/bin"
 NO_RELEASE_ASSET=""
 
+# Calculate checksum. We use this function because Linux and macOS have different commands
+calculate_checksum() {
+    if [ "$OS_NAME" = "Darwin" ]; then
+        # macOS
+        shasum -a 256 "$1" | cut -d ' ' -f 1
+    else
+        # Linux and others
+        sha256sum "$1" | cut -d ' ' -f 1
+    fi
+}
+
 echo "Installing envfetch to $INSTALL_DIR"
 echo "This script will activate sudo to install to $INSTALL_DIR"
 sudo echo "Sudo activated"
@@ -63,14 +74,3 @@ fi
 sudo chmod +x "$INSTALL_DIR/envfetch"
 
 echo "Successfully installed envfetch"
-
-# Calculate checksum. We use this function because Linux and macOS have different commands
-calculate_checksum() {
-    if [ "$OS_NAME" = "Darwin" ]; then
-        # macOS
-        shasum -a 256 "$1" | cut -d ' ' -f 1
-    else
-        # Linux and others
-        sha256sum "$1" | cut -d ' ' -f 1
-    fi
-}
