@@ -25,7 +25,7 @@ if [ "$OS_NAME" = "Linux" ]; then
     fi
 elif [ "$OS_NAME" = "Darwin" ]; then
 	OS="macOS"
-	
+
     if [ "$ARCH_NAME" = "x86_64" ]; then
 	    BUILD_TARGET="darwin-amd64"
     elif [ "$ARCH_NAME" = "arm" ] || [ "$ARCH_NAME" = "arm64" ]; then
@@ -45,6 +45,20 @@ fi
 
 # Download file directly to install directory
 sudo curl -sSL "https://github.com/ankddev/envfetch/releases/latest/download/envfetch-$BUILD_TARGET" --output "$INSTALL_DIR/envfetch"
+
+# Check integrity
+
+EXPECTED_CHECKSUM=$(curl -sSL "https://github.com/ankddev/envfetch/releases/latest/download/envfetch-$BUILD_TARGET.sha256" | tr -d '[:space:]' | tr -d '\n')
+ACTUAL_CHECKSUM=$(sha256sum "$INSTALL_DIR/envfetch" | awk '{print $1}')
+
+if [ "$EXPECTED_CHECKSUM" != "$ACTUAL_CHECKSUM" ]; then
+    echo "Checksum mismatch" >&2
+    echo "Expected: $EXPECTED_CHECKSUM"
+    echo "Actual: $ACTUAL_CHECKSUM"
+    echo "Please try again later or report this issue to the developer."
+    exit 1
+fi
+
 # Give permissions for executable
 sudo chmod +x "$INSTALL_DIR/envfetch"
 
