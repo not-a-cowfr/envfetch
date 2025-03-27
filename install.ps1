@@ -9,6 +9,18 @@ try {
     $outFile = "envfetch.exe"
     Invoke-WebRequest -Uri "https://github.com/ankddev/envfetch/releases/latest/download/envfetch-windows-amd64.exe" -OutFile $outFile
 
+    # Check integrity
+    $expectedChecksum = Invoke-WebRequest -Uri "https://github.com/ankddev/envfetch/releases/latest/download/envfetch-windows-amd64.exe.sha256"
+    $expectedChecksum = [System.Text.Encoding]::UTF8.GetString($expectedChecksum.Content).TrimEnd()
+    $actualChecksum = (Get-FileHash -Path $outFile -Algorithm SHA256).Hash.ToLower()
+    if ($actualChecksum -ne $expectedChecksum) {
+        Write-Host "Checksum mismatch!"
+        Write-Host "Expected: \"$expectedChecksum\""
+        Write-Host "Actual:   \"$actualChecksum\""
+        Write-Host "Please download the file manually and verify its integrity."
+        exit 1
+    }
+
     # Add to PATH
     $userPath = [Environment]::GetEnvironmentVariable("Path", "User")
     if ($userPath -notlike "*$envfetchPath*") {
