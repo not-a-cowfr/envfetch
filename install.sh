@@ -49,7 +49,7 @@ sudo curl -sSL "https://github.com/ankddev/envfetch/releases/latest/download/env
 # Check integrity
 
 EXPECTED_CHECKSUM=$(curl -sSL "https://github.com/ankddev/envfetch/releases/latest/download/envfetch-$BUILD_TARGET.sha256" | tr -d '[:space:]' | tr -d '\n')
-ACTUAL_CHECKSUM=$(sha256sum "$INSTALL_DIR/envfetch" | awk '{print $1}')
+ACTUAL_CHECKSUM=$(calculate_checksum "$INSTALL_DIR/envfetch" | awk '{print $1}')
 
 if [ "$EXPECTED_CHECKSUM" != "$ACTUAL_CHECKSUM" ]; then
     echo "Checksum mismatch" >&2
@@ -63,3 +63,14 @@ fi
 sudo chmod +x "$INSTALL_DIR/envfetch"
 
 echo "Successfully installed envfetch"
+
+# Calculate checksum. We use this function because Linux and macOS have different commands
+calculate_checksum() {
+    if [ "$OS_NAME" = "Darwin" ]; then
+        # macOS
+        shasum -a 256 "$1" | cut -d ' ' -f 1
+    else
+        # Linux and others
+        sha256sum "$1" | cut -d ' ' -f 1
+    fi
+}
