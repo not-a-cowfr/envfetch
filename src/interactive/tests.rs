@@ -1,4 +1,6 @@
-use crate::interactive::state::{AppState, InputFocus, Mode};
+use ratatui::{backend::TestBackend, Terminal};
+
+use crate::interactive::{state::{AppState, InputFocus, Mode}, InteractiveApp};
 use std::time::Duration;
 
 #[test]
@@ -83,4 +85,32 @@ fn test_reload() {
     // After reload, we expect exactly 2 entries.
     assert_eq!(state.entries.len(), 2);
     assert_eq!(state.entries[0], ("VAR1".to_string(), "NEW".to_string()));
+}
+
+#[test]
+fn test_interactive_app_creation() {
+    let app = InteractiveApp::new();
+    assert!(!app.state.should_quit);
+    assert!(!app.state.entries.is_empty());
+}
+
+#[test]
+fn test_app_quit_state() {
+    let mut app = InteractiveApp::new();
+    app.state.should_quit = true;
+    
+    let backend = TestBackend::new(20, 20);
+    let mut terminal = Terminal::new(backend).unwrap();
+    
+    let result = app.run(&mut terminal);
+    assert!(result.is_ok());
+}
+
+#[test]
+fn test_state_initialization() {
+    let vars = crate::variables::get_variables();
+    let state = AppState::new(vars.clone());
+    assert_eq!(state.entries, vars);
+    assert_eq!(state.scroll_offset, 0);
+    assert!(!state.should_quit);
 }
