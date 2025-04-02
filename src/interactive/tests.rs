@@ -1,4 +1,4 @@
-use crate::interactive::state::{AppState, Mode, InputFocus};
+use crate::interactive::state::{AppState, InputFocus, Mode};
 use std::time::Duration;
 
 #[test]

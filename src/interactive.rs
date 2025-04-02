@@ -1,11 +1,11 @@
-pub mod state;
 pub mod controller;
-pub mod view;
+pub mod state;
 #[cfg(test)]
 pub mod tests;
+pub mod view;
 
 use crate::variables; // Function to get environment variables.
-use ratatui::{backend::Backend, Terminal};
+use ratatui::{Terminal, backend::Backend};
 use std::io;
 
 pub struct InteractiveApp {
@@ -19,7 +19,7 @@ impl InteractiveApp {
         }
     }
 
-    pub fn run<B>(&mut self, terminal: &mut Terminal<B>) -> io::Result<()> 
+    pub fn run<B>(&mut self, terminal: &mut Terminal<B>) -> io::Result<()>
     where
         B: Backend,
     {

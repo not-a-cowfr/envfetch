@@ -1,4 +1,4 @@
-use crate::interactive::state::{AppState, Mode, InputFocus};
+use crate::interactive::state::{AppState, InputFocus, Mode};
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 use std::io;
 use std::time::Duration;
@@ -99,62 +99,54 @@ fn handle_add_mode(state: &mut AppState, key: KeyEvent) {
                 InputFocus::Value => InputFocus::Key,
             };
         }
-        KeyCode::Left => {
-            match state.input_focus {
-                InputFocus::Key => {
-                    if state.input_cursor_key > 0 {
-                        state.input_cursor_key -= 1;
-                    }
-                }
-                InputFocus::Value => {
-                    if state.input_cursor_value > 0 {
-                        state.input_cursor_value -= 1;
-                    }
+        KeyCode::Left => match state.input_focus {
+            InputFocus::Key => {
+                if state.input_cursor_key > 0 {
+                    state.input_cursor_key -= 1;
                 }
             }
-        }
-        KeyCode::Right => {
-            match state.input_focus {
-                InputFocus::Key => {
-                    if state.input_cursor_key < state.input_key.len() {
-                        state.input_cursor_key += 1;
-                    }
-                }
-                InputFocus::Value => {
-                    if state.input_cursor_value < state.input_value.len() {
-                        state.input_cursor_value += 1;
-                    }
+            InputFocus::Value => {
+                if state.input_cursor_value > 0 {
+                    state.input_cursor_value -= 1;
                 }
             }
-        }
-        KeyCode::Backspace => {
-            match state.input_focus {
-                InputFocus::Key => {
-                    if state.input_cursor_key > 0 {
-                        state.input_key.remove(state.input_cursor_key - 1);
-                        state.input_cursor_key -= 1;
-                    }
-                }
-                InputFocus::Value => {
-                    if state.input_cursor_value > 0 {
-                        state.input_value.remove(state.input_cursor_value - 1);
-                        state.input_cursor_value -= 1;
-                    }
-                }
-            }
-        }
-        KeyCode::Char(c) => {
-            match state.input_focus {
-                InputFocus::Key => {
-                    state.input_key.insert(state.input_cursor_key, c);
+        },
+        KeyCode::Right => match state.input_focus {
+            InputFocus::Key => {
+                if state.input_cursor_key < state.input_key.len() {
                     state.input_cursor_key += 1;
                 }
-                InputFocus::Value => {
-                    state.input_value.insert(state.input_cursor_value, c);
+            }
+            InputFocus::Value => {
+                if state.input_cursor_value < state.input_value.len() {
                     state.input_cursor_value += 1;
                 }
             }
-        }
+        },
+        KeyCode::Backspace => match state.input_focus {
+            InputFocus::Key => {
+                if state.input_cursor_key > 0 {
+                    state.input_key.remove(state.input_cursor_key - 1);
+                    state.input_cursor_key -= 1;
+                }
+            }
+            InputFocus::Value => {
+                if state.input_cursor_value > 0 {
+                    state.input_value.remove(state.input_cursor_value - 1);
+                    state.input_cursor_value -= 1;
+                }
+            }
+        },
+        KeyCode::Char(c) => match state.input_focus {
+            InputFocus::Key => {
+                state.input_key.insert(state.input_cursor_key, c);
+                state.input_cursor_key += 1;
+            }
+            InputFocus::Value => {
+                state.input_value.insert(state.input_cursor_value, c);
+                state.input_cursor_value += 1;
+            }
+        },
         _ => {}
     }
 }

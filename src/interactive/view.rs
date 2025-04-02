@@ -1,9 +1,9 @@
-use crate::interactive::state::{AppState, Mode, InputFocus};
+use crate::interactive::state::{AppState, InputFocus, Mode};
+use ratatui::Frame;
 use ratatui::layout::{Constraint, Direction, Layout, Rect};
 use ratatui::style::{Color, Modifier, Style};
 use ratatui::text::{Line, Span};
-use ratatui::widgets::{Block, Borders, BorderType, List, ListItem, ListState, Paragraph, Wrap};
-use ratatui::Frame;
+use ratatui::widgets::{Block, BorderType, Borders, List, ListItem, ListState, Paragraph, Wrap};
 
 pub fn render(state: &AppState, f: &mut Frame) {
     let size = f.area();
@@ -15,33 +15,44 @@ pub fn render(state: &AppState, f: &mut Frame) {
 
     match &state.mode {
         Mode::List => {
-            let items: Vec<ListItem> = state.entries.iter().enumerate().map(|(i, (k, v))| {
-                let marker = if i == state.current_index { "> " } else { "  " };
-                let key_field = format!("{:30}", k);
-                let content = format!("{}{}  {}", marker, key_field, v);
-                let style = if i == state.current_index {
-                    Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)
-                } else {
-                    Style::default().fg(Color::White)
-                };
-                ListItem::new(Line::from(Span::styled(content, style)))
-            }).collect();
+            let items: Vec<ListItem> = state
+                .entries
+                .iter()
+                .enumerate()
+                .map(|(i, (k, v))| {
+                    let marker = if i == state.current_index { "> " } else { "  " };
+                    let key_field = format!("{:30}", k);
+                    let content = format!("{}{}  {}", marker, key_field, v);
+                    let style = if i == state.current_index {
+                        Style::default()
+                            .fg(Color::Green)
+                            .add_modifier(Modifier::BOLD)
+                    } else {
+                        Style::default().fg(Color::White)
+                    };
+                    ListItem::new(Line::from(Span::styled(content, style)))
+                })
+                .collect();
 
-            let list = List::new(items)
-                .block(
-                    Block::default()
-                        .borders(Borders::ALL)
-                        .border_type(BorderType::Rounded)
-                        .border_style(Style::default().fg(Color::Blue))
-                        .title("Variables"),
-                );
+            let list = List::new(items).block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .border_type(BorderType::Rounded)
+                    .border_style(Style::default().fg(Color::Blue))
+                    .title("Variables"),
+            );
             let mut list_state = ListState::default();
             list_state.select(Some(state.current_index));
             f.render_stateful_widget(list, chunks[0], &mut list_state);
         }
         Mode::Add => {
             let modal = Paragraph::new(vec![
-                Line::from(Span::styled("Add New Variable", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD))),
+                Line::from(Span::styled(
+                    "Add New Variable",
+                    Style::default()
+                        .fg(Color::Yellow)
+                        .add_modifier(Modifier::BOLD),
+                )),
                 Line::from(format!("Key: {}", state.input_key)),
                 Line::from(format!("Value: {}", state.input_value)),
                 Line::from("Enter=confirm, Esc=cancel, Tab=switch field, ←/→ move cursor"),
@@ -77,7 +88,12 @@ pub fn render(state: &AppState, f: &mut Frame) {
         }
         Mode::Edit(key) => {
             let modal = Paragraph::new(vec![
-                Line::from(Span::styled(format!("Editing: {}", key), Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD))),
+                Line::from(Span::styled(
+                    format!("Editing: {}", key),
+                    Style::default()
+                        .fg(Color::Yellow)
+                        .add_modifier(Modifier::BOLD),
+                )),
                 Line::from(format!("New Value: {}", state.input_value)),
                 Line::from("Enter=confirm, Esc=cancel, ←/→ move cursor"),
             ])
@@ -99,7 +115,10 @@ pub fn render(state: &AppState, f: &mut Frame) {
         }
         Mode::Delete(key) => {
             let modal = Paragraph::new(vec![
-                Line::from(Span::styled(format!("Delete: {}", key), Style::default().fg(Color::Red).add_modifier(Modifier::BOLD))),
+                Line::from(Span::styled(
+                    format!("Delete: {}", key),
+                    Style::default().fg(Color::Red).add_modifier(Modifier::BOLD),
+                )),
                 Line::from("Confirm deletion? [y]es / [n]o"),
             ])
             .block(
