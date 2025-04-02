@@ -29,7 +29,7 @@ pub fn handle_input(state: &mut AppState) -> io::Result<()> {
     Ok(())
 }
 
-fn handle_list_mode(state: &mut AppState, key: KeyEvent) {
+pub fn handle_list_mode(state: &mut AppState, key: KeyEvent) {
     match key.code {
         KeyCode::Char('q') if key.modifiers.contains(KeyModifiers::CONTROL) => {
             state.should_quit = true;
@@ -78,7 +78,7 @@ fn handle_list_mode(state: &mut AppState, key: KeyEvent) {
     }
 }
 
-fn handle_add_mode(state: &mut AppState, key: KeyEvent) {
+pub fn handle_add_mode(state: &mut AppState, key: KeyEvent) {
     match key.code {
         KeyCode::Enter => {
             if !state.input_key.trim().is_empty() {
@@ -151,7 +151,7 @@ fn handle_add_mode(state: &mut AppState, key: KeyEvent) {
     }
 }
 
-fn handle_edit_mode(state: &mut AppState, key: KeyEvent) {
+pub fn handle_edit_mode(state: &mut AppState, key: KeyEvent) {
     match key.code {
         KeyCode::Enter => {
             if let Mode::Edit(ref key_name) = state.mode {
@@ -187,7 +187,7 @@ fn handle_edit_mode(state: &mut AppState, key: KeyEvent) {
     }
 }
 
-fn handle_delete_mode(state: &mut AppState, key: KeyEvent) {
+pub fn handle_delete_mode(state: &mut AppState, key: KeyEvent) {
     match key.code {
         KeyCode::Char('y') => {
             if let Mode::Delete(ref key_name) = state.mode {
@@ -198,5 +198,290 @@ fn handle_delete_mode(state: &mut AppState, key: KeyEvent) {
         }
         KeyCode::Char('n') | KeyCode::Esc => state.mode = Mode::List,
         _ => {}
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+
+    #[test]
+    fn test_handle_list_mode_quit() {
+        let mut state = AppState::new(vec![]);
+        let key_event = KeyEvent::new(KeyCode::Char('q'), KeyModifiers::CONTROL);
+        handle_list_mode(&mut state, key_event);
+        assert!(state.should_quit);
+    }
+
+    #[test]
+    fn test_handle_list_mode_add() {
+        let mut state = AppState::new(vec![]);
+        let key_event = KeyEvent::new(KeyCode::Char('a'), KeyModifiers::empty());
+        handle_list_mode(&mut state, key_event);
+        assert_eq!(state.mode, Mode::Add);
+        assert_eq!(state.input_key, "");
+        assert_eq!(state.input_value, "");
+        assert_eq!(state.input_cursor_key, 0);
+        assert_eq!(state.input_cursor_value, 0);
+        assert_eq!(state.input_focus, InputFocus::Key);
+    }
+
+    #[test]
+    fn test_handle_list_mode_edit() {
+        let mut state = AppState::new(vec![("VAR1".to_string(), "VALUE1".to_string())]);
+        let key_event = KeyEvent::new(KeyCode::Char('e'), KeyModifiers::empty());
+        handle_list_mode(&mut state, key_event);
+        assert_eq!(state.mode, Mode::Edit("VAR1".to_string()));
+        assert_eq!(state.input_value, "VALUE1".to_string());
+        assert_eq!(state.input_cursor_value, 6);
+    }
+
+    #[test]
+    fn test_handle_list_mode_delete() {
+        let mut state = AppState::new(vec![("VAR1".to_string(), "VALUE1".to_string())]);
+        let key_event = KeyEvent::new(KeyCode::Char('d'), KeyModifiers::empty());
+        handle_list_mode(&mut state, key_event);
+        assert_eq!(state.mode, Mode::Delete("VAR1".to_string()));
+    }
+
+    #[test]
+    fn test_handle_list_mode_down() {
+        let mut state = AppState::new(vec![("VAR1".to_string(), "VALUE1".to_string()), ("VAR2".to_string(), "VALUE2".to_string())]);
+        let key_event = KeyEvent::new(KeyCode::Down, KeyModifiers::empty());
+        handle_list_mode(&mut state, key_event);
+        assert_eq!(state.current_index, 1);
+    }
+
+    #[test]
+    fn test_handle_list_mode_up() {
+        let mut state = AppState::new(vec![("VAR1".to_string(), "VALUE1".to_string()), ("VAR2".to_string(), "VALUE2".to_string())]);
+        state.current_index = 1;
+        let key_event = KeyEvent::new(KeyCode::Up, KeyModifiers::empty());
+        handle_list_mode(&mut state, key_event);
+        assert_eq!(state.current_index, 0);
+    }
+
+    #[test]
+    fn test_handle_list_mode_reload() {
+        let mut state = AppState::new(vec![]);
+        let key_event = KeyEvent::new(KeyCode::Char('r'), KeyModifiers::CONTROL);
+        handle_list_mode(&mut state, key_event);
+        assert!(state.reload_requested);
+    }
+
+    #[test]
+    fn test_handle_add_mode_enter() {
+        let mut state = AppState::new(vec![]);
+        state.mode = Mode::Add;
+        state.input_key = "VAR1".to_string();
+        state.input_value = "VALUE1".to_string();
+        let key_event = KeyEvent::new(KeyCode::Enter, KeyModifiers::empty());
+        handle_add_mode(&mut state, key_event);
+        assert_eq!(state.entries.len(), 1);
+        assert_eq!(state.entries[0], ("VAR1".to_string(), "VALUE1".to_string()));
+        assert_eq!(state.mode, Mode::List);
+    }
+
+    #[test]
+    fn test_handle_add_mode_enter_empty_key() {
+        let mut state = AppState::new(vec![]);
+        state.mode = Mode::Add;
+        state.input_key = "".to_string();
+        state.input_value = "VALUE1".to_string();
+        let key_event = KeyEvent::new(KeyCode::Enter, KeyModifiers::empty());
+        handle_add_mode(&mut state, key_event);
+        assert_eq!(state.entries.len(), 0);
+        assert_eq!(state.mode, Mode::Add);
+        assert_eq!(state.message, Some("Key cannot be empty".to_string()));
+    }
+
+    #[test]
+    fn test_handle_add_mode_esc() {
+        let mut state = AppState::new(vec![]);
+        state.mode = Mode::Add;
+        let key_event = KeyEvent::new(KeyCode::Esc, KeyModifiers::empty());
+        handle_add_mode(&mut state, key_event);
+        assert_eq!(state.mode, Mode::List);
+    }
+
+    #[test]
+    fn test_handle_add_mode_tab() {
+        let mut state = AppState::new(vec![]);
+        state.mode = Mode::Add;
+        state.input_focus = InputFocus::Key;
+        let key_event = KeyEvent::new(KeyCode::Tab, KeyModifiers::empty());
+        handle_add_mode(&mut state, key_event);
+        assert_eq!(state.input_focus, InputFocus::Value);
+
+        state.input_focus = InputFocus::Value;
+        handle_add_mode(&mut state, key_event);
+        assert_eq!(state.input_focus, InputFocus::Key);
+    }
+
+    #[test]
+    fn test_handle_add_mode_left() {
+        let mut state = AppState::new(vec![]);
+        state.mode = Mode::Add;
+        state.input_focus = InputFocus::Key;
+        state.input_cursor_key = 1;
+        let key_event = KeyEvent::new(KeyCode::Left, KeyModifiers::empty());
+        handle_add_mode(&mut state, key_event);
+        assert_eq!(state.input_cursor_key, 0);
+
+        state.input_focus = InputFocus::Value;
+        state.input_cursor_value = 1;
+        handle_add_mode(&mut state, key_event);
+        assert_eq!(state.input_cursor_value, 0);
+    }
+
+    #[test]
+    fn test_handle_add_mode_right() {
+        let mut state = AppState::new(vec![]);
+        state.mode = Mode::Add;
+        state.input_focus = InputFocus::Key;
+        state.input_key = "VAR1".to_string();
+        state.input_cursor_key = 0;
+        let key_event = KeyEvent::new(KeyCode::Right, KeyModifiers::empty());
+        handle_add_mode(&mut state, key_event);
+        assert_eq!(state.input_cursor_key, 1);
+
+        state.input_focus = InputFocus::Value;
+        state.input_value = "VALUE1".to_string();
+        state.input_cursor_value = 0;
+        handle_add_mode(&mut state, key_event);
+        assert_eq!(state.input_cursor_value, 1);
+    }
+
+    #[test]
+    fn test_handle_add_mode_backspace() {
+        let mut state = AppState::new(vec![]);
+        state.mode = Mode::Add;
+        state.input_focus = InputFocus::Key;
+        state.input_key = "VAR1".to_string();
+        state.input_cursor_key = 4;
+        let key_event = KeyEvent::new(KeyCode::Backspace, KeyModifiers::empty());
+        handle_add_mode(&mut state, key_event);
+        assert_eq!(state.input_key, "VAR".to_string());
+        assert_eq!(state.input_cursor_key, 3);
+
+        state.input_focus = InputFocus::Value;
+        state.input_value = "VALUE1".to_string();
+        state.input_cursor_value = 6;
+        handle_add_mode(&mut state, key_event);
+        assert_eq!(state.input_value, "VALUE".to_string());
+        assert_eq!(state.input_cursor_value, 5);
+    }
+
+    #[test]
+    fn test_handle_add_mode_char() {
+        let mut state = AppState::new(vec![]);
+        state.mode = Mode::Add;
+        state.input_focus = InputFocus::Key;
+        state.input_key = "VAR".to_string();
+        state.input_cursor_key = 3;
+        let key_event = KeyEvent::new(KeyCode::Char('1'), KeyModifiers::empty());
+        handle_add_mode(&mut state, key_event);
+        assert_eq!(state.input_key, "VAR1".to_string());
+        assert_eq!(state.input_cursor_key, 4);
+
+        state.input_focus = InputFocus::Value;
+        state.input_value = "VALUE".to_string();
+        state.input_cursor_value = 5;
+        let key_event = KeyEvent::new(KeyCode::Char('1'), KeyModifiers::empty());
+        handle_add_mode(&mut state, key_event);
+        assert_eq!(state.input_value, "VALUE1".to_string());
+        assert_eq!(state.input_cursor_value, 6);
+    }
+
+    #[test]
+    fn test_handle_edit_mode_enter() {
+        let mut state = AppState::new(vec![("VAR1".to_string(), "OLD".to_string())]);
+        state.mode = Mode::Edit("VAR1".to_string());
+        state.input_value = "NEW".to_string();
+        let key_event = KeyEvent::new(KeyCode::Enter, KeyModifiers::empty());
+        handle_edit_mode(&mut state, key_event);
+        assert_eq!(state.entries[0], ("VAR1".to_string(), "NEW".to_string()));
+        assert_eq!(state.mode, Mode::List);
+    }
+
+    #[test]
+    fn test_handle_edit_mode_esc() {
+        let mut state = AppState::new(vec![("VAR1".to_string(), "OLD".to_string())]);
+        state.mode = Mode::Edit("VAR1".to_string());
+        let key_event = KeyEvent::new(KeyCode::Esc, KeyModifiers::empty());
+        handle_edit_mode(&mut state, key_event);
+        assert_eq!(state.mode, Mode::List);
+    }
+
+    #[test]
+    fn test_handle_edit_mode_left() {
+        let mut state = AppState::new(vec![("VAR1".to_string(), "OLD".to_string())]);
+        state.mode = Mode::Edit("VAR1".to_string());
+        state.input_cursor_value = 1;
+        let key_event = KeyEvent::new(KeyCode::Left, KeyModifiers::empty());
+        handle_edit_mode(&mut state, key_event);
+        assert_eq!(state.input_cursor_value, 0);
+    }
+
+    #[test]
+    fn test_handle_edit_mode_right() {
+        let mut state = AppState::new(vec![("VAR1".to_string(), "OLD".to_string())]);
+        state.mode = Mode::Edit("VAR1".to_string());
+        state.input_value = "OLD".to_string();
+        state.input_cursor_value = 0;
+        let key_event = KeyEvent::new(KeyCode::Right, KeyModifiers::empty());
+        handle_edit_mode(&mut state, key_event);
+        assert_eq!(state.input_cursor_value, 1);
+    }
+
+    #[test]
+    fn test_handle_edit_mode_backspace() {
+        let mut state = AppState::new(vec![("VAR1".to_string(), "OLD".to_string())]);
+        state.mode = Mode::Edit("VAR1".to_string());
+        state.input_value = "OLD".to_string();
+        state.input_cursor_value = 3;
+        let key_event = KeyEvent::new(KeyCode::Backspace, KeyModifiers::empty());
+        handle_edit_mode(&mut state, key_event);
+        assert_eq!(state.input_value, "OL".to_string());
+        assert_eq!(state.input_cursor_value, 2);
+    }
+
+    #[test]
+    fn test_handle_edit_mode_char() {
+        let mut state = AppState::new(vec![("VAR1".to_string(), "OLD".to_string())]);
+        state.mode = Mode::Edit("VAR1".to_string());
+        state.input_value = "OL".to_string();
+        state.input_cursor_value = 2;
+        let key_event = KeyEvent::new(KeyCode::Char('D'), KeyModifiers::empty());
+        handle_edit_mode(&mut state, key_event);
+        assert_eq!(state.input_value, "OLD".to_string());
+        assert_eq!(state.input_cursor_value, 3);
+    }
+
+    #[test]
+    fn test_handle_delete_mode_yes() {
+        let mut state = AppState::new(vec![("VAR1".to_string(), "OLD".to_string())]);
+        state.mode = Mode::Delete("VAR1".to_string());
+        let key_event = KeyEvent::new(KeyCode::Char('y'), KeyModifiers::empty());
+        handle_delete_mode(&mut state, key_event);
+        assert_eq!(state.entries.len(), 0);
+        assert_eq!(state.mode, Mode::List);
+    }
+
+    #[test]
+    fn test_handle_delete_mode_no() {
+        let mut state = AppState::new(vec![("VAR1".to_string(), "OLD".to_string())]);
+        state.mode = Mode::Delete("VAR1".to_string());
+        let key_event = KeyEvent::new(KeyCode::Char('n'), KeyModifiers::empty());
+        handle_delete_mode(&mut state, key_event);
+        assert_eq!(state.entries.len(), 1);
+        assert_eq!(state.mode, Mode::List);
+
+        state.mode = Mode::Delete("VAR1".to_string());
+        let key_event = KeyEvent::new(KeyCode::Esc, KeyModifiers::empty());
+        handle_delete_mode(&mut state, key_event);
+        assert_eq!(state.entries.len(), 1);
+        assert_eq!(state.mode, Mode::List);
     }
 }

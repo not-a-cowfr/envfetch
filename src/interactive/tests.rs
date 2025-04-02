@@ -114,3 +114,350 @@ fn test_state_initialization() {
     assert_eq!(state.scroll_offset, 0);
     assert!(!state.should_quit);
 }
+
+#[test]
+fn test_handle_list_mode_quit() {
+    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+    use crate::interactive::controller::handle_list_mode;
+
+    let mut state = AppState::new(vec![]);
+    let key_event = KeyEvent::new(KeyCode::Char('q'), KeyModifiers::CONTROL);
+    handle_list_mode(&mut state, key_event);
+    assert!(state.should_quit);
+}
+
+#[test]
+fn test_handle_list_mode_add() {
+    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+    use crate::interactive::controller::handle_list_mode;
+
+    let mut state = AppState::new(vec![]);
+    let key_event = KeyEvent::new(KeyCode::Char('a'), KeyModifiers::empty());
+    handle_list_mode(&mut state, key_event);
+    assert_eq!(state.mode, Mode::Add);
+    assert_eq!(state.input_key, "");
+    assert_eq!(state.input_value, "");
+    assert_eq!(state.input_cursor_key, 0);
+    assert_eq!(state.input_cursor_value, 0);
+    assert_eq!(state.input_focus, InputFocus::Key);
+}
+
+#[test]
+fn test_handle_list_mode_edit() {
+    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+    use crate::interactive::controller::handle_list_mode;
+
+    let mut state = AppState::new(vec![("VAR1".to_string(), "VALUE1".to_string())]);
+    let key_event = KeyEvent::new(KeyCode::Char('e'), KeyModifiers::empty());
+    handle_list_mode(&mut state, key_event);
+    assert_eq!(state.mode, Mode::Edit("VAR1".to_string()));
+    assert_eq!(state.input_value, "VALUE1".to_string());
+    assert_eq!(state.input_cursor_value, 6);
+}
+
+#[test]
+fn test_handle_list_mode_delete() {
+    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+    use crate::interactive::controller::handle_list_mode;
+
+    let mut state = AppState::new(vec![("VAR1".to_string(), "VALUE1".to_string())]);
+    let key_event = KeyEvent::new(KeyCode::Char('d'), KeyModifiers::empty());
+    handle_list_mode(&mut state, key_event);
+    assert_eq!(state.mode, Mode::Delete("VAR1".to_string()));
+}
+
+#[test]
+fn test_handle_list_mode_down() {
+    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+    use crate::interactive::controller::handle_list_mode;
+
+    let mut state = AppState::new(vec![("VAR1".to_string(), "VALUE1".to_string()), ("VAR2".to_string(), "VALUE2".to_string())]);
+    let key_event = KeyEvent::new(KeyCode::Down, KeyModifiers::empty());
+    handle_list_mode(&mut state, key_event);
+    assert_eq!(state.current_index, 1);
+}
+
+#[test]
+fn test_handle_list_mode_up() {
+    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+    use crate::interactive::controller::handle_list_mode;
+
+    let mut state = AppState::new(vec![("VAR1".to_string(), "VALUE1".to_string()), ("VAR2".to_string(), "VALUE2".to_string())]);
+    state.current_index = 1;
+    let key_event = KeyEvent::new(KeyCode::Up, KeyModifiers::empty());
+    handle_list_mode(&mut state, key_event);
+    assert_eq!(state.current_index, 0);
+}
+
+#[test]
+fn test_handle_list_mode_reload() {
+    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+    use crate::interactive::controller::handle_list_mode;
+
+    let mut state = AppState::new(vec![]);
+    let key_event = KeyEvent::new(KeyCode::Char('r'), KeyModifiers::CONTROL);
+    handle_list_mode(&mut state, key_event);
+    assert!(state.reload_requested);
+}
+
+#[test]
+fn test_handle_add_mode_enter() {
+    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+    use crate::interactive::controller::handle_add_mode;
+
+    let mut state = AppState::new(vec![]);
+    state.mode = Mode::Add;
+    state.input_key = "VAR1".to_string();
+    state.input_value = "VALUE1".to_string();
+    let key_event = KeyEvent::new(KeyCode::Enter, KeyModifiers::empty());
+    handle_add_mode(&mut state, key_event);
+    assert_eq!(state.entries.len(), 1);
+    assert_eq!(state.entries[0], ("VAR1".to_string(), "VALUE1".to_string()));
+    assert_eq!(state.mode, Mode::List);
+}
+
+#[test]
+fn test_handle_add_mode_enter_empty_key() {
+    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+    use crate::interactive::controller::handle_add_mode;
+
+    let mut state = AppState::new(vec![]);
+    state.mode = Mode::Add;
+    state.input_key = "".to_string();
+    state.input_value = "VALUE1".to_string();
+    let key_event = KeyEvent::new(KeyCode::Enter, KeyModifiers::empty());
+    handle_add_mode(&mut state, key_event);
+    assert_eq!(state.entries.len(), 0);
+    assert_eq!(state.mode, Mode::Add);
+    assert_eq!(state.message, Some("Key cannot be empty".to_string()));
+}
+
+#[test]
+fn test_handle_add_mode_esc() {
+    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+    use crate::interactive::controller::handle_add_mode;
+
+    let mut state = AppState::new(vec![]);
+    state.mode = Mode::Add;
+    let key_event = KeyEvent::new(KeyCode::Esc, KeyModifiers::empty());
+    handle_add_mode(&mut state, key_event);
+    assert_eq!(state.mode, Mode::List);
+}
+
+#[test]
+fn test_handle_add_mode_tab() {
+    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+    use crate::interactive::controller::handle_add_mode;
+
+    let mut state = AppState::new(vec![]);
+    state.mode = Mode::Add;
+    state.input_focus = InputFocus::Key;
+    let key_event = KeyEvent::new(KeyCode::Tab, KeyModifiers::empty());
+    handle_add_mode(&mut state, key_event);
+    assert_eq!(state.input_focus, InputFocus::Value);
+
+    state.input_focus = InputFocus::Value;
+    handle_add_mode(&mut state, key_event);
+    assert_eq!(state.input_focus, InputFocus::Key);
+}
+
+#[test]
+fn test_handle_add_mode_left() {
+    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+    use crate::interactive::controller::handle_add_mode;
+
+    let mut state = AppState::new(vec![]);
+    state.mode = Mode::Add;
+    state.input_focus = InputFocus::Key;
+    state.input_cursor_key = 1;
+    let key_event = KeyEvent::new(KeyCode::Left, KeyModifiers::empty());
+    handle_add_mode(&mut state, key_event);
+    assert_eq!(state.input_cursor_key, 0);
+
+    state.input_focus = InputFocus::Value;
+    state.input_cursor_value = 1;
+    handle_add_mode(&mut state, key_event);
+    assert_eq!(state.input_cursor_value, 0);
+}
+
+#[test]
+fn test_handle_add_mode_right() {
+    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+    use crate::interactive::controller::handle_add_mode;
+
+    let mut state = AppState::new(vec![]);
+    state.mode = Mode::Add;
+    state.input_focus = InputFocus::Key;
+    state.input_key = "VAR1".to_string();
+    state.input_cursor_key = 0;
+    let key_event = KeyEvent::new(KeyCode::Right, KeyModifiers::empty());
+    handle_add_mode(&mut state, key_event);
+    assert_eq!(state.input_cursor_key, 1);
+
+    state.input_focus = InputFocus::Value;
+    state.input_value = "VALUE1".to_string();
+    state.input_cursor_value = 0;
+    handle_add_mode(&mut state, key_event);
+    assert_eq!(state.input_cursor_value, 1);
+}
+
+#[test]
+fn test_handle_add_mode_backspace() {
+    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+    use crate::interactive::controller::handle_add_mode;
+
+    let mut state = AppState::new(vec![]);
+    state.mode = Mode::Add;
+    state.input_focus = InputFocus::Key;
+    state.input_key = "VAR1".to_string();
+    state.input_cursor_key = 4;
+    let key_event = KeyEvent::new(KeyCode::Backspace, KeyModifiers::empty());
+    handle_add_mode(&mut state, key_event);
+    assert_eq!(state.input_key, "VAR".to_string());
+    assert_eq!(state.input_cursor_key, 3);
+
+    state.input_focus = InputFocus::Value;
+    state.input_value = "VALUE1".to_string();
+    state.input_cursor_value = 6;
+    handle_add_mode(&mut state, key_event);
+    assert_eq!(state.input_value, "VALUE".to_string());
+    assert_eq!(state.input_cursor_value, 5);
+}
+
+#[test]
+fn test_handle_add_mode_char() {
+    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+    use crate::interactive::controller::handle_add_mode;
+
+    let mut state = AppState::new(vec![]);
+    state.mode = Mode::Add;
+    state.input_focus = InputFocus::Key;
+    state.input_key = "VAR".to_string();
+    state.input_cursor_key = 3;
+    let key_event = KeyEvent::new(KeyCode::Char('1'), KeyModifiers::empty());
+    handle_add_mode(&mut state, key_event);
+    assert_eq!(state.input_key, "VAR1".to_string());
+    assert_eq!(state.input_cursor_key, 4);
+
+    state.input_focus = InputFocus::Value;
+    state.input_value = "VALUE".to_string();
+    state.input_cursor_value = 5;
+    handle_add_mode(&mut state, key_event);
+    assert_eq!(state.input_value, "VALUE1".to_string());
+    assert_eq!(state.input_cursor_value, 6);
+}
+
+#[test]
+fn test_handle_edit_mode_enter() {
+    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+    use crate::interactive::controller::handle_edit_mode;
+
+    let mut state = AppState::new(vec![("VAR1".to_string(), "OLD".to_string())]);
+    state.mode = Mode::Edit("VAR1".to_string());
+    state.input_value = "NEW".to_string();
+    let key_event = KeyEvent::new(KeyCode::Enter, KeyModifiers::empty());
+    handle_edit_mode(&mut state, key_event);
+    assert_eq!(state.entries[0], ("VAR1".to_string(), "NEW".to_string()));
+    assert_eq!(state.mode, Mode::List);
+}
+
+#[test]
+fn test_handle_edit_mode_esc() {
+    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+    use crate::interactive::controller::handle_edit_mode;
+
+    let mut state = AppState::new(vec![("VAR1".to_string(), "OLD".to_string())]);
+    state.mode = Mode::Edit("VAR1".to_string());
+    let key_event = KeyEvent::new(KeyCode::Esc, KeyModifiers::empty());
+    handle_edit_mode(&mut state, key_event);
+    assert_eq!(state.mode, Mode::List);
+}
+
+#[test]
+fn test_handle_edit_mode_left() {
+    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+    use crate::interactive::controller::handle_edit_mode;
+
+    let mut state = AppState::new(vec![("VAR1".to_string(), "OLD".to_string())]);
+    state.mode = Mode::Edit("VAR1".to_string());
+    state.input_cursor_value = 1;
+    let key_event = KeyEvent::new(KeyCode::Left, KeyModifiers::empty());
+    handle_edit_mode(&mut state, key_event);
+    assert_eq!(state.input_cursor_value, 0);
+}
+
+#[test]
+fn test_handle_edit_mode_right() {
+    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+    use crate::interactive::controller::handle_edit_mode;
+
+    let mut state = AppState::new(vec![("VAR1".to_string(), "OLD".to_string())]);
+    state.mode = Mode::Edit("VAR1".to_string());
+    state.input_value = "OLD".to_string();
+    state.input_cursor_value = 0;
+    let key_event = KeyEvent::new(KeyCode::Right, KeyModifiers::empty());
+    handle_edit_mode(&mut state, key_event);
+    assert_eq!(state.input_cursor_value, 1);
+}
+
+#[test]
+fn test_handle_edit_mode_backspace() {
+    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+    use crate::interactive::controller::handle_edit_mode;
+
+    let mut state = AppState::new(vec![("VAR1".to_string(), "OLD".to_string())]);
+    state.mode = Mode::Edit("VAR1".to_string());
+    state.input_value = "OLD".to_string();
+    state.input_cursor_value = 3;
+    let key_event = KeyEvent::new(KeyCode::Backspace, KeyModifiers::empty());
+    handle_edit_mode(&mut state, key_event);
+    assert_eq!(state.input_value, "OL".to_string());
+    assert_eq!(state.input_cursor_value, 2);
+}
+
+#[test]
+fn test_handle_edit_mode_char() {
+    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+    use crate::interactive::controller::handle_edit_mode;
+
+    let mut state = AppState::new(vec![("VAR1".to_string(), "OLD".to_string())]);
+    state.mode = Mode::Edit("VAR1".to_string());
+    state.input_value = "OL".to_string();
+    state.input_cursor_value = 2;
+    let key_event = KeyEvent::new(KeyCode::Char('D'), KeyModifiers::empty());
+    handle_edit_mode(&mut state, key_event);
+    assert_eq!(state.input_value, "OLD".to_string());
+    assert_eq!(state.input_cursor_value, 3);
+}
+
+#[test]
+fn test_handle_delete_mode_yes() {
+    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+    use crate::interactive::controller::handle_delete_mode;
+
+    let mut state = AppState::new(vec![("VAR1".to_string(), "OLD".to_string())]);
+    state.mode = Mode::Delete("VAR1".to_string());
+    let key_event = KeyEvent::new(KeyCode::Char('y'), KeyModifiers::empty());
+    handle_delete_mode(&mut state, key_event);
+    assert_eq!(state.entries.len(), 0);
+    assert_eq!(state.mode, Mode::List);
+}
+
+#[test]
+fn test_handle_delete_mode_no() {
+    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+    use crate::interactive::controller::handle_delete_mode;
+
+    let mut state = AppState::new(vec![("VAR1".to_string(), "OLD".to_string())]);
+    state.mode = Mode::Delete("VAR1".to_string());
+    let key_event = KeyEvent::new(KeyCode::Char('n'), KeyModifiers::empty());
+    handle_delete_mode(&mut state, key_event);
+    assert_eq!(state.entries.len(), 1);
+    assert_eq!(state.mode, Mode::List);
+
+    state.mode = Mode::Delete("VAR1".to_string());
+    let key_event = KeyEvent::new(KeyCode::Esc, KeyModifiers::empty());
+    handle_delete_mode(&mut state, key_event);
+    assert_eq!(state.entries.len(), 1);
+    assert_eq!(state.mode, Mode::List);
+}
