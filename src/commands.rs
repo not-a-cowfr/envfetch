@@ -6,7 +6,7 @@ use std::process::ExitCode;
 use std::{env, fs};
 
 use crate::config;
-use crate::interactive::InteractiveMode;
+use crate::interactive::InteractiveApp;
 use crate::models::*;
 use crate::utils::*;
 use crate::variables;
@@ -85,7 +85,7 @@ pub fn run_command<W: Write>(
         }
         Commands::Interactive => {
             let mut terminal = ratatui::init();
-            let result = InteractiveMode::init().run(&mut terminal);
+            let result = InteractiveApp::new().run(&mut terminal);
             ratatui::restore();
             if let Err(error) = result {
                 error!("{}", error);
