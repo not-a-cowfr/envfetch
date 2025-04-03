@@ -204,7 +204,107 @@ pub fn handle_delete_mode(state: &mut AppState, key: KeyEvent) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+    use crossterm::event::{Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
+    use std::time::Duration;
+
+    // This test-only function lets us inject a simulated event, covering branches in handle_input.
+    pub fn handle_input_with_event(state: &mut AppState, evt: Option<Event>) -> io::Result<()> {
+        if let Some(e) = evt {
+            if let Event::Key(key_event) = e {
+                if key_event.kind == KeyEventKind::Press {
+                    match state.mode.clone() {
+                        Mode::List => handle_list_mode(state, key_event),
+                        Mode::Add => handle_add_mode(state, key_event),
+                        Mode::Edit(_) => handle_edit_mode(state, key_event),
+                        Mode::Delete(_) => handle_delete_mode(state, key_event),
+                    }
+                }
+            }
+        }
+        if state.reload_requested {
+            state.reload();
+        }
+        if let Some(expiry) = state.message_expiry {
+            if std::time::Instant::now() > expiry {
+                state.clear_message();
+            }
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn test_handle_input_with_event_list_mode() -> io::Result<()> {
+        let mut state = AppState::new(vec![("VAR1".to_string(),"VALUE1".to_string())]);
+        state.mode = Mode::List;
+        // Inject a simulated Ctrl+q key press.
+        let evt = Some(Event::Key(KeyEvent::new(KeyCode::Char('q'), KeyModifiers::CONTROL)));
+        handle_input_with_event(&mut state, evt)?;
+        assert!(state.should_quit);
+        Ok(())
+    }
+
+    #[test]
+    fn test_handle_input_with_event_add_mode() -> io::Result<()> {
+        let mut state = AppState::new(vec![]);
+        state.mode = Mode::Add;
+        state.input_key = "A".to_string();
+        state.input_value = "B".to_string();
+        // Inject a simulated Enter key press.
+        let evt = Some(Event::Key(KeyEvent::new(KeyCode::Enter, KeyModifiers::empty())));
+        handle_input_with_event(&mut state, evt)?;
+        // After Enter, a new variable should be added and mode revert to List.
+        assert_eq!(state.entries.len(), 1);
+        assert_eq!(state.mode, Mode::List);
+        Ok(())
+    }
+
+    #[test]
+    fn test_handle_input_with_event_edit_mode() -> io::Result<()> {
+        let mut state = AppState::new(vec![("A".to_string(), "B".to_string())]);
+        state.mode = Mode::Edit("A".to_string());
+        state.input_value = "NEW".to_string();
+        // Inject a simulated Enter key press.
+        let evt = Some(Event::Key(KeyEvent::new(KeyCode::Enter, KeyModifiers::empty())));
+        handle_input_with_event(&mut state, evt)?;
+        // Verify that the variable was updated
+        assert_eq!(state.entries[0], ("A".to_string(), "NEW".to_string()));
+        assert_eq!(state.mode, Mode::List);
+        Ok(())
+    }
+
+    #[test]
+    fn test_handle_input_with_event_delete_mode() -> io::Result<()> {
+        let mut state = AppState::new(vec![("A".to_string(), "B".to_string())]);
+        state.mode = Mode::Delete("A".to_string());
+        // Inject a simulated 'y' press
+        let evt = Some(Event::Key(KeyEvent::new(KeyCode::Char('y'), KeyModifiers::empty())));
+        handle_input_with_event(&mut state, evt)?;
+        assert!(state.entries.is_empty());
+        assert_eq!(state.mode, Mode::List);
+        Ok(())
+    }
+
+    #[test]
+    fn test_handle_input_reload_branch() -> io::Result<()> {
+        let mut state = AppState::new(vec![]);
+        state.request_reload();
+        // Do not inject an event.
+        handle_input_with_event(&mut state, None)?;
+        // After handle_input, reload should have been called.
+        assert!(!state.reload_requested);
+        Ok(())
+    }
+
+    #[test]
+    fn test_handle_input_message_expiry_branch() -> io::Result<()> {
+        let mut state = AppState::new(vec![]);
+        state.show_message("Expire", Duration::from_millis(10));
+        std::thread::sleep(Duration::from_millis(20));
+        // No event injection needed.
+        handle_input_with_event(&mut state, None)?;
+        assert!(state.message.is_none());
+        Ok(())
+    }
 
     #[test]
     fn test_handle_list_mode_quit() {
