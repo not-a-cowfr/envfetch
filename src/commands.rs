@@ -305,6 +305,27 @@ mod tests {
     }
 
     #[test]
+    fn test_run_command_print_with_config() {
+        init();
+        unsafe { env::set_var("TEST_PRINT_RUN", "test_value") };
+        let mut buffer = vec![];
+        run_command(
+            &Commands::Print(PrintArgs { format: None }),
+            Some(Config {
+                print_format: Some("{name} = {value}".to_owned())
+            }),
+            &mut buffer,
+        );
+        assert!(
+            String::from_utf8(buffer)
+                .unwrap()
+                .contains("TEST_PRINT_RUN = test_value")
+        );
+
+        unsafe { env::remove_var("TEST_PRINT_RUN") };
+    }
+
+    #[test]
     fn test_run_command_print_with_format() {
         init();
         unsafe { env::set_var("TEST_PRINT_RUN", "test_value") };
@@ -1113,6 +1134,29 @@ mod tests {
                 &mut buffer
             ),
             ExitCode::FAILURE
+        );
+    }
+
+    #[test]
+    fn test_run_command_init_config_success() {
+        init();
+        let mut buffer = vec![];
+        let config = Config {
+            print_format: Some("{name}={value}".to_string()),
+        };
+        assert_eq!(
+            run_command(&Commands::InitConfig, Some(config), &mut buffer),
+            ExitCode::SUCCESS
+        );
+    }
+
+    #[test]
+    fn test_run_command_init_config_failure() {
+        init();
+        let mut buffer = vec![];
+        assert_eq!(
+            run_command(&Commands::InitConfig, None, &mut buffer),
+            ExitCode::SUCCESS
         );
     }
 }
