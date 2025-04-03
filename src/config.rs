@@ -128,14 +128,22 @@ mod tests {
     }
 
     #[test]
+    fn test_read_config_parsing_error() {
+        let content = "invalid toml".to_string();
+        let result = read_config(content);
+        assert!(result.is_err());
+        match result.unwrap_err() {
+            ConfigParsingError::ParsingError(_) => {},
+            _ => panic!("Expected ParsingError"),
+        }
+    }
+
+    #[test]
     fn test_init_config() {
         let file = assert_fs::NamedTempFile::new("envfetch.toml").unwrap();
-        let mut buffer = vec![];
-        init_config(file.path().to_path_buf(), &mut buffer).unwrap();
-        assert!(String::from_utf8(buffer).unwrap().contains(&format!(
-            "Successfully initialized config at {}",
-            file.display()
-        )));
+        let mut buffer = FailingWriter;
+        let result = init_config(file.path().to_path_buf(), &mut buffer);
+        assert!(result.is_err());
     }
 
     // Add new test for successful buffer writing
