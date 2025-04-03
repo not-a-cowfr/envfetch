@@ -307,7 +307,7 @@ mod tests {
     #[test]
     fn test_run_command_print_with_config() {
         init();
-        unsafe { env::set_var("TEST_PRINT_RUN", "test_value") };
+        unsafe { env::set_var("TEST_PRINT_RUN_CONFIG", "test_value") };
         let mut buffer = vec![];
         run_command(
             &Commands::Print(PrintArgs { format: None }),
@@ -317,12 +317,12 @@ mod tests {
             &mut buffer,
         );
         assert!(
-            String::from_utf8(buffer)
-                .unwrap()
-                .contains("TEST_PRINT_RUN = test_value")
+            dbg!(String::from_utf8(buffer)
+                .unwrap())
+                .contains("TEST_PRINT_RUN_CONFIG = test_value")
         );
 
-        unsafe { env::remove_var("TEST_PRINT_RUN") };
+        unsafe { env::remove_var("TEST_PRINT_RUN_CONFIG") };
     }
 
     #[test]
