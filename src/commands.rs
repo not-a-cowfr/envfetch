@@ -317,8 +317,8 @@ mod tests {
             &mut buffer,
         );
         assert!(
-            dbg!(String::from_utf8(buffer)
-                .unwrap())
+            String::from_utf8(buffer)
+                .unwrap()
                 .contains("TEST_PRINT_RUN_CONFIG = test_value")
         );
 
