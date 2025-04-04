@@ -25,16 +25,7 @@ use models::{Cli, ConfigParsingError};
 
 fn main() -> ExitCode {
     let cli = Cli::parse();
-    env_logger::builder()
-        .format(|buf, record| {
-            writeln!(
-                buf,
-                "{}: {}",
-                record.level().to_string().to_lowercase(),
-                record.args()
-            )
-        })
-        .init();
+    init_logger();
     let config = read_config_from_file(get_config_file_path());
     let config = match config {
         Ok(config) => Some(config),
@@ -52,10 +43,31 @@ fn main() -> ExitCode {
     run_command(&cli.command, config, stdout())
 }
 
+/// Initialize logger
+fn init_logger() {
+    env_logger::builder()
+        .format(|buf, record| {
+            writeln!(
+                buf,
+                "{}: {}",
+                record.level().to_string().to_lowercase(),
+                record.args()
+            )
+        })
+        .is_test(cfg!(test))
+        .try_init().ok(); // Silently handle reinitialization
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::models::*;
+
+    #[test]
+    fn test_init_logger() {
+        // Just call function
+        init_logger();
+    }
 
     #[test]
     fn test_get_command_without_no_similar_names_flag() {
