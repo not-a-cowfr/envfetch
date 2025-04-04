@@ -24,13 +24,13 @@ impl InteractiveApp {
         B: Backend,
     {
         while !self.state.should_quit {
-            terminal.draw(|f| view::render(&self.state, f))?;
-            // Handle input (this may update scrolling, reload, etc.)
-            controller::handle_input(&mut self.state)?;
             #[cfg(test)]
             {
                 self.state.should_quit = true;
             }
+            terminal.draw(|f| view::render(&self.state, f))?;
+            // Handle input (this may update scrolling, reload, etc.)
+            controller::handle_input(&mut self.state)?;
         }
         Ok(())
     }

@@ -187,11 +187,11 @@ mod tests {
     #[test]
     fn test_draw_list_mode() -> io::Result<()> {
         let backend = TestBackend::new(80, 30);
-        let mut terminal = Terminal::new(backend).unwrap();
         let state = AppState::new(vec![
             ("VAR1".to_string(), "VALUE1".to_string()),
             ("VAR2".to_string(), "VALUE2".to_string()),
         ]);
+        let mut terminal = Terminal::new(backend).unwrap();
         terminal.draw(|f| {
             super::render(&state, f);
         })?;
@@ -201,8 +201,8 @@ mod tests {
     #[test]
     fn test_draw_add_mode() -> io::Result<()> {
         let backend = TestBackend::new(80, 30);
-        let mut terminal = Terminal::new(backend).unwrap();
         let mut state = AppState::new(vec![]);
+        let mut terminal = Terminal::new(backend).unwrap();
         state.mode = Mode::Add;
         state.input_focus = InputFocus::Key;
         state.input_key = "NEW_VAR".to_string();
@@ -216,8 +216,8 @@ mod tests {
     #[test]
     fn test_draw_edit_mode() -> io::Result<()> {
         let backend = TestBackend::new(80, 30);
-        let mut terminal = Terminal::new(backend).unwrap();
         let mut state = AppState::new(vec![("VAR1".to_string(), "VALUE1".to_string())]);
+        let mut terminal = Terminal::new(backend).unwrap();
         state.mode = Mode::Edit("VAR1".to_string());
         state.input_value = "EDITED_VALUE".to_string();
         terminal.draw(|f| {
@@ -229,8 +229,8 @@ mod tests {
     #[test]
     fn test_draw_delete_mode() -> io::Result<()> {
         let backend = TestBackend::new(80, 30);
-        let mut terminal = Terminal::new(backend).unwrap();
         let mut state = AppState::new(vec![("VAR1".to_string(), "VALUE1".to_string())]);
+        let mut terminal = Terminal::new(backend).unwrap();
         state.mode = Mode::Delete("VAR1".to_string());
         terminal.draw(|f| {
             super::render(&state, f);
@@ -241,8 +241,8 @@ mod tests {
     #[test]
     fn test_draw_message() -> io::Result<()> {
         let backend = TestBackend::new(80, 30);
-        let mut terminal = Terminal::new(backend).unwrap();
         let mut state = AppState::new(vec![]);
+        let mut terminal = Terminal::new(backend).unwrap();
         state.show_message("Test message", Duration::from_secs(2));
         terminal.draw(|f| {
             super::render(&state, f);
@@ -253,12 +253,12 @@ mod tests {
     #[test]
     fn test_draw_scrolling() -> io::Result<()> {
         let backend = TestBackend::new(80, 30);
-        let mut terminal = Terminal::new(backend).unwrap();
         let mut state = AppState::new(
             (0..20)
                 .map(|i| (format!("VAR{}", i), format!("VALUE{}", i)))
                 .collect(),
         );
+        let mut terminal = Terminal::new(backend).unwrap();
         state.current_index = 15;
         state.scroll_offset = 10;
         terminal.draw(|f| {
