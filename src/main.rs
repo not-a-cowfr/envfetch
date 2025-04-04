@@ -14,7 +14,7 @@ mod variables;
 use clap::Parser;
 use config::{get_config_file_path, read_config_from_file};
 use std::{
-    io::{Write, stdout},
+    io::stdout,
     process::ExitCode,
 };
 
@@ -49,14 +49,8 @@ fn main() -> ExitCode {
 /// Initialize logger
 fn init_logger() {
     env_logger::builder()
-        .format(|buf, record| {
-            writeln!(
-                buf,
-                "{}: {}",
-                record.level().to_string().to_lowercase(),
-                record.args()
-            )
-        })
+        .filter_level(log::LevelFilter::Warn)
+        .parse_env("ENVFETCH_LOG")
         .is_test(cfg!(test))
         .try_init()
         .ok(); // Silently handle reinitialization
