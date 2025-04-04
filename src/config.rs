@@ -133,7 +133,7 @@ mod tests {
         let result = read_config(content);
         assert!(result.is_err());
         match result.unwrap_err() {
-            ConfigParsingError::ParsingError(_) => {},
+            ConfigParsingError::ParsingError(_) => {}
             _ => panic!("Expected ParsingError"),
         }
     }

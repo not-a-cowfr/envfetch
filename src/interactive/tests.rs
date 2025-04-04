@@ -1,6 +1,9 @@
-use ratatui::{backend::TestBackend, Terminal};
+use ratatui::{Terminal, backend::TestBackend};
 
-use crate::interactive::{state::{AppState, InputFocus, Mode}, InteractiveApp};
+use crate::interactive::{
+    InteractiveApp,
+    state::{AppState, InputFocus, Mode},
+};
 use std::time::Duration;
 
 #[test]
@@ -98,10 +101,10 @@ fn test_interactive_app_creation() {
 fn test_app_quit_state() {
     let mut app = InteractiveApp::new();
     app.state.should_quit = true;
-    
+
     let backend = TestBackend::new(20, 20);
     let mut terminal = Terminal::new(backend).unwrap();
-    
+
     let result = app.run(&mut terminal);
     assert!(result.is_ok());
 }
@@ -117,8 +120,8 @@ fn test_state_initialization() {
 
 #[test]
 fn test_handle_list_mode_quit() {
-    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
     use crate::interactive::controller::handle_list_mode;
+    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
     let mut state = AppState::new(vec![]);
     let key_event = KeyEvent::new(KeyCode::Char('q'), KeyModifiers::CONTROL);
@@ -128,8 +131,8 @@ fn test_handle_list_mode_quit() {
 
 #[test]
 fn test_handle_list_mode_add() {
-    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
     use crate::interactive::controller::handle_list_mode;
+    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
     let mut state = AppState::new(vec![]);
     let key_event = KeyEvent::new(KeyCode::Char('a'), KeyModifiers::empty());
@@ -144,8 +147,8 @@ fn test_handle_list_mode_add() {
 
 #[test]
 fn test_handle_list_mode_edit() {
-    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
     use crate::interactive::controller::handle_list_mode;
+    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
     let mut state = AppState::new(vec![("VAR1".to_string(), "VALUE1".to_string())]);
     let key_event = KeyEvent::new(KeyCode::Char('e'), KeyModifiers::empty());
@@ -157,8 +160,8 @@ fn test_handle_list_mode_edit() {
 
 #[test]
 fn test_handle_list_mode_delete() {
-    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
     use crate::interactive::controller::handle_list_mode;
+    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
     let mut state = AppState::new(vec![("VAR1".to_string(), "VALUE1".to_string())]);
     let key_event = KeyEvent::new(KeyCode::Char('d'), KeyModifiers::empty());
@@ -168,10 +171,13 @@ fn test_handle_list_mode_delete() {
 
 #[test]
 fn test_handle_list_mode_down() {
-    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
     use crate::interactive::controller::handle_list_mode;
+    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
-    let mut state = AppState::new(vec![("VAR1".to_string(), "VALUE1".to_string()), ("VAR2".to_string(), "VALUE2".to_string())]);
+    let mut state = AppState::new(vec![
+        ("VAR1".to_string(), "VALUE1".to_string()),
+        ("VAR2".to_string(), "VALUE2".to_string()),
+    ]);
     let key_event = KeyEvent::new(KeyCode::Down, KeyModifiers::empty());
     handle_list_mode(&mut state, key_event);
     assert_eq!(state.current_index, 1);
@@ -179,10 +185,13 @@ fn test_handle_list_mode_down() {
 
 #[test]
 fn test_handle_list_mode_up() {
-    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
     use crate::interactive::controller::handle_list_mode;
+    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
-    let mut state = AppState::new(vec![("VAR1".to_string(), "VALUE1".to_string()), ("VAR2".to_string(), "VALUE2".to_string())]);
+    let mut state = AppState::new(vec![
+        ("VAR1".to_string(), "VALUE1".to_string()),
+        ("VAR2".to_string(), "VALUE2".to_string()),
+    ]);
     state.current_index = 1;
     let key_event = KeyEvent::new(KeyCode::Up, KeyModifiers::empty());
     handle_list_mode(&mut state, key_event);
@@ -191,8 +200,8 @@ fn test_handle_list_mode_up() {
 
 #[test]
 fn test_handle_list_mode_reload() {
-    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
     use crate::interactive::controller::handle_list_mode;
+    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
     let mut state = AppState::new(vec![]);
     let key_event = KeyEvent::new(KeyCode::Char('r'), KeyModifiers::CONTROL);
@@ -202,8 +211,8 @@ fn test_handle_list_mode_reload() {
 
 #[test]
 fn test_handle_add_mode_enter() {
-    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
     use crate::interactive::controller::handle_add_mode;
+    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
     let mut state = AppState::new(vec![]);
     state.mode = Mode::Add;
@@ -218,8 +227,8 @@ fn test_handle_add_mode_enter() {
 
 #[test]
 fn test_handle_add_mode_enter_empty_key() {
-    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
     use crate::interactive::controller::handle_add_mode;
+    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
     let mut state = AppState::new(vec![]);
     state.mode = Mode::Add;
@@ -234,8 +243,8 @@ fn test_handle_add_mode_enter_empty_key() {
 
 #[test]
 fn test_handle_add_mode_esc() {
-    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
     use crate::interactive::controller::handle_add_mode;
+    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
     let mut state = AppState::new(vec![]);
     state.mode = Mode::Add;
@@ -246,8 +255,8 @@ fn test_handle_add_mode_esc() {
 
 #[test]
 fn test_handle_add_mode_tab() {
-    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
     use crate::interactive::controller::handle_add_mode;
+    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
     let mut state = AppState::new(vec![]);
     state.mode = Mode::Add;
@@ -263,8 +272,8 @@ fn test_handle_add_mode_tab() {
 
 #[test]
 fn test_handle_add_mode_left() {
-    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
     use crate::interactive::controller::handle_add_mode;
+    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
     let mut state = AppState::new(vec![]);
     state.mode = Mode::Add;
@@ -282,8 +291,8 @@ fn test_handle_add_mode_left() {
 
 #[test]
 fn test_handle_add_mode_right() {
-    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
     use crate::interactive::controller::handle_add_mode;
+    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
     let mut state = AppState::new(vec![]);
     state.mode = Mode::Add;
@@ -303,8 +312,8 @@ fn test_handle_add_mode_right() {
 
 #[test]
 fn test_handle_add_mode_backspace() {
-    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
     use crate::interactive::controller::handle_add_mode;
+    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
     let mut state = AppState::new(vec![]);
     state.mode = Mode::Add;
@@ -326,8 +335,8 @@ fn test_handle_add_mode_backspace() {
 
 #[test]
 fn test_handle_add_mode_char() {
-    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
     use crate::interactive::controller::handle_add_mode;
+    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
     let mut state = AppState::new(vec![]);
     state.mode = Mode::Add;
@@ -349,8 +358,8 @@ fn test_handle_add_mode_char() {
 
 #[test]
 fn test_handle_edit_mode_enter() {
-    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
     use crate::interactive::controller::handle_edit_mode;
+    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
     let mut state = AppState::new(vec![("VAR1".to_string(), "OLD".to_string())]);
     state.mode = Mode::Edit("VAR1".to_string());
@@ -363,8 +372,8 @@ fn test_handle_edit_mode_enter() {
 
 #[test]
 fn test_handle_edit_mode_esc() {
-    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
     use crate::interactive::controller::handle_edit_mode;
+    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
     let mut state = AppState::new(vec![("VAR1".to_string(), "OLD".to_string())]);
     state.mode = Mode::Edit("VAR1".to_string());
@@ -375,8 +384,8 @@ fn test_handle_edit_mode_esc() {
 
 #[test]
 fn test_handle_edit_mode_left() {
-    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
     use crate::interactive::controller::handle_edit_mode;
+    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
     let mut state = AppState::new(vec![("VAR1".to_string(), "OLD".to_string())]);
     state.mode = Mode::Edit("VAR1".to_string());
@@ -388,8 +397,8 @@ fn test_handle_edit_mode_left() {
 
 #[test]
 fn test_handle_edit_mode_right() {
-    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
     use crate::interactive::controller::handle_edit_mode;
+    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
     let mut state = AppState::new(vec![("VAR1".to_string(), "OLD".to_string())]);
     state.mode = Mode::Edit("VAR1".to_string());
@@ -402,8 +411,8 @@ fn test_handle_edit_mode_right() {
 
 #[test]
 fn test_handle_edit_mode_backspace() {
-    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
     use crate::interactive::controller::handle_edit_mode;
+    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
     let mut state = AppState::new(vec![("VAR1".to_string(), "OLD".to_string())]);
     state.mode = Mode::Edit("VAR1".to_string());
@@ -417,8 +426,8 @@ fn test_handle_edit_mode_backspace() {
 
 #[test]
 fn test_handle_edit_mode_char() {
-    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
     use crate::interactive::controller::handle_edit_mode;
+    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
     let mut state = AppState::new(vec![("VAR1".to_string(), "OLD".to_string())]);
     state.mode = Mode::Edit("VAR1".to_string());
@@ -432,8 +441,8 @@ fn test_handle_edit_mode_char() {
 
 #[test]
 fn test_handle_delete_mode_yes() {
-    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
     use crate::interactive::controller::handle_delete_mode;
+    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
     let mut state = AppState::new(vec![("VAR1".to_string(), "OLD".to_string())]);
     state.mode = Mode::Delete("VAR1".to_string());
@@ -445,8 +454,8 @@ fn test_handle_delete_mode_yes() {
 
 #[test]
 fn test_handle_delete_mode_no() {
-    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
     use crate::interactive::controller::handle_delete_mode;
+    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
     let mut state = AppState::new(vec![("VAR1".to_string(), "OLD".to_string())]);
     state.mode = Mode::Delete("VAR1".to_string());

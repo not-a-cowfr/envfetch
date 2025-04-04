@@ -312,7 +312,7 @@ mod tests {
         run_command(
             &Commands::Print(PrintArgs { format: None }),
             Some(Config {
-                print_format: Some("{name} = {value}".to_owned())
+                print_format: Some("{name} = {value}".to_owned()),
             }),
             &mut buffer,
         );
@@ -1154,7 +1154,10 @@ mod tests {
     fn test_interactrive_mode() {
         init();
         let mut buffer = vec![];
-        assert_eq!(run_command(&Commands::Interactive, None, &mut buffer), ExitCode::SUCCESS);
+        assert_eq!(
+            run_command(&Commands::Interactive, None, &mut buffer),
+            ExitCode::SUCCESS
+        );
     }
 
     #[test]

@@ -180,7 +180,7 @@ fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ratatui::{backend::TestBackend, Terminal};
+    use ratatui::{Terminal, backend::TestBackend};
     use std::io;
     use std::time::Duration;
 
@@ -188,7 +188,10 @@ mod tests {
     fn test_draw_list_mode() -> io::Result<()> {
         let backend = TestBackend::new(80, 30);
         let mut terminal = Terminal::new(backend).unwrap();
-        let state = AppState::new(vec![("VAR1".to_string(), "VALUE1".to_string()), ("VAR2".to_string(), "VALUE2".to_string())]);
+        let state = AppState::new(vec![
+            ("VAR1".to_string(), "VALUE1".to_string()),
+            ("VAR2".to_string(), "VALUE2".to_string()),
+        ]);
         terminal.draw(|f| {
             super::render(&state, f);
         })?;
@@ -252,7 +255,9 @@ mod tests {
         let backend = TestBackend::new(80, 30);
         let mut terminal = Terminal::new(backend).unwrap();
         let mut state = AppState::new(
-            (0..20).map(|i| (format!("VAR{}", i), format!("VALUE{}", i))).collect()
+            (0..20)
+                .map(|i| (format!("VAR{}", i), format!("VALUE{}", i)))
+                .collect(),
         );
         state.current_index = 15;
         state.scroll_offset = 10;

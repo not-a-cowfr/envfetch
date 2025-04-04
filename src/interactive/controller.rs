@@ -211,15 +211,13 @@ mod tests {
 
     // This test-only function lets us inject a simulated event, covering branches in handle_input.
     pub fn handle_input_with_event(state: &mut AppState, evt: Option<Event>) -> io::Result<()> {
-        if let Some(e) = evt {
-            if let Event::Key(key_event) = e {
-                if key_event.kind == KeyEventKind::Press {
-                    match state.mode.clone() {
-                        Mode::List => handle_list_mode(state, key_event),
-                        Mode::Add => handle_add_mode(state, key_event),
-                        Mode::Edit(_) => handle_edit_mode(state, key_event),
-                        Mode::Delete(_) => handle_delete_mode(state, key_event),
-                    }
+        if let Some(Event::Key(key_event)) = evt {
+            if key_event.kind == KeyEventKind::Press {
+                match state.mode.clone() {
+                    Mode::List => handle_list_mode(state, key_event),
+                    Mode::Add => handle_add_mode(state, key_event),
+                    Mode::Edit(_) => handle_edit_mode(state, key_event),
+                    Mode::Delete(_) => handle_delete_mode(state, key_event),
                 }
             }
         }
@@ -236,10 +234,13 @@ mod tests {
 
     #[test]
     fn test_handle_input_with_event_list_mode() -> io::Result<()> {
-        let mut state = AppState::new(vec![("VAR1".to_string(),"VALUE1".to_string())]);
+        let mut state = AppState::new(vec![("VAR1".to_string(), "VALUE1".to_string())]);
         state.mode = Mode::List;
         // Inject a simulated Ctrl+q key press.
-        let evt = Some(Event::Key(KeyEvent::new(KeyCode::Char('q'), KeyModifiers::CONTROL)));
+        let evt = Some(Event::Key(KeyEvent::new(
+            KeyCode::Char('q'),
+            KeyModifiers::CONTROL,
+        )));
         handle_input_with_event(&mut state, evt)?;
         assert!(state.should_quit);
         Ok(())
@@ -252,7 +253,10 @@ mod tests {
         state.input_key = "A".to_string();
         state.input_value = "B".to_string();
         // Inject a simulated Enter key press.
-        let evt = Some(Event::Key(KeyEvent::new(KeyCode::Enter, KeyModifiers::empty())));
+        let evt = Some(Event::Key(KeyEvent::new(
+            KeyCode::Enter,
+            KeyModifiers::empty(),
+        )));
         handle_input_with_event(&mut state, evt)?;
         // After Enter, a new variable should be added and mode revert to List.
         assert_eq!(state.entries.len(), 1);
@@ -266,7 +270,10 @@ mod tests {
         state.mode = Mode::Edit("A".to_string());
         state.input_value = "NEW".to_string();
         // Inject a simulated Enter key press.
-        let evt = Some(Event::Key(KeyEvent::new(KeyCode::Enter, KeyModifiers::empty())));
+        let evt = Some(Event::Key(KeyEvent::new(
+            KeyCode::Enter,
+            KeyModifiers::empty(),
+        )));
         handle_input_with_event(&mut state, evt)?;
         // Verify that the variable was updated
         assert_eq!(state.entries[0], ("A".to_string(), "NEW".to_string()));
@@ -279,7 +286,10 @@ mod tests {
         let mut state = AppState::new(vec![("A".to_string(), "B".to_string())]);
         state.mode = Mode::Delete("A".to_string());
         // Inject a simulated 'y' press
-        let evt = Some(Event::Key(KeyEvent::new(KeyCode::Char('y'), KeyModifiers::empty())));
+        let evt = Some(Event::Key(KeyEvent::new(
+            KeyCode::Char('y'),
+            KeyModifiers::empty(),
+        )));
         handle_input_with_event(&mut state, evt)?;
         assert!(state.entries.is_empty());
         assert_eq!(state.mode, Mode::List);
@@ -349,7 +359,10 @@ mod tests {
 
     #[test]
     fn test_handle_list_mode_down() {
-        let mut state = AppState::new(vec![("VAR1".to_string(), "VALUE1".to_string()), ("VAR2".to_string(), "VALUE2".to_string())]);
+        let mut state = AppState::new(vec![
+            ("VAR1".to_string(), "VALUE1".to_string()),
+            ("VAR2".to_string(), "VALUE2".to_string()),
+        ]);
         let key_event = KeyEvent::new(KeyCode::Down, KeyModifiers::empty());
         handle_list_mode(&mut state, key_event);
         assert_eq!(state.current_index, 1);
@@ -357,7 +370,10 @@ mod tests {
 
     #[test]
     fn test_handle_list_mode_up() {
-        let mut state = AppState::new(vec![("VAR1".to_string(), "VALUE1".to_string()), ("VAR2".to_string(), "VALUE2".to_string())]);
+        let mut state = AppState::new(vec![
+            ("VAR1".to_string(), "VALUE1".to_string()),
+            ("VAR2".to_string(), "VALUE2".to_string()),
+        ]);
         state.current_index = 1;
         let key_event = KeyEvent::new(KeyCode::Up, KeyModifiers::empty());
         handle_list_mode(&mut state, key_event);
