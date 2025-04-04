@@ -1151,6 +1151,13 @@ mod tests {
     }
 
     #[test]
+    fn test_interactrive_mode() {
+        init();
+        let mut buffer = vec![];
+        assert_eq!(run_command(&Commands::Interactive, None, &mut buffer), ExitCode::SUCCESS);
+    }
+
+    #[test]
     fn test_run_command_init_config_failure() {
         init();
         let mut buffer = vec![];

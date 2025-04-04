@@ -3,6 +3,8 @@ use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifier
 use std::io;
 use std::time::Duration;
 
+// This function is used in interactive.rs, so disable this useless warning
+#[allow(dead_code)]
 pub fn handle_input(state: &mut AppState) -> io::Result<()> {
     if event::poll(Duration::from_millis(100))? {
         if let Event::Key(key_event) = event::read()? {
