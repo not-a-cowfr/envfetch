@@ -60,7 +60,7 @@ fn get_variable_doesnt_exists() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin("envfetch")?;
     cmd.arg("get").arg("MY_VARIABLE");
     cmd.assert().failure().stderr(predicate::str::contains(
-        "error: Can't find variable: MY_VARIABLE",
+        "Can't find variable: MY_VARIABLE",
     ));
     Ok(())
 }
@@ -74,7 +74,7 @@ fn get_variable_doesnt_exists_similar_enabled() -> Result<(), Box<dyn std::error
     cmd.assert()
         .failure()
         .stderr(predicate::str::contains(
-            "error: Can't find variable: MY_VARIABLE",
+            "Can't find variable: MY_VARIABLE",
         ))
         .stdout(predicate::str::contains("Did you mean:"))
         .stdout(predicate::str::contains("MY_VARIABLEE"));

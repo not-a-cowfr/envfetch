@@ -50,6 +50,7 @@ fn main() -> ExitCode {
 fn init_logger() {
     env_logger::builder()
         .filter_level(log::LevelFilter::Warn)
+        .format_timestamp(None)
         .parse_env("ENVFETCH_LOG")
         .is_test(cfg!(test))
         .try_init()
