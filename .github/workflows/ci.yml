@@ -143,13 +143,14 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
-      - name: Install cargo2junit
-        if: steps.bin-cache.outputs.cache-hit != 'true'
-        run: cargo install cargo2junit
-      - name: Generaete junit test file
-        run: RUSTC_BOOTSTRAP=1 cargo test -- -Z unstable-options --format json --report-time | cargo2junit > junit.xml
-      - name: Upload test results to Codecov
-        if: ${{ !cancelled() }}
-        uses: codecov/test-results-action@v1
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
+      # This step is temporary disabled (see https://github.com/ankddev/envfetch/issues/52 for more information)
+      # - name: Install cargo2junit
+      #   if: steps.bin-cache.outputs.cache-hit != 'true'
+      #   run: cargo install cargo2junit
+      # - name: Generaete junit test file
+      #   run: RUSTC_BOOTSTRAP=1 cargo test -- -Z unstable-options --format json --report-time | cargo2junit > junit.xml
+      # - name: Upload test results to Codecov
+      #   if: ${{ !cancelled() }}
+      #   uses: codecov/test-results-action@v1
+      #   with:
+      #     token: ${{ secrets.CODECOV_TOKEN }}
