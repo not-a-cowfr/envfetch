@@ -84,7 +84,11 @@ pub fn run_command<W: Write>(
             }
         }
         Commands::Interactive => {
+            #[cfg(not(test))]
             let mut terminal = ratatui::init();
+            #[cfg(test)]
+            let mut terminal = ratatui::Terminal::new(ratatui::backend::TestBackend::new(100, 100))
+                .expect("Failed to create TestBackend terminal");
             let result = InteractiveApp::new().run(&mut terminal);
             ratatui::restore();
             if let Err(error) = result {
