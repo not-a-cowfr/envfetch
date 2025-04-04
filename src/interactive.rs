@@ -19,7 +19,6 @@ impl InteractiveApp {
         }
     }
 
-    #[cfg(not(test))]
     pub fn run<B>(&mut self, terminal: &mut Terminal<B>) -> io::Result<()>
     where
         B: Backend,
@@ -28,15 +27,11 @@ impl InteractiveApp {
             terminal.draw(|f| view::render(&self.state, f))?;
             // Handle input (this may update scrolling, reload, etc.)
             controller::handle_input(&mut self.state)?;
+            #[cfg(test)]
+            {
+                self.state.should_quit = true;
+            }
         }
-        Ok(())
-    }
-
-    #[cfg(test)]
-    pub fn run<B>(&mut self, _: &mut Terminal<B>) -> io::Result<()>
-    where
-        B: Backend,
-    {
         Ok(())
     }
 }
