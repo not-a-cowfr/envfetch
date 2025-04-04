@@ -18,7 +18,7 @@ use std::{
     process::ExitCode,
 };
 
-use log::error;
+use log::{error, info};
 
 use commands::run_command;
 use models::{Cli, ConfigParsingError};
@@ -29,7 +29,10 @@ fn main() -> ExitCode {
     let config = read_config_from_file(get_config_file_path());
     let config = match config {
         Ok(config) => Some(config),
-        Err(ConfigParsingError::FileDoesntExists) => None,
+        Err(ConfigParsingError::FileDoesntExists) => {
+            info!("Config file doesn't exists");
+            None
+        },
         Err(ConfigParsingError::FSError(err)) => {
             error!("Failed to read config: {}", err);
             return ExitCode::FAILURE;

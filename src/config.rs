@@ -5,6 +5,7 @@ use std::{
 };
 
 use dirs::config_dir;
+use log::info;
 
 use crate::models::{Config, ConfigParsingError};
 
@@ -20,6 +21,7 @@ pub fn get_config_file_path() -> PathBuf {
 
 /// Read config file
 pub fn read_config_from_file(path: PathBuf) -> Result<Config, ConfigParsingError> {
+    info!("Reading config at {}", path.display());
     if !path.exists() {
         return Err(ConfigParsingError::FileDoesntExists);
     }
@@ -59,7 +61,6 @@ mod tests {
     use assert_fs::prelude::*;
     use dirs::config_dir;
 
-    // Add new struct for testing write failures
     struct FailingWriter;
 
     impl Write for FailingWriter {
