@@ -32,7 +32,7 @@ fn main() -> ExitCode {
         Err(ConfigParsingError::FileDoesntExists) => {
             info!("Config file doesn't exists");
             None
-        },
+        }
         Err(ConfigParsingError::FSError(err)) => {
             error!("Failed to read config: {}", err);
             return ExitCode::FAILURE;
@@ -58,7 +58,8 @@ fn init_logger() {
             )
         })
         .is_test(cfg!(test))
-        .try_init().ok(); // Silently handle reinitialization
+        .try_init()
+        .ok(); // Silently handle reinitialization
 }
 
 #[cfg(test)]
