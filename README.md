@@ -30,7 +30,7 @@
 ## Installing
 
 <a href="https://repology.org/project/envfetch/versions">
-    <img src="https://repology.org/badge/vertical-allrepos/envfetch.svg?minversion=2.0.0" alt="Packaging status">
+    <img src="https://repology.org/badge/vertical-allrepos/envfetch.svg?minversion=2.1.0" alt="Packaging status">
 </a>
 
 Read about installing `envfetch` in the [Wiki](https://github.com/ankddev/envfetch/wiki/2.-Installation).
