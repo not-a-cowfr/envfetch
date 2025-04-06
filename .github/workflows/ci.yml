@@ -109,6 +109,23 @@ jobs:
         run: cargo build --verbose --locked
       - name: Run tests
         run: cargo test --verbose
+  vhs:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: charmbracelet/vhs-action@v1
+        with:
+          path: "assets/envfetch.tape"
+      - uses: stefanzweifel/git-auto-commit-action@v4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          commit_message: Update generated VHS GIF
+          branch: main
+          commit_user_name: vhs-action 📼
+          commit_user_email: actions@github.com
+          commit_author: vhs-action 📼 <actions@github.com>
+          file_pattern: "*.gif"
   coverage:
     runs-on: ubuntu-latest
 

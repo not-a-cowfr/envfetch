@@ -1,0 +1,33 @@
+name: comment gif
+on:
+  pull_request:
+
+jobs:
+  pr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: charmbracelet/vhs-action@v1
+        with:
+          path: "assets/envfetch.tape"
+
+      - name: Upload GIF to PR
+        id: upload-pr-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.pull_request.comments_url }}
+          asset_path: ./envfetch.gif
+          asset_name: envfetch.gif
+          asset_content_type: image/gif
+
+      - name: Comment on PR with direct link
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          message: |
+            ## VHS Animation
+
+            ![VHS Animation](https://github.com/${{ github.repository }}/blob/${{ github.sha }}/envfetch.gif?raw=true)
