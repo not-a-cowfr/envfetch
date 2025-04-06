@@ -22,8 +22,7 @@
 - [x] Load variables from dotenv-style file (temporary and permanent)
 - [x] Add string to the end of variable (temporary and permanent)
 - [ ] Set and delete multiple variables at once
-- [ ] Interactive mode
-  - [x] Basic support
+- [x] Interactive mode
 - [ ] Export variables
 - [x] Configuration support
 # Get started
