@@ -1,6 +1,6 @@
-use std::process::{Command, ExitStatus};
 #[cfg(test)]
 use std::process::Stdio;
+use std::process::{Command, ExitStatus};
 
 use crate::models::ErrorKind;
 use log::{error, info};
@@ -23,10 +23,15 @@ pub fn run(process: String) -> Result<ExitStatus, ErrorKind> {
     cmd.arg(shell_arg).arg(process);
 
     #[cfg(test)]
-    cmd.stderr(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::null());
+    cmd.stderr(Stdio::null())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null());
     match cmd.status() {
         Ok(code) => {
-            info!("process exited with exit code {}", code.code().unwrap_or_default());
+            info!(
+                "process exited with exit code {}",
+                code.code().unwrap_or_default()
+            );
             Ok(code)
         }
         Err(err) => {

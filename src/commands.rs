@@ -60,50 +60,50 @@ pub fn run_command<W: Write>(
             };
             print_env(opt, buffer)
         }
-        Commands::Load(opt) => {
-            match load(opt) {
-                Ok(code) => if let Some(exit_code) = code {
+        Commands::Load(opt) => match load(opt) {
+            Ok(code) => {
+                if let Some(exit_code) = code {
                     return ExitCode::from(exit_code.code().unwrap_or_default() as u8);
                 }
-                Err(error) => {
-                    error!("{}", error);
-                    return ExitCode::FAILURE;
-                }
             }
-        }
-        Commands::Set(opt) => {
-            match set(opt) {
-                Ok(code) => if let Some(exit_code) = code {
+            Err(error) => {
+                error!("{}", error);
+                return ExitCode::FAILURE;
+            }
+        },
+        Commands::Set(opt) => match set(opt) {
+            Ok(code) => {
+                if let Some(exit_code) = code {
                     return ExitCode::from(exit_code.code().unwrap_or_default() as u8);
                 }
-                Err(error) => {
-                    error!("{}", error);
-                    return ExitCode::FAILURE;
-                }
             }
-        }
-        Commands::Add(opt) => {
-            match add(opt) {
-                Ok(code) => if let Some(exit_code) = code {
+            Err(error) => {
+                error!("{}", error);
+                return ExitCode::FAILURE;
+            }
+        },
+        Commands::Add(opt) => match add(opt) {
+            Ok(code) => {
+                if let Some(exit_code) = code {
                     return ExitCode::from(exit_code.code().unwrap_or_default() as u8);
                 }
-                Err(error) => {
-                    error!("{}", error);
-                    return ExitCode::FAILURE;
-                }
             }
-        }
-        Commands::Delete(opt) => {
-            match delete(opt) {
-                Ok(code) => if let Some(exit_code) = code {
+            Err(error) => {
+                error!("{}", error);
+                return ExitCode::FAILURE;
+            }
+        },
+        Commands::Delete(opt) => match delete(opt) {
+            Ok(code) => {
+                if let Some(exit_code) = code {
                     return ExitCode::from(exit_code.code().unwrap_or_default() as u8);
                 }
-                Err(error) => {
-                    error!("{}", error);
-                    return ExitCode::FAILURE;
-                }
             }
-        }
+            Err(error) => {
+                error!("{}", error);
+                return ExitCode::FAILURE;
+            }
+        },
         Commands::Interactive => {
             #[cfg(not(test))]
             let mut terminal = ratatui::init();
@@ -145,7 +145,7 @@ pub fn load(args: &LoadArgs) -> Result<Option<ExitStatus>, ErrorKind> {
                         },
                     )?;
                     if let Some(process) = args.process.clone() {
-                        return run(process).map(|val| Some(val));
+                        return run(process).map(Some);
                     }
                 }
                 Err(err) => {
@@ -183,7 +183,7 @@ pub fn set(args: &SetArgs) -> Result<Option<ExitStatus>, ErrorKind> {
     variables::set_variable(&args.key, &args.value, args.global)?;
     let process = args.process.clone();
     if let Some(process) = process {
-        return run(process).map(|val| Some(val));
+        return run(process).map(Some);
     }
     Ok(None)
 }
@@ -205,7 +205,7 @@ pub fn add(args: &AddArgs) -> Result<Option<ExitStatus>, ErrorKind> {
     )?;
     let process = args.process.clone();
     if let Some(process) = process {
-        return run(process).map(|val| Some(val));
+        return run(process).map(Some);
     }
     Ok(None)
 }
@@ -224,7 +224,7 @@ pub fn delete(args: &DeleteArgs) -> Result<Option<ExitStatus>, ErrorKind> {
         }
     }
     if let Some(process) = args.process.clone() {
-        return run(process).map(|val| Some(val));
+        return run(process).map(Some);
     }
     Ok(None)
 }
@@ -777,7 +777,7 @@ mod tests {
     fn test_delete_with_process() {
         init();
         unsafe { env::set_var("TEST_DELETE_PROCESS", "test_value") };
-        
+
         #[cfg(windows)]
         let test_cmd = "echo test";
         #[cfg(not(windows))]

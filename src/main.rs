@@ -13,10 +13,7 @@ mod variables;
 
 use clap::Parser;
 use config::{get_config_file_path, read_config_from_file};
-use std::{
-    io::stdout,
-    process::ExitCode,
-};
+use std::{io::stdout, process::ExitCode};
 
 use log::{error, info};
 

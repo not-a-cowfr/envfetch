@@ -19,11 +19,7 @@ pub fn get_variables() -> VariablesList {
 }
 
 /// Set variable with given key and value
-pub fn set_variable(
-    key: &str,
-    value: &str,
-    global: bool
-) -> Result<(), ErrorKind> {
+pub fn set_variable(key: &str, value: &str, global: bool) -> Result<(), ErrorKind> {
     if global {
         if let Err(err) = globalenv::set_var(key, value) {
             return Err(ErrorKind::CannotSetVariableGlobally(err.to_string()));
