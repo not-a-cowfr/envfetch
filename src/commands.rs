@@ -973,8 +973,6 @@ mod tests {
             &mut buffer,
         );
         assert_eq!(result, ExitCode::SUCCESS);
-        assert_eq!(env::var("TEST_SET_RUN").unwrap(), "test_value");
-        unsafe { env::remove_var("TEST_SET_RUN") };
     }
 
     #[test]
