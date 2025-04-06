@@ -3,6 +3,7 @@ use log::warn;
 use rayon::prelude::*;
 use std::io::Write;
 use std::process::ExitCode;
+use std::process::ExitStatus;
 use std::{env, fs};
 
 use crate::config;
@@ -60,27 +61,47 @@ pub fn run_command<W: Write>(
             print_env(opt, buffer)
         }
         Commands::Load(opt) => {
-            if let Err(error) = load(opt) {
-                error!("{}", error);
-                return ExitCode::FAILURE;
+            match load(opt) {
+                Ok(code) => if let Some(exit_code) = code {
+                    return ExitCode::from(exit_code.code().unwrap_or_default() as u8);
+                }
+                Err(error) => {
+                    error!("{}", error);
+                    return ExitCode::FAILURE;
+                }
             }
         }
         Commands::Set(opt) => {
-            if let Err(error) = set(opt) {
-                error!("{}", error);
-                return ExitCode::FAILURE;
+            match set(opt) {
+                Ok(code) => if let Some(exit_code) = code {
+                    return ExitCode::from(exit_code.code().unwrap_or_default() as u8);
+                }
+                Err(error) => {
+                    error!("{}", error);
+                    return ExitCode::FAILURE;
+                }
             }
         }
         Commands::Add(opt) => {
-            if let Err(error) = add(opt) {
-                error!("{}", error);
-                return ExitCode::FAILURE;
+            match add(opt) {
+                Ok(code) => if let Some(exit_code) = code {
+                    return ExitCode::from(exit_code.code().unwrap_or_default() as u8);
+                }
+                Err(error) => {
+                    error!("{}", error);
+                    return ExitCode::FAILURE;
+                }
             }
         }
         Commands::Delete(opt) => {
-            if let Err(error) = delete(opt) {
-                error!("{}", error);
-                return ExitCode::FAILURE;
+            match delete(opt) {
+                Ok(code) => if let Some(exit_code) = code {
+                    return ExitCode::from(exit_code.code().unwrap_or_default() as u8);
+                }
+                Err(error) => {
+                    error!("{}", error);
+                    return ExitCode::FAILURE;
+                }
             }
         }
         Commands::Interactive => {
@@ -111,7 +132,7 @@ pub fn print_env<W: Write>(opt: &PrintArgs, buffer: W) {
 }
 
 /// Load variables from dotenv-style file
-pub fn load(args: &LoadArgs) -> Result<(), ErrorKind> {
+pub fn load(args: &LoadArgs) -> Result<Option<ExitStatus>, ErrorKind> {
     // Try to read file
     match fs::read_to_string(&args.file) {
         Ok(content) => {
@@ -120,11 +141,11 @@ pub fn load(args: &LoadArgs) -> Result<(), ErrorKind> {
                 Ok(variables) => {
                     variables.into_par_iter().try_for_each(
                         |(key, value)| -> Result<(), ErrorKind> {
-                            variables::set_variable(&key, &value, args.global, args.process.clone())
+                            variables::set_variable(&key, &value, args.global)
                         },
                     )?;
                     if let Some(process) = args.process.clone() {
-                        return run(process, false);
+                        return run(process).map(|val| Some(val));
                     }
                 }
                 Err(err) => {
@@ -136,7 +157,7 @@ pub fn load(args: &LoadArgs) -> Result<(), ErrorKind> {
             return Err(ErrorKind::FileError(err.to_string()));
         }
     }
-    Ok(())
+    Ok(None)
 }
 
 /// Get value of variable
@@ -156,15 +177,19 @@ pub fn get<W: Write>(args: &GetArgs, mut buffer: W) -> Result<(), ErrorKind> {
 }
 
 /// Set value to environment variable
-pub fn set(args: &SetArgs) -> Result<(), ErrorKind> {
+pub fn set(args: &SetArgs) -> Result<Option<ExitStatus>, ErrorKind> {
     validate_var_name(&args.key).map_err(ErrorKind::NameValidationError)?;
 
-    variables::set_variable(&args.key, &args.value, args.global, args.process.clone())?;
-    Ok(())
+    variables::set_variable(&args.key, &args.value, args.global)?;
+    let process = args.process.clone();
+    if let Some(process) = process {
+        return run(process).map(|val| Some(val));
+    }
+    Ok(None)
 }
 
 /// Add value to environment variable
-pub fn add(args: &AddArgs) -> Result<(), ErrorKind> {
+pub fn add(args: &AddArgs) -> Result<Option<ExitStatus>, ErrorKind> {
     validate_var_name(&args.key).map_err(ErrorKind::NameValidationError)?;
 
     let current_value = if let Ok(value) = env::var(&args.key) {
@@ -177,13 +202,16 @@ pub fn add(args: &AddArgs) -> Result<(), ErrorKind> {
         &args.key,
         &format!("{}{}", current_value, args.value),
         args.global,
-        args.process.clone(),
     )?;
-    Ok(())
+    let process = args.process.clone();
+    if let Some(process) = process {
+        return run(process).map(|val| Some(val));
+    }
+    Ok(None)
 }
 
 /// Delete environment variable
-pub fn delete(args: &DeleteArgs) -> Result<(), ErrorKind> {
+pub fn delete(args: &DeleteArgs) -> Result<Option<ExitStatus>, ErrorKind> {
     validate_var_name(&args.key).map_err(ErrorKind::NameValidationError)?;
 
     // Check if variable exists
@@ -196,9 +224,9 @@ pub fn delete(args: &DeleteArgs) -> Result<(), ErrorKind> {
         }
     }
     if let Some(process) = args.process.clone() {
-        return run(process, false);
+        return run(process).map(|val| Some(val));
     }
-    Ok(())
+    Ok(None)
 }
 
 #[cfg(test)]
@@ -572,16 +600,22 @@ mod tests {
 
     #[test]
     fn test_set_with_process() {
+        init();
+        #[cfg(windows)]
+        let test_cmd = "echo test";
+        #[cfg(not(windows))]
+        let test_cmd = "echo test";
+
         let args = SetArgs {
             key: "TEST_PROCESS_VAR".to_string(),
             value: "test_value".to_string(),
             global: false,
-            process: Some("echo test".to_string()),
+            process: Some(test_cmd.to_string()),
         };
 
         let result = set(&args);
-        assert!(result.is_ok());
-
+        assert!(result.is_ok(), "Expected Ok result, got {:?}", result);
+        assert_eq!(env::var("TEST_PROCESS_VAR").unwrap(), "test_value");
         unsafe { env::remove_var("TEST_PROCESS_VAR") };
     }
 
@@ -673,16 +707,22 @@ mod tests {
 
     #[test]
     fn test_add_with_process() {
+        init();
+        #[cfg(windows)]
+        let test_cmd = "echo test";
+        #[cfg(not(windows))]
+        let test_cmd = "echo test";
+
         let args = AddArgs {
             key: "TEST_ADD_PROCESS".to_string(),
             value: "_value".to_string(),
             global: false,
-            process: Some("echo test".to_string()),
+            process: Some(test_cmd.to_string()),
         };
 
         unsafe { env::set_var("TEST_ADD_PROCESS", "initial") };
         let result = add(&args);
-        assert!(result.is_ok());
+        assert!(result.is_ok(), "Expected Ok result, got {:?}", result);
         assert_eq!(env::var("TEST_ADD_PROCESS").unwrap(), "initial_value");
         unsafe { env::remove_var("TEST_ADD_PROCESS") };
     }
@@ -735,16 +775,22 @@ mod tests {
 
     #[test]
     fn test_delete_with_process() {
+        init();
         unsafe { env::set_var("TEST_DELETE_PROCESS", "test_value") };
+        
+        #[cfg(windows)]
+        let test_cmd = "echo test";
+        #[cfg(not(windows))]
+        let test_cmd = "echo test";
 
         let args = DeleteArgs {
             key: "TEST_DELETE_PROCESS".to_string(),
             global: false,
-            process: Some("echo test".to_string()),
+            process: Some(test_cmd.to_string()),
         };
 
         let result = delete(&args);
-        assert!(result.is_ok());
+        assert!(result.is_ok(), "Expected Ok result, got {:?}", result);
         assert!(env::var("TEST_DELETE_PROCESS").is_err());
     }
 
@@ -910,22 +956,25 @@ mod tests {
     #[test]
     fn test_run_command_set_with_process() {
         init();
+        #[cfg(windows)]
+        let test_cmd = "echo test";
+        #[cfg(not(windows))]
+        let test_cmd = "echo test";
+
         let mut buffer = vec![];
-        assert_eq!(
-            run_command(
-                &Commands::Set(SetArgs {
-                    key: "TEST_SET_PROC".to_string(),
-                    value: "test_value".to_string(),
-                    global: false,
-                    process: Some("echo test".to_string()),
-                }),
-                None,
-                &mut buffer
-            ),
-            ExitCode::SUCCESS
+        let result = run_command(
+            &Commands::Set(SetArgs {
+                key: "TEST_SET_RUN".to_string(),
+                value: "test_value".to_string(),
+                global: false,
+                process: Some(test_cmd.to_string()),
+            }),
+            None,
+            &mut buffer,
         );
-        assert_eq!(env::var("TEST_SET_PROC").unwrap(), "test_value");
-        unsafe { env::remove_var("TEST_SET_PROC") };
+        assert_eq!(result, ExitCode::SUCCESS);
+        assert_eq!(env::var("TEST_SET_RUN").unwrap(), "test_value");
+        unsafe { env::remove_var("TEST_SET_RUN") };
     }
 
     #[test]
@@ -1030,19 +1079,22 @@ mod tests {
         let mut temp_file = tempfile::NamedTempFile::new().unwrap();
         writeln!(temp_file, "TEST_LOAD_PROC=test_value").unwrap();
 
+        #[cfg(windows)]
+        let test_cmd = "echo test";
+        #[cfg(not(windows))]
+        let test_cmd = "echo test";
+
         let mut buffer = vec![];
-        assert_eq!(
-            run_command(
-                &Commands::Load(LoadArgs {
-                    file: temp_file.path().to_string_lossy().to_string(),
-                    global: false,
-                    process: Some("echo test".to_string()),
-                }),
-                None,
-                &mut buffer
-            ),
-            ExitCode::SUCCESS
+        let result = run_command(
+            &Commands::Load(LoadArgs {
+                file: temp_file.path().to_string_lossy().to_string(),
+                global: false,
+                process: Some(test_cmd.to_string()),
+            }),
+            None,
+            &mut buffer,
         );
+        assert_eq!(result, ExitCode::SUCCESS);
         assert_eq!(env::var("TEST_LOAD_PROC").unwrap(), "test_value");
         unsafe { env::remove_var("TEST_LOAD_PROC") };
     }

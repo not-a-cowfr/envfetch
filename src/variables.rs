@@ -1,6 +1,6 @@
 use std::{env, io::Write};
 
-use crate::{models::ErrorKind, utils::*};
+use crate::models::ErrorKind;
 
 /// List of variables
 type VariablesList = Vec<(String, String)>;
@@ -22,8 +22,7 @@ pub fn get_variables() -> VariablesList {
 pub fn set_variable(
     key: &str,
     value: &str,
-    global: bool,
-    process: Option<String>,
+    global: bool
 ) -> Result<(), ErrorKind> {
     if global {
         if let Err(err) = globalenv::set_var(key, value) {
@@ -31,10 +30,6 @@ pub fn set_variable(
         }
     } else {
         unsafe { env::set_var(key, value) };
-    }
-
-    if let Some(process) = process {
-        return run(process, false);
     }
     Ok(())
 }
@@ -66,23 +61,10 @@ mod tests {
 
     #[test]
     fn test_set_variable_simple() {
-        let result = set_variable("TEST_VAR", "test_value", false, None);
+        let result = set_variable("TEST_VAR", "test_value", false);
         assert!(result.is_ok());
         assert_eq!(env::var("TEST_VAR").unwrap(), "test_value");
         unsafe { env::remove_var("TEST_VAR") };
-    }
-
-    #[test]
-    fn test_set_variable_with_process() {
-        #[cfg(windows)]
-        let cmd = "cmd /C echo test";
-        #[cfg(not(windows))]
-        let cmd = "echo test";
-
-        let result = set_variable("TEST_PROC_VAR", "test_value", false, Some(cmd.to_string()));
-        assert!(result.is_ok());
-        assert_eq!(env::var("TEST_PROC_VAR").unwrap(), "test_value");
-        unsafe { env::remove_var("TEST_PROC_VAR") };
     }
 
     #[test]
@@ -99,26 +81,6 @@ mod tests {
     }
 
     #[test]
-    fn test_set_variable_invalid_process() {
-        let result = set_variable(
-            "TEST_INVALID_PROC",
-            "test_value",
-            false,
-            Some("nonexistent_command".to_string()),
-        );
-
-        // Check that the operation failed
-        assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), ErrorKind::ProcessFailed));
-
-        // Check that the variable is still set despite process failure
-        assert_eq!(env::var("TEST_INVALID_PROC").unwrap(), "test_value");
-
-        // Cleanup
-        unsafe { env::remove_var("TEST_INVALID_PROC") };
-    }
-
-    #[test]
     fn test_delete_variable() {
         unsafe { env::set_var("TEST_DELETE_VAR", "test_value") };
         let result = delete_variable("TEST_DELETE_VAR".to_string(), false);
@@ -128,7 +90,7 @@ mod tests {
 
     #[test]
     fn test_set_variable_empty_value() {
-        let result = set_variable("TEST_EMPTY_VAR", "", false, None);
+        let result = set_variable("TEST_EMPTY_VAR", "", false);
         assert!(result.is_ok());
         assert_eq!(env::var("TEST_EMPTY_VAR").unwrap(), "");
         unsafe { env::remove_var("TEST_EMPTY_VAR") };
@@ -190,7 +152,7 @@ mod tests {
 
     #[test]
     fn test_set_variable_global() {
-        let result = set_variable("TEST_GLOBAL_VAR", "test_value", true, None);
+        let result = set_variable("TEST_GLOBAL_VAR", "test_value", true);
         match result {
             Ok(_) => {
                 assert_eq!(env::var("TEST_GLOBAL_VAR").unwrap(), "test_value");
@@ -204,34 +166,9 @@ mod tests {
     }
 
     #[test]
-    fn test_set_variable_global_with_process() {
-        #[cfg(windows)]
-        let cmd = "cmd /C echo test";
-        #[cfg(not(windows))]
-        let cmd = "echo test";
-
-        let result = set_variable(
-            "TEST_GLOBAL_PROC",
-            "test_value",
-            true,
-            Some(cmd.to_string()),
-        );
-        match result {
-            Ok(_) => {
-                assert_eq!(env::var("TEST_GLOBAL_PROC").unwrap(), "test_value");
-                delete_variable("TEST_GLOBAL_PROC".to_string(), true).unwrap();
-            }
-            Err(ErrorKind::CannotSetVariableGlobally(_)) => {
-                // Test passes if we get permission error on non-admin run
-            }
-            Err(e) => panic!("Unexpected error: {:?}", e),
-        }
-    }
-
-    #[test]
     fn test_delete_variable_global() {
         // First try to set a global variable
-        let set_result = set_variable("TEST_GLOBAL_DELETE", "test_value", true, None);
+        let set_result = set_variable("TEST_GLOBAL_DELETE", "test_value", true);
 
         // Only test deletion if we could set the variable (i.e., we have admin rights)
         if set_result.is_ok() {

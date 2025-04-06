@@ -1,0 +1,2 @@
+[test]
+test-threads = 1  # Run tests sequentially by default

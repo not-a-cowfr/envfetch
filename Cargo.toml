@@ -16,8 +16,6 @@ clap = { version = "4.5.35", features = ["derive"] }
 colored = "3.0.0"
 # Checking similarity of strings
 similar-string = "1.4.3"
-# Running external proccesses
-subprocess = "0.2.9"
 # Parsing dotenv-style files
 dotenv-parser = "0.1.3"
 # Globally setting variables
