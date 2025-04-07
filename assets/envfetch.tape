@@ -61,7 +61,8 @@
 #   Hide                            Hide the subsequent commands from the output
 #   Show                            Show the subsequent commands in the output
 
-Output envfetch.gif
+Output assets/envfetch.gif
+Output assets/envfetch.ascii
 
 Require envfetch
 
