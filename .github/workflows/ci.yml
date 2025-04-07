@@ -110,7 +110,7 @@ jobs:
       - name: Run tests
         run: cargo test --verbose
   vhs:
-    runs-on: macos-latest
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v3
       - uses: charmbracelet/vhs-action@v1

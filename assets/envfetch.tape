@@ -65,30 +65,30 @@ Output envfetch.gif
 
 Require envfetch
 
-Set TypingSpeed 400ms
+Set TypingSpeed 150ms
 Set FontSize 32
 Set Width 2400
 Set Height 1200
 
 # Basic set
 Type "envfetch set MY_VAR_TEST 'Hello for everyone!' -- echo hello" Sleep 500ms  Enter
-Sleep 500ms
+#Sleep 500ms
 Type "envfetch get MY_VAR_TEST" Sleep 500ms  Enter
-Sleep 500ms
+#Sleep 500ms
 # Global set
 Type "envfetch set MY_VAR_TEST 'Hello for everyone!' --global" Sleep 500ms  Enter
-Sleep 500ms
+#Sleep 500ms
 # Get with wrong name
 Type "envfetch get MY_VAR_TESTT" Sleep 500ms  Enter
-Sleep 500ms
+#Sleep 500ms
 # Get with normal name
 Type "envfetch get MY_VAR_TEST" Sleep 500ms  Enter
-Sleep 500ms
+#Sleep 500ms
 # Add globally
 Type "envfetch add MY_VAR_TEST ! --global" Sleep 500ms  Enter
-Sleep 500ms
+#Sleep 500ms
 # Remove globally
 Type "envfetch delete MY_VAR_TEST --global" Sleep 500ms  Enter
-Sleep 500ms
+#Sleep 500ms
 
 Sleep 5s

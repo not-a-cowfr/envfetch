@@ -1,4 +1,5 @@
 use crate::interactive::state::{AppState, InputFocus, Mode};
+use crate::variables;
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 use std::io;
 use std::time::Duration;
@@ -84,11 +85,16 @@ pub fn handle_add_mode(state: &mut AppState, key: KeyEvent) {
     match key.code {
         KeyCode::Enter => {
             if !state.input_key.trim().is_empty() {
-                state.entries.push((
-                    state.input_key.trim().to_string(),
-                    state.input_value.trim().to_string(),
-                ));
-                state.show_message("Variable added", Duration::from_secs(2));
+                match variables::set_variable(state.input_key.trim(), state.input_value.trim(), true) {
+                    Err(err) => state.show_message(&format!("Failed to add variable: {}", err), Duration::from_secs(2)),
+                    Ok(_) => {
+                        state.entries.push((
+                            state.input_key.trim().to_string(),
+                            state.input_value.trim().to_string(),
+                        ));
+                        state.show_message("Variable added", Duration::from_secs(2));
+                    }
+                }
                 state.mode = Mode::List;
             } else {
                 state.show_message("Key cannot be empty", Duration::from_secs(2));
@@ -158,8 +164,13 @@ pub fn handle_edit_mode(state: &mut AppState, key: KeyEvent) {
         KeyCode::Enter => {
             if let Mode::Edit(ref key_name) = state.mode {
                 if let Some(entry) = state.entries.iter_mut().find(|(k, _)| k == key_name) {
-                    entry.1 = state.input_value.trim().to_string();
-                    state.show_message("Variable updated", Duration::from_secs(2));
+                    match variables::set_variable(key_name, state.input_value.trim(), true) {
+                        Err(err) => state.show_message(&format!("Failed to update variable: {}", err), Duration::from_secs(2)),
+                        Ok(_) => {
+                            entry.1 = state.input_value.trim().to_string();
+                            state.show_message("Variable updated", Duration::from_secs(2))
+                        }
+                    }
                 }
                 state.mode = Mode::List;
             }
@@ -193,8 +204,13 @@ pub fn handle_delete_mode(state: &mut AppState, key: KeyEvent) {
     match key.code {
         KeyCode::Char('y') => {
             if let Mode::Delete(ref key_name) = state.mode {
-                state.entries.retain(|(k, _)| k != key_name);
-                state.show_message("Variable deleted", Duration::from_secs(2));
+                match variables::delete_variable(key_name.to_owned(), true) {
+                    Err(err) => state.show_message(&format!("Failed to delete variable: {}", err), Duration::from_secs(2)),
+                    Ok(_) => {
+                        state.entries.retain(|(k, _)| k != key_name);
+                        state.show_message("Variable deleted", Duration::from_secs(2))
+                    }
+                }
             }
             state.mode = Mode::List;
         }
