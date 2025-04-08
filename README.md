@@ -1,8 +1,7 @@
 <h1 align="center">envfetch</h1>
 <h5 align="center">Lightweight cross-platform CLI tool for working with environment variables</h5>
 <div align="center">
-    <a href="https://github.com/ankddev/envfetch/actions/workflows/build.yml"><img src="https://github.com/ankddev/envfetch/actions/workflows/build.yml/badge.svg" alt="Build status"/></a>
-    <a href="https://github.com/ankddev/envfetch/actions/workflows/test.yml"><img src="https://github.com/ankddev/envfetch/actions/workflows/test.yml/badge.svg" alt="Test status"/></a>
+    <a href="https://github.com/ankddev/envfetch/actions/workflows/ci.yml"><img src="https://github.com/ankddev/envfetch/actions/workflows/ci.yml/badge.svg" alt="Test status"/></a>
     <img alt="GitHub commit activity" src="https://img.shields.io/github/commit-activity/w/ankddev/envfetch">
     <a href="https://app.codecov.io/github/ankddev/envfetch"><img src="https://camo.githubusercontent.com/24e6fbb5fab320f1c87a360fcdf93b0901a6fc04fe0cb070a4083346c7946680/68747470733a2f2f636f6465636f762e696f2f67682f616e6b646465762f656e7666657463682f67726170682f62616467652e7376673f746f6b656e3d37325138463858574b51" /></a>
     <a href="https://crates.io/crates/envfetch"><img src="https://img.shields.io/crates/d/envfetch" alt="crates.io downloads"/></a>
