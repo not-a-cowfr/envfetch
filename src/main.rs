@@ -114,14 +114,14 @@ mod tests {
 
     #[test]
     fn test_set_command_simple() {
-        let args = Cli::parse_from(["envfetch", "set", "VAR", "VALUE", "--", "npm run"]);
+        let args = Cli::parse_from(["envfetch", "set", "VAR", "VALUE", "--", "npm", "run"]);
         assert_eq!(
             args.command,
             Commands::Set(SetArgs {
                 global: false,
                 key: "VAR".to_string(),
                 value: "VALUE".to_string(),
-                process: Some("npm run".to_string())
+                process: vec!["npm".to_string(), "run".to_string()]
             })
         );
     }
@@ -135,7 +135,7 @@ mod tests {
                 global: true,
                 key: "VAR".to_string(),
                 value: "VALUE".to_string(),
-                process: None
+                process: vec![]
             })
         );
     }
@@ -143,7 +143,7 @@ mod tests {
     #[test]
     fn test_set_command_with_global_flag_and_process() {
         let args = Cli::parse_from([
-            "envfetch", "set", "VAR", "VALUE", "--global", "--", "npm run",
+            "envfetch", "set", "VAR", "VALUE", "--global", "--", "npm", "run",
         ]);
         assert_eq!(
             args.command,
@@ -151,21 +151,21 @@ mod tests {
                 global: true,
                 key: "VAR".to_string(),
                 value: "VALUE".to_string(),
-                process: Some("npm run".to_string())
+                process: vec!["npm".to_string(), "run".to_string()]
             })
         );
     }
 
     #[test]
     fn test_add_command_simple() {
-        let args = Cli::parse_from(["envfetch", "add", "PATH", "./executable", "--", "npm run"]);
+        let args = Cli::parse_from(["envfetch", "add", "PATH", "./executable", "--", "npm", "run"]);
         assert_eq!(
             args.command,
             Commands::Add(AddArgs {
                 global: false,
                 key: "PATH".to_string(),
                 value: "./executable".to_string(),
-                process: Some("npm run".to_string())
+                process: vec!["npm".to_string(), "run".to_string()]
             })
         );
     }
@@ -179,7 +179,7 @@ mod tests {
                 global: true,
                 key: "PATH".to_string(),
                 value: "./executable".to_string(),
-                process: None
+                process: vec![]
             })
         );
     }
@@ -193,7 +193,8 @@ mod tests {
             "./executable",
             "--global",
             "--",
-            "npm run",
+            "npm",
+            "run",
         ]);
         assert_eq!(
             args.command,
@@ -201,20 +202,20 @@ mod tests {
                 global: true,
                 key: "PATH".to_string(),
                 value: "./executable".to_string(),
-                process: Some("npm run".to_string())
+                process: vec!["npm".to_string(), "run".to_string()]
             })
         );
     }
 
     #[test]
     fn test_delete_command_simple() {
-        let args = Cli::parse_from(["envfetch", "delete", "VAR", "--", "npm run"]);
+        let args = Cli::parse_from(["envfetch", "delete", "VAR", "--", "npm", "run"]);
         assert_eq!(
             args.command,
             Commands::Delete(DeleteArgs {
                 key: "VAR".to_string(),
                 global: false,
-                process: Some("npm run".to_string())
+                process: vec!["npm".to_string(), "run".to_string()]
             })
         );
     }
@@ -227,20 +228,20 @@ mod tests {
             Commands::Delete(DeleteArgs {
                 key: "VAR".to_string(),
                 global: true,
-                process: None
+                process: vec![]
             })
         );
     }
 
     #[test]
     fn test_delete_command_with_global_flag_and_process() {
-        let args = Cli::parse_from(["envfetch", "delete", "VAR", "--global", "--", "npm run"]);
+        let args = Cli::parse_from(["envfetch", "delete", "VAR", "--global", "--", "npm", "run"]);
         assert_eq!(
             args.command,
             Commands::Delete(DeleteArgs {
                 key: "VAR".to_string(),
                 global: true,
-                process: Some("npm run".to_string())
+                process: vec!["npm".to_string(), "run".to_string()]
             })
         );
     }

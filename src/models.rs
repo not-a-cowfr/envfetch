@@ -70,8 +70,13 @@ pub struct LoadArgs {
     #[arg(required = false, long, short)]
     pub global: bool,
     /// Process to start, not required if --global flag is set
-    #[arg(last = true, required_unless_present = "global")]
-    pub process: Option<String>,
+    #[arg(
+        last = true,
+        required_unless_present = "global",
+        allow_hyphen_values = true,
+        num_args = 1..
+    )]
+    pub process: Vec<String>,
     /// Relative or absolute path to file to read variables from.
     /// Note that it must be in .env format
     #[arg(long, short, default_value = ".env")]
@@ -91,8 +96,28 @@ pub struct SetArgs {
     #[arg(required = false, long, short)]
     pub global: bool,
     /// Process to start, not required if --global flag is set
-    #[arg(last = true, required_unless_present = "global")]
-    pub process: Option<String>,
+    // #[arg(
+    //     last = true,
+    //     required_unless_present = "global",
+    //     num_args = 1..,
+    //     value_parser = |arg: &_| {
+    //         Ok::<String, String>(
+    //             std::env::args_os() // Get all CLI arguments
+    //                 .skip_while(|a| a != "--") // Skip until "--"
+    //                 .skip(1) // Skip the "--" itself
+    //                 .map(|a| a.to_string_lossy().into_owned())
+    //                 .collect::<Vec<_>>()
+    //                 .join(" ")
+    //         )
+    //     }
+    // )]
+    #[arg(
+        last = true,
+        required_unless_present = "global",
+        allow_hyphen_values = true,
+        num_args = 1..
+    )]
+    pub process: Vec<String>,
 }
 
 /// Args for add command
@@ -108,8 +133,13 @@ pub struct AddArgs {
     #[arg(required = false, long, short)]
     pub global: bool,
     /// Process to start, not required if --global flag is set
-    #[arg(last = true, required_unless_present = "global")]
-    pub process: Option<String>,
+    #[arg(
+        last = true,
+        required_unless_present = "global",
+        allow_hyphen_values = true,
+        num_args = 1..
+    )]
+    pub process: Vec<String>,
 }
 
 /// Args for delete command
@@ -122,8 +152,13 @@ pub struct DeleteArgs {
     #[arg(required = false, long, short)]
     pub global: bool,
     /// Process to start, not required if --global flag is set
-    #[arg(last = true, required_unless_present = "global")]
-    pub process: Option<String>,
+    #[arg(
+        last = true,
+        required_unless_present = "global",
+        allow_hyphen_values = true,
+        num_args = 1..
+    )]
+    pub process: Vec<String>,
 }
 
 #[derive(Debug)]

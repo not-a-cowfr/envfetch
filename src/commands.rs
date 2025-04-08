@@ -144,7 +144,8 @@ pub fn load(args: &LoadArgs) -> Result<Option<ExitStatus>, ErrorKind> {
                             variables::set_variable(&key, &value, args.global)
                         },
                     )?;
-                    if let Some(process) = args.process.clone() {
+                    if !args.process.is_empty() {
+                        let process = args.process.join(" ");
                         return run(process).map(Some);
                     }
                 }
@@ -181,8 +182,8 @@ pub fn set(args: &SetArgs) -> Result<Option<ExitStatus>, ErrorKind> {
     validate_var_name(&args.key).map_err(ErrorKind::NameValidationError)?;
 
     variables::set_variable(&args.key, &args.value, args.global)?;
-    let process = args.process.clone();
-    if let Some(process) = process {
+    if !args.process.is_empty() {
+        let process = args.process.join(" ");
         return run(process).map(Some);
     }
     Ok(None)
@@ -203,8 +204,8 @@ pub fn add(args: &AddArgs) -> Result<Option<ExitStatus>, ErrorKind> {
         &format!("{}{}", current_value, args.value),
         args.global,
     )?;
-    let process = args.process.clone();
-    if let Some(process) = process {
+    if !args.process.is_empty() {
+        let process = args.process.join(" ");
         return run(process).map(Some);
     }
     Ok(None)
@@ -223,7 +224,8 @@ pub fn delete(args: &DeleteArgs) -> Result<Option<ExitStatus>, ErrorKind> {
             warn!("{}", "variable doesn't exists");
         }
     }
-    if let Some(process) = args.process.clone() {
+    if !args.process.is_empty() {
+        let process = args.process.join(" ");
         return run(process).map(Some);
     }
     Ok(None)
@@ -287,7 +289,7 @@ mod tests {
                 key: "TEST_SET_RUN".to_string(),
                 value: "test_value".to_string(),
                 global: false,
-                process: None,
+                process: vec![],
             }),
             None,
             &mut buffer,
@@ -308,7 +310,7 @@ mod tests {
                 key: "TEST_ADD_RUN".to_string(),
                 value: "value".to_string(),
                 global: false,
-                process: None,
+                process: vec![],
             }),
             None,
             &mut buffer,
@@ -386,7 +388,7 @@ mod tests {
             &Commands::Delete(DeleteArgs {
                 key: "TEST_DELETE_RUN".to_string(),
                 global: false,
-                process: None,
+                process: vec![],
             }),
             None,
             &mut buffer,
@@ -405,7 +407,7 @@ mod tests {
             &Commands::Load(LoadArgs {
                 file: temp_file.path().to_string_lossy().to_string(),
                 global: false,
-                process: None,
+                process: vec![],
             }),
             None,
             &mut buffer,
@@ -547,7 +549,7 @@ mod tests {
             key: "TEST_SET_VAR".to_string(),
             value: "test_value".to_string(),
             global: false,
-            process: None,
+            process: vec![],
         };
 
         let result = set(&args);
@@ -563,7 +565,7 @@ mod tests {
             key: "INVALID NAME".to_string(), // Space in name
             value: "test_value".to_string(),
             global: false,
-            process: None,
+            process: vec![],
         };
 
         let result = set(&args);
@@ -582,7 +584,7 @@ mod tests {
             key: "".to_string(),
             value: "test_value".to_string(),
             global: false,
-            process: None,
+            process: vec![],
         };
 
         let result = set(&args);
@@ -602,15 +604,15 @@ mod tests {
     fn test_set_with_process() {
         init();
         #[cfg(windows)]
-        let test_cmd = "echo test";
+        let test_cmd = vec!["echo".to_string(), "test".to_string()];
         #[cfg(not(windows))]
-        let test_cmd = "echo test";
+        let test_cmd = vec!["echo".to_string(), "test".to_string()];
 
         let args = SetArgs {
             key: "TEST_PROCESS_VAR".to_string(),
             value: "test_value".to_string(),
             global: false,
-            process: Some(test_cmd.to_string()),
+            process: test_cmd,
         };
 
         let result = set(&args);
@@ -627,7 +629,7 @@ mod tests {
             key: "TEST_OVERWRITE".to_string(),
             value: "new_value".to_string(),
             global: false,
-            process: None,
+            process: vec![],
         };
 
         let result = set(&args);
@@ -643,7 +645,7 @@ mod tests {
             key: "TEST_ADD_NEW".to_string(),
             value: "new_value".to_string(),
             global: false,
-            process: None,
+            process: vec![],
         };
 
         let result = add(&args);
@@ -660,7 +662,7 @@ mod tests {
             key: "TEST_ADD_EXISTING".to_string(),
             value: "appended".to_string(),
             global: false,
-            process: None,
+            process: vec![],
         };
 
         let result = add(&args);
@@ -675,7 +677,7 @@ mod tests {
             key: "INVALID NAME".to_string(),
             value: "test_value".to_string(),
             global: false,
-            process: None,
+            process: vec![],
         };
 
         let result = add(&args);
@@ -696,7 +698,7 @@ mod tests {
             key: "TEST_ADD_EMPTY".to_string(),
             value: "".to_string(),
             global: false,
-            process: None,
+            process: vec![],
         };
 
         let result = add(&args);
@@ -709,15 +711,15 @@ mod tests {
     fn test_add_with_process() {
         init();
         #[cfg(windows)]
-        let test_cmd = "echo test";
+        let test_cmd = vec!["echo".to_string(), "test".to_string()];
         #[cfg(not(windows))]
-        let test_cmd = "echo test";
+        let test_cmd = vec!["echo".to_string(), "test".to_string()];
 
         let args = AddArgs {
             key: "TEST_ADD_PROCESS".to_string(),
             value: "_value".to_string(),
             global: false,
-            process: Some(test_cmd.to_string()),
+            process: test_cmd,
         };
 
         unsafe { env::set_var("TEST_ADD_PROCESS", "initial") };
@@ -734,7 +736,7 @@ mod tests {
         let args = DeleteArgs {
             key: "TEST_DELETE_VAR".to_string(),
             global: false,
-            process: None,
+            process: vec![],
         };
 
         let result = delete(&args);
@@ -747,7 +749,7 @@ mod tests {
         let args = DeleteArgs {
             key: "NONEXISTENT_VAR".to_string(),
             global: false,
-            process: None,
+            process: vec![],
         };
 
         let result = delete(&args);
@@ -760,7 +762,7 @@ mod tests {
         let args = DeleteArgs {
             key: "INVALID NAME".to_string(),
             global: false,
-            process: None,
+            process: vec![],
         };
 
         let result = delete(&args);
@@ -779,14 +781,14 @@ mod tests {
         unsafe { env::set_var("TEST_DELETE_PROCESS", "test_value") };
 
         #[cfg(windows)]
-        let test_cmd = "echo test";
+        let test_cmd = vec!["echo".to_string(), "test".to_string()];
         #[cfg(not(windows))]
-        let test_cmd = "echo test";
+        let test_cmd = vec!["echo".to_string(), "test".to_string()];
 
         let args = DeleteArgs {
             key: "TEST_DELETE_PROCESS".to_string(),
             global: false,
-            process: Some(test_cmd.to_string()),
+            process: test_cmd,
         };
 
         let result = delete(&args);
@@ -799,7 +801,7 @@ mod tests {
         let args = DeleteArgs {
             key: "".to_string(),
             global: false,
-            process: None,
+            process: vec![],
         };
 
         let result = delete(&args);
@@ -820,7 +822,7 @@ mod tests {
         let args = LoadArgs {
             file: temp_file.path().to_string_lossy().to_string(),
             global: false,
-            process: None,
+            process: vec![],
         };
 
         let result = load(&args);
@@ -837,7 +839,7 @@ mod tests {
         let args = LoadArgs {
             file: "nonexistent.env".to_string(),
             global: false,
-            process: None,
+            process: vec![],
         };
 
         let result = load(&args);
@@ -854,7 +856,7 @@ mod tests {
         let args = LoadArgs {
             file: temp_file.path().to_string_lossy().to_string(),
             global: false,
-            process: None,
+            process: vec![],
         };
 
         let result = load(&args);
@@ -868,14 +870,14 @@ mod tests {
         writeln!(temp_file, "TEST_PROCESS_VAR=process_value").unwrap();
 
         #[cfg(windows)]
-        let cmd = "cmd /C echo test"; // Simple echo command for Windows
+        let cmd = vec!["cmd".to_string(), "/C".to_string(), "echo".to_string(), "test".to_string()];
         #[cfg(not(windows))]
-        let cmd = "echo test"; // Simple echo command for Unix
+        let cmd = vec!["echo".to_string(), "test".to_string()];
 
         let args = LoadArgs {
             file: temp_file.path().to_string_lossy().to_string(),
             global: false,
-            process: Some(cmd.to_string()),
+            process: cmd,
         };
 
         // First verify the variable is set correctly
@@ -890,7 +892,7 @@ mod tests {
         let args = LoadArgs {
             file: temp_file.path().to_string_lossy().to_string(),
             global: false,
-            process: None,
+            process: vec![],
         };
 
         let result = load(&args);
@@ -905,7 +907,7 @@ mod tests {
         let args = LoadArgs {
             file: temp_file.path().to_string_lossy().to_string(),
             global: false,
-            process: None,
+            process: vec![],
         };
 
         let result = load(&args);
@@ -957,9 +959,9 @@ mod tests {
     fn test_run_command_set_with_process() {
         init();
         #[cfg(windows)]
-        let test_cmd = "echo test";
+        let test_cmd = vec!["echo".to_string(), "test".to_string()];
         #[cfg(not(windows))]
-        let test_cmd = "echo test";
+        let test_cmd = vec!["echo".to_string(), "test".to_string()];
 
         let mut buffer = vec![];
         let result = run_command(
@@ -967,7 +969,7 @@ mod tests {
                 key: "TEST_SET_RUN".to_string(),
                 value: "test_value".to_string(),
                 global: false,
-                process: Some(test_cmd.to_string()),
+                process: test_cmd,
             }),
             None,
             &mut buffer,
@@ -985,7 +987,7 @@ mod tests {
                     key: "INVALID NAME".to_string(),
                     value: "test_value".to_string(),
                     global: false,
-                    process: None,
+                    process: vec![],
                 }),
                 None,
                 &mut buffer
@@ -1005,7 +1007,7 @@ mod tests {
                     key: "TEST_ADD_EXISTING".to_string(),
                     value: "appended".to_string(),
                     global: false,
-                    process: None,
+                    process: vec![],
                 }),
                 None,
                 &mut buffer
@@ -1026,7 +1028,7 @@ mod tests {
                     key: "INVALID NAME".to_string(),
                     value: "test_value".to_string(),
                     global: false,
-                    process: None,
+                    process: vec![],
                 }),
                 None,
                 &mut buffer
@@ -1044,7 +1046,7 @@ mod tests {
                 &Commands::Delete(DeleteArgs {
                     key: "NONEXISTENT_VAR".to_string(),
                     global: false,
-                    process: None,
+                    process: vec![],
                 }),
                 None,
                 &mut buffer
@@ -1062,7 +1064,7 @@ mod tests {
                 &Commands::Load(LoadArgs {
                     file: "nonexistent.env".to_string(),
                     global: false,
-                    process: None,
+                    process: vec![],
                 }),
                 None,
                 &mut buffer
@@ -1078,16 +1080,16 @@ mod tests {
         writeln!(temp_file, "TEST_LOAD_PROC=test_value").unwrap();
 
         #[cfg(windows)]
-        let test_cmd = "echo test";
+        let test_cmd = vec!["echo".to_string(), "test".to_string()];
         #[cfg(not(windows))]
-        let test_cmd = "echo test";
+        let test_cmd = vec!["echo".to_string(), "test".to_string()];
 
         let mut buffer = vec![];
         let result = run_command(
             &Commands::Load(LoadArgs {
                 file: temp_file.path().to_string_lossy().to_string(),
                 global: false,
-                process: Some(test_cmd.to_string()),
+                process: test_cmd,
             }),
             None,
             &mut buffer,
@@ -1106,7 +1108,7 @@ mod tests {
                 key: "TEST_GLOBAL".to_string(),
                 value: "test_value".to_string(),
                 global: true,
-                process: None,
+                process: vec![],
             }),
             None,
             &mut buffer,
@@ -1120,7 +1122,7 @@ mod tests {
                         &Commands::Delete(DeleteArgs {
                             key: "TEST_GLOBAL".to_string(),
                             global: true,
-                            process: None,
+                            process: vec![],
                         }),
                         None,
                         &mut buffer
@@ -1140,15 +1142,15 @@ mod tests {
 
         let mut buffer = vec![];
         #[cfg(windows)]
-        let failing_command = "cmd /C exit 1";
+        let failing_command = vec!["cmd".to_string(), "/C".to_string(), "exit".to_string(), "1".to_string()];
         #[cfg(not(windows))]
-        let failing_command = "false";
+        let failing_command = vec!["false".to_string()];
         assert_eq!(
             run_command(
                 &Commands::Delete(DeleteArgs {
                     key: "TEST_DELETE_PROC_FAIL".to_string(),
                     global: false,
-                    process: Some(failing_command.to_string()),
+                    process: failing_command,
                 }),
                 None,
                 &mut buffer
@@ -1168,7 +1170,7 @@ mod tests {
                 &Commands::Delete(DeleteArgs {
                     key: "INVALID NAME".to_string(),
                     global: false,
-                    process: None,
+                    process: vec![],
                 }),
                 None,
                 &mut buffer
@@ -1186,7 +1188,7 @@ mod tests {
                 &Commands::Delete(DeleteArgs {
                     key: "".to_string(),
                     global: false,
-                    process: None,
+                    process: vec![],
                 }),
                 None,
                 &mut buffer
