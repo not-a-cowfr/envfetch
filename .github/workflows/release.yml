@@ -58,6 +58,8 @@ jobs:
           toolchain: ${{ matrix.toolchain }}
           args: "--locked --release"
           strip: true
+      - name: Debug built files
+        run: ls -lh target/${{ matrix.platform.target }}/release
       - name: Rename binary (linux and macos)
         run: mv target/${{ matrix.platform.target }}/release/envfetch target/${{ matrix.platform.target }}/release/${{ matrix.platform.bin }}
         if: matrix.platform.os_name != 'Windows-x86_64'
