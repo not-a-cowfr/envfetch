@@ -858,6 +858,147 @@ mod tests {
     }
 
     #[test]
+    fn test_export_valid_keys() {
+        init();
+        unsafe {
+            env::set_var("TEST_EXPORT_ONE", "val1");
+            env::set_var("TEST_EXPORT_TWO", "val2");
+        }
+
+        let temp_file = tempfile::NamedTempFile::new().unwrap();
+        let file_name = temp_file.path().to_string_lossy().to_string();
+
+        let args = ExportArgs {
+            file_name: file_name.clone(),
+            keys: vec!["TEST_EXPORT_ONE".to_string(), "TEST_EXPORT_TWO".to_string()],
+        };
+
+        let result = export(&args);
+        assert!(result.is_ok());
+
+        let content = std::fs::read_to_string(&format!("{}.env", file_name)).unwrap();
+        assert!(content.contains("TEST_EXPORT_ONE=val1"));
+        assert!(content.contains("TEST_EXPORT_TWO=val2"));
+
+        unsafe {
+            env::remove_var("TEST_EXPORT_ONE");
+            env::remove_var("TEST_EXPORT_TWO");
+        }
+        std::fs::remove_file(file_name).unwrap();
+    }
+
+        #[test]
+    fn test_export_skips_duplicate_keys() {
+        init();
+        unsafe {
+            env::set_var("TEST_EXPORT_ONE", "val");
+        }
+
+        let temp_file = tempfile::NamedTempFile::new().unwrap();
+        let file_name = temp_file.path().to_string_lossy().to_string();
+
+        let args = ExportArgs {
+            file_name: file_name.clone(),
+            keys: vec!["TEST_EXPORT_ONE".to_string(), "TEST_EXPORT_ONE".to_string()],
+        };
+
+        let result = export(&args);
+        assert!(result.is_ok());
+
+        let content = std::fs::read_to_string(&format!("{}.env", file_name)).unwrap();
+        assert!(!content.contains(r#"TEST_EXPORT_ONE=val
+TEST_EXPORT_ONE=val"#));
+
+        unsafe {
+            env::remove_var("TEST_EXPORT_ONE");
+        }
+        std::fs::remove_file(file_name).unwrap();
+    }
+
+    #[test]
+    fn test_export_skips_missing_vars() {
+        init();
+        unsafe {
+            env::set_var("TEST_EXPORT_EXISTING", "val");
+            env::set_var("TEST_EXPORT_EXISTING2", "val2");
+        }
+
+        let temp_file = tempfile::NamedTempFile::new().unwrap();
+        let file_name = temp_file.path().to_string_lossy().to_string();
+
+        let args = ExportArgs {
+            file_name: file_name.clone(),
+            keys: vec![
+                "TEST_EXPORT_EXISTING".to_string(),
+                "TEST_EXPORT_MISSING".to_string(),
+                "TEST_EXPORT_EXISTING2".to_string(),
+            ],
+        };
+
+        let result = export(&args);
+        assert!(result.is_ok());
+
+        let content = std::fs::read_to_string(&format!("{}.env", file_name)).unwrap();
+        assert!(content.contains("TEST_EXPORT_EXISTING=val"));
+        assert!(!content.contains("TEST_EXPORT_MISSING"));
+        assert!(content.contains("TEST_EXPORT_EXISTING2=val2"));
+
+        unsafe {
+            env::remove_var("TEST_EXPORT_EXISTING");
+            env::remove_var("TEST_EXPORT_EXISTING2");
+        };
+        std::fs::remove_file(file_name).unwrap();
+    }
+
+    #[test]
+    fn test_export_empty_key() {
+        init();
+
+        let temp_file = tempfile::NamedTempFile::new().unwrap();
+        let file_name = temp_file.path().to_string_lossy().to_string();
+
+        let args = ExportArgs {
+            file_name: file_name.clone(),
+            keys: vec!["".to_string()],
+        };
+
+        let result = export(&args);
+        assert!(result.is_err());
+        match result.unwrap_err() {
+            ErrorKind::NameValidationError(e) => {
+                assert!(e.contains("cannot be empty"));
+            }
+            _ => panic!("Unexpected error type"),
+        }
+
+        std::fs::remove_file(file_name).unwrap();
+    }
+
+    #[test]
+    fn test_export_invalid_key_name() {
+        init();
+
+        let temp_file = tempfile::NamedTempFile::new().unwrap();
+        let file_name = temp_file.path().to_string_lossy().to_string();
+
+        let args = ExportArgs {
+            file_name: file_name.clone(),
+            keys: vec!["INVALID KEY".to_string()],
+        };
+
+        let result = export(&args);
+        assert!(result.is_err());
+        match result.unwrap_err() {
+            ErrorKind::NameValidationError(e) => {
+                assert!(e.contains("cannot contain spaces"));
+            }
+            _ => panic!("Unexpected error type"),
+        }
+
+        std::fs::remove_file(file_name).unwrap();
+    }
+
+    #[test]
     fn test_load_valid_env_file() {
         let mut temp_file = NamedTempFile::new().unwrap();
         writeln!(temp_file, "TEST_VAR=test_value\nOTHER_VAR=other_value").unwrap();
