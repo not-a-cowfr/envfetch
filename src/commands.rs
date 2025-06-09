@@ -1,5 +1,4 @@
-use log::error;
-use log::warn;
+use log::{error, warn};
 use rayon::prelude::*;
 use std::io::Write;
 use std::process::ExitCode;
@@ -116,6 +115,17 @@ pub fn run_command<W: Write>(
                 error!("{}", error);
                 return ExitCode::FAILURE;
             }
+        },
+        Commands::Export(opt) => match export(opt) {
+            Ok(code) => {
+                if let Some(exit_code) = code {
+                    return ExitCode::from(exit_code.code().unwrap_or_default() as u8);
+                }
+            },
+            Err(error) => {
+                error!("{}", error);
+                return ExitCode::FAILURE;
+            },
         }
     }
     ExitCode::SUCCESS
@@ -228,6 +238,37 @@ pub fn delete(args: &DeleteArgs) -> Result<Option<ExitStatus>, ErrorKind> {
         let process = args.process.join(" ");
         return run(process).map(Some);
     }
+    Ok(None)
+}
+
+pub fn export(args: &ExportArgs) -> Result<Option<ExitStatus>, ErrorKind> {
+    let mut file = fs::File::create(&format!("{}.env", args.file_name.trim()))
+        .map_err(|e| ErrorKind::FileError(e.to_string()))?;
+
+    let mut added_vars: Vec<String> = Vec::new();
+
+    for key in &args.keys {
+        validate_var_name(key).map_err(ErrorKind::NameValidationError)?;
+        
+        match env::var(key) {
+            Ok(value) => {
+                if added_vars.contains(&key) {
+                    warn!("Duplicate var {} found, skipping", key);
+                    continue
+                };
+
+
+                writeln!(file, "{}={}", key, &value)
+                    .map_err(|e| ErrorKind::FileError(e.to_string()))?;
+                
+                added_vars.push(key.to_string());
+            }
+            Err(_) => {
+                warn!("{}, skipping", ErrorKind::CannotFindVariable(key.clone(), false))
+            }
+        }
+    }
+
     Ok(None)
 }
 
