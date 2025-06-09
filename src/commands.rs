@@ -115,18 +115,18 @@ pub fn run_command<W: Write>(
                 error!("{}", error);
                 return ExitCode::FAILURE;
             }
-        },
+        }
         Commands::Export(opt) => match export(opt) {
             Ok(code) => {
                 if let Some(exit_code) = code {
                     return ExitCode::from(exit_code.code().unwrap_or_default() as u8);
                 }
-            },
+            }
             Err(error) => {
-                error!("{}", error);
+                error!("{error}");
                 return ExitCode::FAILURE;
-            },
-        }
+            }
+        },
     }
     ExitCode::SUCCESS
 }
@@ -242,29 +242,31 @@ pub fn delete(args: &DeleteArgs) -> Result<Option<ExitStatus>, ErrorKind> {
 }
 
 pub fn export(args: &ExportArgs) -> Result<Option<ExitStatus>, ErrorKind> {
-    let mut file = fs::File::create(&format!("{}.env", args.file_name.trim()))
+    let mut file = fs::File::create(format!("{}.env", args.file_name.trim()))
         .map_err(|e| ErrorKind::FileError(e.to_string()))?;
 
     let mut added_vars: Vec<String> = Vec::new();
 
     for key in &args.keys {
         validate_var_name(key).map_err(ErrorKind::NameValidationError)?;
-        
+
         match env::var(key) {
             Ok(value) => {
-                if added_vars.contains(&key) {
-                    warn!("Duplicate var {} found, skipping", key);
-                    continue
+                if added_vars.contains(key) {
+                    warn!("Duplicate var {key} found, skipping");
+                    continue;
                 };
-
 
                 writeln!(file, "{}={}", key, &value)
                     .map_err(|e| ErrorKind::FileError(e.to_string()))?;
-                
+
                 added_vars.push(key.to_string());
             }
             Err(_) => {
-                warn!("{}, skipping", ErrorKind::CannotFindVariable(key.clone(), false))
+                warn!(
+                    "{}, skipping",
+                    ErrorKind::CannotFindVariable(key.clone(), false)
+                )
             }
         }
     }
@@ -1183,7 +1185,12 @@ mod tests {
 
         let mut buffer = vec![];
         #[cfg(windows)]
-        let failing_command = vec!["cmd".to_string(), "/C".to_string(), "exit".to_string(), "1".to_string()];
+        let failing_command = vec![
+            "cmd".to_string(),
+            "/C".to_string(),
+            "exit".to_string(),
+            "1".to_string(),
+        ];
         #[cfg(not(windows))]
         let failing_command = vec!["false".to_string()];
         assert_eq!(
