@@ -64,8 +64,8 @@ jobs:
       - name: Generate ZIP and checksum for it (Windows)
         run: |
           cd target/${{ matrix.platform.target }}/release
-          tar.exe -a -c -f envfetch-windows-amd64.zip envfetch.exe
-          shasum -a 256 envfetch-windows-amd64.zip | cut -d ' ' -f 1 > envfetch-windows-amd64.zip.sha256
+          tar.exe -a -c -f envfetch-windows-x86_64.zip envfetch.exe
+          shasum -a 256 envfetch-windows-x86_64.zip | cut -d ' ' -f 1 > envfetch-windows-x86_64.zip.sha256
         if: matrix.platform.os_name == 'Windows-x86_64'
       - name: Rename binary (windows)
         run: mv target/${{ matrix.platform.target }}/release/envfetch.exe target/${{ matrix.platform.target }}/release/${{ matrix.platform.bin }}
@@ -96,8 +96,8 @@ jobs:
         if: matrix.platform.os_name == 'Windows-x86_64'
         with:
           files: |
-            target/${{ matrix.platform.target }}/release/envfetch-windows-amd64.zip
-            target/${{ matrix.platform.target }}/release/envfetch-windows-amd64.zip.sha256
+            target/${{ matrix.platform.target }}/release/envfetch-windows-x86_64.zip
+            target/${{ matrix.platform.target }}/release/envfetch-windows-x86_64.zip.sha256
   test-install-scripts:
     needs: publish
     uses: ./.github/workflows/test-install.yml
