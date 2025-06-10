@@ -868,13 +868,15 @@ mod tests {
         let temp_file = tempfile::NamedTempFile::new().unwrap();
         let file_name = temp_file.path().to_string_lossy().to_string();
 
-        let args = ExportArgs {
-            file_name: file_name.clone(),
-            keys: vec!["TEST_EXPORT_ONE".to_string(), "TEST_EXPORT_TWO".to_string()],
-        };
-
-        let result = export(&args);
-        assert!(result.is_ok());
+        let mut buffer = vec![];
+        run_command(
+            &Commands::Export(ExportArgs {
+                file_name: file_name.clone(),
+                keys: vec!["TEST_EXPORT_ONE".to_string(), "TEST_EXPORT_TWO".to_string()],
+            }),
+            None,
+            &mut buffer,
+        );
 
         let content = std::fs::read_to_string(&format!("{}.env", file_name)).unwrap();
         assert!(content.contains("TEST_EXPORT_ONE=val1"));
@@ -998,6 +1000,19 @@ TEST_EXPORT_ONE=val"#));
         std::fs::remove_file(file_name).unwrap();
     }
 
+    #[test]
+    fn test_export_file_error() {
+        init();
+
+        let args = ExportArgs {
+            file_name: "/test/test/test/test/test/test/test".to_string(),
+            keys: vec!["DUMMY".to_string()],
+        };
+
+        let result = export(&args);
+        assert!(result.is_err());
+    }
+    
     #[test]
     fn test_load_valid_env_file() {
         let mut temp_file = NamedTempFile::new().unwrap();
