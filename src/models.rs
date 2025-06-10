@@ -166,7 +166,7 @@ pub struct DeleteArgs {
 /// Args for export command
 #[derive(Args, Debug, PartialEq, Eq)]
 pub struct ExportArgs {
-    /// File anme to be exported as
+    /// File name to be exported as
     #[arg(required = true)]
     pub file_name: String,
     /// Environment variable(s) name
