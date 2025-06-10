@@ -27,21 +27,21 @@ jobs:
       matrix:
         platform:
           - os_name: Linux-aarch64
-            os: ubuntu-20.04
+            os: ubuntu-latest
             target: aarch64-unknown-linux-musl
             bin: envfetch-linux-arm64
           - os_name: Linux-x86_64
-            os: ubuntu-20.04
+            os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-            bin: envfetch-linux-amd64
+            bin: envfetch-linux-x86_64
           - os_name: Windows-x86_64
             os: windows-latest
             target: x86_64-pc-windows-msvc
-            bin: envfetch-windows-amd64.exe
+            bin: envfetch-windows-x86_64.exe
           - os_name: macOS-x86_64
             os: macOS-latest
             target: x86_64-apple-darwin
-            bin: envfetch-darwin-amd64
+            bin: envfetch-darwin-x86_64
           - os_name: macOS-aarch64
             os: macOS-latest
             target: aarch64-apple-darwin
@@ -64,8 +64,8 @@ jobs:
       - name: Generate ZIP and checksum for it (Windows)
         run: |
           cd target/${{ matrix.platform.target }}/release
-          tar.exe -a -c -f envfetch-windows-amd64.zip envfetch.exe
-          shasum -a 256 envfetch-windows-amd64.zip | cut -d ' ' -f 1 > envfetch-windows-amd64.zip.sha256
+          tar.exe -a -c -f envfetch-windows-x86_64.zip envfetch.exe
+          shasum -a 256 envfetch-windows-x86_64.zip | cut -d ' ' -f 1 > envfetch-windows-x86_64.zip.sha256
         if: matrix.platform.os_name == 'Windows-x86_64'
       - name: Rename binary (windows)
         run: mv target/${{ matrix.platform.target }}/release/envfetch.exe target/${{ matrix.platform.target }}/release/${{ matrix.platform.bin }}
@@ -96,8 +96,8 @@ jobs:
         if: matrix.platform.os_name == 'Windows-x86_64'
         with:
           files: |
-            target/${{ matrix.platform.target }}/release/envfetch-windows-amd64.zip
-            target/${{ matrix.platform.target }}/release/envfetch-windows-amd64.zip.sha256
+            target/${{ matrix.platform.target }}/release/envfetch-windows-x86_64.zip
+            target/${{ matrix.platform.target }}/release/envfetch-windows-x86_64.zip.sha256
   test-install-scripts:
     needs: publish
     uses: ./.github/workflows/test-install.yml
