@@ -117,11 +117,7 @@ pub fn run_command<W: Write>(
             }
         }
         Commands::Export(opt) => match export(opt) {
-            Ok(code) => {
-                if let Some(exit_code) = code {
-                    return ExitCode::from(exit_code.code().unwrap_or_default() as u8);
-                }
-            }
+            Ok(()) => {}
             Err(error) => {
                 error!("{error}");
                 return ExitCode::FAILURE;
@@ -241,7 +237,7 @@ pub fn delete(args: &DeleteArgs) -> Result<Option<ExitStatus>, ErrorKind> {
     Ok(None)
 }
 
-pub fn export(args: &ExportArgs) -> Result<Option<ExitStatus>, ErrorKind> {
+pub fn export(args: &ExportArgs) -> Result<(), ErrorKind> {
     let mut file = fs::File::create(format!("{}.env", args.file_name.trim()))
         .map_err(|e| ErrorKind::FileError(e.to_string()))?;
 
@@ -271,7 +267,7 @@ pub fn export(args: &ExportArgs) -> Result<Option<ExitStatus>, ErrorKind> {
         }
     }
 
-    Ok(None)
+    Ok(())
 }
 
 #[cfg(test)]
@@ -1012,7 +1008,7 @@ TEST_EXPORT_ONE=val"#));
         let result = export(&args);
         assert!(result.is_err());
     }
-    
+
     #[test]
     fn test_load_valid_env_file() {
         let mut temp_file = NamedTempFile::new().unwrap();
