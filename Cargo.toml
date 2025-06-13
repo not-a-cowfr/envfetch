@@ -11,7 +11,7 @@ repository = "https://github.com/ankddev/envfetch"
 
 [dependencies]
 # Parsing command line options
-clap = { version = "4.5.39", features = ["derive"] }
+clap = { version = "4.5.40", features = ["derive"] }
 # Checking similarity of strings
 similar-string = "1.4.3"
 # Parsing dotenv-style files
@@ -41,3 +41,13 @@ predicates = "3.1.3"
 assert_fs = "1.1.3"
 # Creating temporary directories
 tempfile = "3.20.0"
+
+[profile.release]
+opt-level = "z"
+debug = true
+lto = true
+codegen-units = 1
+panic = "abort"
+incremental = true
+split-debuginfo = "packed"
+strip = "symbols"
